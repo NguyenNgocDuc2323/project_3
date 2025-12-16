@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/
+packages/
+
+# Build outputs
+dist/
+build/
+bin/
+obj/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
