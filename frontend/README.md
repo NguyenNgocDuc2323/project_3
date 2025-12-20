@@ -32,9 +32,8 @@ frontend/
 │   ├── api/           # API services và axios config
 │   ├── assets/        # Static assets (images, fonts, etc.)
 │   ├── components/    # Vue components
+│   ├── layouts/       # Layout components
 │   ├── router/        # Vue Router configuration
-│   ├── store/         # Pinia stores
-│   ├── utils/         # Utility functions
 │   ├── views/         # Page components
 │   ├── App.vue        # Root component
 │   └── main.js        # Entry point

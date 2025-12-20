@@ -68,13 +68,12 @@ Frontend sẽ chạy tại: **http://localhost:3000**
 
 - ✅ Vue 3 với Composition API
 - ✅ Vue Router cho routing
-- ✅ Pinia cho state management
 - ✅ Axios cho HTTP requests
 - ✅ .NET 8 Web API
 - ✅ Swagger/OpenAPI documentation
 - ✅ CORS configuration
-- ✅ Service layer pattern
-- ✅ Repository pattern ready (có thể mở rộng)
+- ✅ JWT Authentication
+- ✅ Entity Framework Core
 
 ## Development
 
