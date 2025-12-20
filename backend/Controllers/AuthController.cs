@@ -1,6 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Backend.Models;
 using Backend.Services;
+using Backend.Data;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Controllers
 {
@@ -10,126 +15,256 @@ namespace Backend.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger, IConfiguration configuration, IServiceProvider serviceProvider)
         {
             _authService = authService;
             _logger = logger;
+            _configuration = configuration;
+            _serviceProvider = serviceProvider;
+        }
+        
+        private int GetAccessTokenExpirationMinutes()
+        {
+            return int.Parse(_configuration["Jwt:AccessTokenExpirationMinutes"] ?? "15");
         }
 
-        /// <summary>
-        /// API đăng nhập: POST /api/auth/login
-        /// Nhận username và password, trả về access token và refresh token
-        /// </summary>
+        private int GetRefreshTokenExpirationDays()
+        {
+            return int.Parse(_configuration["Jwt:RefreshTokenExpirationDays"] ?? "7");
+        }
+
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
-            // Kiểm tra dữ liệu đầu vào có hợp lệ không
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Gọi service để xử lý đăng nhập
-            // Service sẽ kiểm tra username/password và tạo tokens
             var response = await _authService.LoginAsync(request.Username, request.Password);
 
-            // Nếu đăng nhập thất bại (username/password sai)
             if (response == null)
             {
-                return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+                return Unauthorized(new { message = "Invalid username or password" });
             }
 
-            // Trả về response chứa access token, refresh token và thông tin user
+            Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
+                Path = "/"
+            });
+
+            Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
+                Path = "/"
+            });
+
             return Ok(response);
         }
 
-        /// <summary>
-        /// API đăng ký: POST /api/auth/register
-        /// Tạo user mới và tự động đăng nhập (trả về tokens luôn)
-        /// </summary>
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
-            // Kiểm tra dữ liệu đầu vào
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Register request validation failed: {Errors}", 
+                        string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                    return BadRequest(ModelState);
+                }
+
+                _logger.LogInformation("Attempting to register user: {Username}, {Email}", 
+                    request.Username, request.Email);
+
+                var user = await _authService.RegisterAsync(
+                    request.Username,
+                    request.Email,
+                    request.Password,
+                    request.FullName
+                );
+
+                if (user == null)
+                {
+                    _logger.LogWarning("Registration failed: Username or email already exists - {Username}, {Email}", 
+                        request.Username, request.Email);
+                    return BadRequest(new { message = "Username or email already exists" });
+                }
+
+                _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
+
+                var response = await _authService.LoginAsync(request.Username, request.Password);
+
+                if (response == null)
+                {
+                    _logger.LogError("Login failed after registration for user ID: {UserId}. Rolling back user creation.", user.Id);
+                    await _authService.DeleteUserAsync(user.Id);
+                    return StatusCode(500, new { message = "Registration failed. Please try again." });
+                }
+
+                _logger.LogInformation("Registration and auto-login successful for user: {Username}", request.Username);
+
+                Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
+                    Path = "/"
+                });
+
+                Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
+                    Path = "/"
+                });
+
+                return Ok(response);
             }
-
-            // Bước 1: Tạo user mới
-            var user = await _authService.RegisterAsync(
-                request.Username,
-                request.Email,
-                request.Password,
-                request.FullName
-            );
-
-            // Nếu user == null nghĩa là username hoặc email đã tồn tại
-            if (user == null)
+            catch (Exception ex)
             {
-                return BadRequest(new { message = "Tên đăng nhập hoặc email đã tồn tại" });
+                var errorMessage = ex.Message ?? "Unknown error";
+                var innerError = ex.InnerException?.Message;
+                
+                _logger.LogError(ex, "Error occurred during registration for user: {Username}, {Email}. Error: {Error}, Inner: {Inner}", 
+                    request?.Username, request?.Email, errorMessage, innerError);
+                
+                // Log full exception details for debugging
+                _logger.LogError("Full exception details: {Exception}", ex.ToString());
+                
+                return StatusCode(500, new { 
+                    message = "Registration failed. Please try again.", 
+                    error = errorMessage,
+                    innerError = innerError ?? "No inner error"
+                });
             }
-
-            // Bước 2: Tự động đăng nhập sau khi đăng ký thành công
-            // Tạo và trả về tokens luôn để user không cần đăng nhập lại
-            var response = await _authService.LoginAsync(request.Username, request.Password);
-
-            return Ok(response);
         }
 
-        /// <summary>
-        /// API làm mới token: POST /api/auth/refresh
-        /// Khi access token hết hạn, frontend sẽ gọi API này với refresh token
-        /// Để lấy access token mới (và refresh token mới)
-        /// </summary>
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            // Kiểm tra dữ liệu đầu vào
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Gọi service để refresh token
-            // Service sẽ kiểm tra refresh token, tạo tokens mới và vô hiệu hóa token cũ
-            var response = await _authService.RefreshTokenAsync(request.RefreshToken);
+            var refreshToken = request.RefreshToken ?? Request.Cookies["refreshToken"];
 
-            // Nếu refresh token không hợp lệ hoặc đã hết hạn
-            if (response == null)
+            if (string.IsNullOrEmpty(refreshToken))
             {
-                return Unauthorized(new { message = "Refresh token không hợp lệ hoặc đã hết hạn" });
+                return Unauthorized(new { message = "Refresh token not found" });
             }
 
-            // Trả về tokens mới
+            var response = await _authService.RefreshTokenAsync(refreshToken);
+
+            if (response == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired refresh token" });
+            }
+
+            Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
+                Path = "/"
+            });
+
+            Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
+                Path = "/"
+            });
+
             return Ok(response);
         }
 
-        /// <summary>
-        /// API thu hồi token: POST /api/auth/revoke
-        /// Dùng khi user đăng xuất - vô hiệu hóa refresh token để không thể dùng lại
-        /// </summary>
+        [HttpGet("test-db")]
+        public async Task<IActionResult> TestDatabase()
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                var canConnect = db.Database.CanConnect();
+                var usersCount = canConnect ? await db.Users.CountAsync() : -1;
+                
+                // Try to get column info (MySQL specific)
+                var connection = db.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var command = connection.CreateCommand();
+                command.CommandText = "DESCRIBE Users";
+                using var reader = await command.ExecuteReaderAsync();
+                
+                var columns = new List<object>();
+                while (await reader.ReadAsync())
+                {
+                    columns.Add(new
+                    {
+                        Field = reader.GetString(0),
+                        Type = reader.GetString(1),
+                        Null = reader.GetString(2),
+                        Key = reader.GetString(3),
+                        Default = reader.IsDBNull(4) ? null : reader.GetString(4),
+                        Extra = reader.IsDBNull(5) ? null : reader.GetString(5)
+                    });
+                }
+                await connection.CloseAsync();
+                
+                return Ok(new
+                {
+                    canConnect,
+                    usersCount,
+                    columns,
+                    message = "Database test successful"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Database test failed",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
         [HttpPost("revoke")]
         public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
         {
-            // Kiểm tra dữ liệu đầu vào
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Gọi service để thu hồi token
             var result = await _authService.RevokeTokenAsync(request.RefreshToken);
 
-            // Nếu thu hồi thất bại (token không tồn tại hoặc đã bị thu hồi rồi)
             if (!result)
             {
-                return BadRequest(new { message = "Không thể thu hồi token" });
+                return BadRequest(new { message = "Failed to revoke token" });
             }
 
-            // Thu hồi thành công
-            return Ok(new { message = "Token đã được thu hồi thành công" });
+            return Ok(new { message = "Token revoked successfully" });
         }
     }
 }

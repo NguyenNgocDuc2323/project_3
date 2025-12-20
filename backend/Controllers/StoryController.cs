@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Allow access without authentication for student project
+    [AllowAnonymous]
     public class StoryController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -21,18 +22,25 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Story>>> GetStories([FromQuery] bool? featured = null)
         {
-            var query = _context.Stories.AsQueryable();
-            
-            if (featured.HasValue && featured.Value)
+            try
             {
-                query = query.Where(s => s.IsFeatured);
+                var query = _context.Stories.AsQueryable();
+                
+                if (featured.HasValue && featured.Value)
+                {
+                    query = query.Where(s => s.IsFeatured);
+                }
+
+                var stories = await query
+                    .OrderByDescending(s => s.CreatedAt)
+                    .ToListAsync();
+
+                return Ok(stories);
             }
-
-            var stories = await query
-                .OrderByDescending(s => s.CreatedAt)
-                .ToListAsync();
-
-            return Ok(stories);
+            catch (Exception)
+            {
+                return Ok(new List<Story>());
+            }
         }
 
         [HttpGet("{id}")]
@@ -45,7 +53,6 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            // Increment views
             story.Views++;
             await _context.SaveChangesAsync();
 
@@ -84,7 +91,6 @@ namespace Backend.Controllers
             }
             catch
             {
-                // Return default stats if there's an error (e.g., database not ready)
                 return Ok(new
                 {
                     totalStories = 0,
@@ -96,7 +102,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        [Authorize] // Only authenticated users can create stories
+        [Authorize]
         public async Task<ActionResult<Story>> CreateStory([FromBody] Story story)
         {
             if (!ModelState.IsValid)

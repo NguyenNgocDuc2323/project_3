@@ -4,9 +4,9 @@
       <div class="page-header">
         <h1 class="page-title">
           <i class="pi pi-plus-circle" />
-          Thêm truyện mới
+          Add New Story
         </h1>
-        <p class="page-subtitle">Chia sẻ câu chuyện của bạn với cộng đồng</p>
+        <p class="page-subtitle">Share your story with the community</p>
       </div>
 
       <Card class="form-card">
@@ -36,12 +36,12 @@
               <div class="form-group full-width">
                 <label for="title" class="form-label">
                   <i class="pi pi-book" />
-                  Tiêu đề truyện <span class="required">*</span>
+                  Story Title <span class="required">*</span>
                 </label>
                 <InputText 
                   id="title" 
                   v-model="form.title" 
-                  placeholder="Nhập tiêu đề truyện"
+                  placeholder="Enter story title"
                   class="form-input"
                   :class="{ 'p-invalid': errors.title }"
                 />
@@ -53,12 +53,12 @@
               <div class="form-group">
                 <label for="author" class="form-label">
                   <i class="pi pi-user" />
-                  Tác giả
+                  Author
                 </label>
                 <InputText 
                   id="author" 
                   v-model="form.author" 
-                  placeholder="Tên tác giả"
+                  placeholder="Author name"
                   class="form-input"
                   :class="{ 'p-invalid': errors.author }"
                 />
@@ -68,13 +68,13 @@
               <div class="form-group">
                 <label for="category" class="form-label">
                   <i class="pi pi-tags" />
-                  Thể loại
+                  Category
                 </label>
                 <Select 
                   id="category"
                   v-model="form.category" 
                   :options="categories"
-                  placeholder="Chọn thể loại"
+                  placeholder="Select category"
                   class="form-input"
                   :class="{ 'p-invalid': errors.category }"
                 />
@@ -86,7 +86,7 @@
               <div class="form-group full-width">
                 <label for="imageUrl" class="form-label">
                   <i class="pi pi-image" />
-                  URL hình ảnh <span class="required">*</span>
+                  Image URL <span class="required">*</span>
                 </label>
                 <InputText 
                   id="imageUrl" 
@@ -96,18 +96,18 @@
                   :class="{ 'p-invalid': errors.imageUrl }"
                 />
                 <small v-if="errors.imageUrl" class="p-error">{{ errors.imageUrl }}</small>
-                <small class="form-hint">Nhập URL hình ảnh từ internet (ví dụ: Unsplash, Imgur...)</small>
+                <small class="form-hint">Enter image URL from internet (e.g., Unsplash, Imgur...)</small>
               </div>
             </div>
 
             <div class="form-row" v-if="form.imageUrl && isValidUrl(form.imageUrl)">
               <div class="form-group full-width">
-                <label class="form-label">Xem trước hình ảnh</label>
+                <label class="form-label">Image Preview</label>
                 <div class="image-preview">
                   <img :src="form.imageUrl" alt="Preview" @error="imageError = true" />
                   <div v-if="imageError" class="image-error">
                     <i class="pi pi-exclamation-triangle" />
-                    <p>Không thể tải hình ảnh</p>
+                    <p>Failed to load image</p>
                   </div>
                 </div>
               </div>
@@ -117,18 +117,18 @@
               <div class="form-group full-width">
                 <label for="description" class="form-label">
                   <i class="pi pi-align-left" />
-                  Mô tả
+                  Description
                 </label>
                 <Textarea 
                   id="description" 
                   v-model="form.description" 
-                  placeholder="Mô tả ngắn gọn về câu chuyện..."
+                  placeholder="Brief description of the story..."
                   :rows="5"
                   class="form-input"
                   :class="{ 'p-invalid': errors.description }"
                 />
                 <small v-if="errors.description" class="p-error">{{ errors.description }}</small>
-                <small class="form-hint">{{ form.description?.length || 0 }}/1000 ký tự</small>
+                <small class="form-hint">{{ form.description?.length || 0 }}/1000 characters</small>
               </div>
             </div>
 
@@ -138,7 +138,7 @@
                   <RadioCheckbox 
                     v-model="form.isFeatured" 
                     inputId="featured"
-                    label="Đánh dấu là truyện nổi bật"
+                    label="Mark as featured story"
                     icon="pi pi-star"
                     binary
                   />
@@ -151,7 +151,7 @@
             <div class="form-actions">
               <Button 
                 type="button"
-                label="Hủy" 
+                label="Cancel" 
                 icon="pi pi-times"
                 severity="secondary"
                 outlined
@@ -160,7 +160,7 @@
               />
               <Button 
                 type="submit" 
-                label="Thêm truyện" 
+                label="Add Story" 
                 icon="pi pi-check"
                 :loading="loading"
                 :disabled="loading"
@@ -175,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
@@ -186,6 +186,7 @@ import Message from 'primevue/message'
 import Divider from 'primevue/divider'
 import RadioCheckbox from '@/components/RadioCheckbox.vue'
 import apiClient from '@/api/axios'
+import { categoryService } from '@/api/categoryService'
 
 const router = useRouter()
 
@@ -202,17 +203,23 @@ const loading = ref(false)
 const errors = ref({})
 const successMessage = ref('')
 const imageError = ref(false)
+const categories = ref([])
 
-const categories = [
-  { label: 'Phiêu lưu', value: 'Phiêu lưu' },
-  { label: 'Huyền bí', value: 'Huyền bí' },
-  { label: 'Drama', value: 'Drama' },
-  { label: 'Lãng mạn', value: 'Lãng mạn' },
-  { label: 'Fantasy', value: 'Fantasy' },
-  { label: 'Đời sống', value: 'Đời sống' },
-  { label: 'Lịch sử', value: 'Lịch sử' },
-  { label: 'Khoa học viễn tưởng', value: 'Khoa học viễn tưởng' }
-]
+const loadCategories = async () => {
+  try {
+    const data = await categoryService.getAll()
+    categories.value = data.map(cat => ({
+      label: cat.name,
+      value: cat.id
+    }))
+  } catch (err) {
+    console.error('Failed to load categories:', err)
+  }
+}
+
+onMounted(() => {
+  loadCategories()
+})
 
 const isValidUrl = (url) => {
   try {
@@ -231,23 +238,23 @@ const validateForm = () => {
   errors.value = {}
   
   if (!form.value.title?.trim()) {
-    errors.value.title = 'Vui lòng nhập tiêu đề truyện'
+    errors.value.title = 'Story title is required'
   } else if (form.value.title.length > 200) {
-    errors.value.title = 'Tiêu đề không được vượt quá 200 ký tự'
+    errors.value.title = 'Title must not exceed 200 characters'
   }
   
   if (form.value.author && form.value.author.length > 100) {
-    errors.value.author = 'Tên tác giả không được vượt quá 100 ký tự'
+    errors.value.author = 'Author name must not exceed 100 characters'
   }
   
   if (!form.value.imageUrl?.trim()) {
-    errors.value.imageUrl = 'Vui lòng nhập URL hình ảnh'
+    errors.value.imageUrl = 'Image URL is required'
   } else if (!isValidUrl(form.value.imageUrl)) {
-    errors.value.imageUrl = 'URL không hợp lệ'
+    errors.value.imageUrl = 'Invalid URL'
   }
   
   if (form.value.description && form.value.description.length > 1000) {
-    errors.value.description = 'Mô tả không được vượt quá 1000 ký tự'
+    errors.value.description = 'Description must not exceed 1000 characters'
   }
   
   return Object.keys(errors.value).length === 0
@@ -272,13 +279,13 @@ const handleSubmit = async () => {
       isFeatured: form.value.isFeatured
     })
     
-    successMessage.value = 'Thêm truyện thành công!'
+    successMessage.value = 'Story added successfully!'
     
     setTimeout(() => {
       router.push('/dashboard')
     }, 1500)
   } catch (err) {
-    errors.value.general = err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.'
+    errors.value.general = err.response?.data?.message || 'An error occurred. Please try again.'
   } finally {
     loading.value = false
   }

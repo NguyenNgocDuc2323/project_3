@@ -26,7 +26,8 @@ namespace Backend.Models
 
         public bool IsActive { get; set; } = true;
 
-        // Navigation property
+        public int Role { get; set; } = 2; // 1 = Admin, 2 = User
+
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

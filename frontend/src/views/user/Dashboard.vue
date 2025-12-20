@@ -1,22 +1,61 @@
 <template>
   <div class="dashboard">
-    <div class="dashboard-header" v-animateonscroll="{ enterClass: 'fadein', threshold: 0.1 }">
-      <div class="header-content">
-        <div>
-          <h1 class="welcome-text">Xin chào, {{ user?.fullName || user?.username || 'Người dùng' }}! 👋</h1>
-          <p class="welcome-subtitle">Chào mừng bạn đến với bảng điều khiển</p>
+    <!-- Promotional Banners -->
+    <div 
+      class="promo-banners"
+      v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1 }"
+    >
+      <Card class="promo-banner promo-banner-primary">
+        <div class="promo-content">
+          <div class="promo-text">
+            <h3 class="promo-title">🌟 Explore the World of Stories</h3>
+            <p class="promo-description">Over 1000+ amazing stories waiting for you to discover!</p>
+            <Button 
+              label="Explore Now" 
+              icon="pi pi-arrow-right"
+              class="promo-button"
+              @click="scrollToStories"
+            />
+          </div>
+          <div class="promo-icon">
+            <i class="pi pi-book" />
+          </div>
         </div>
-        <Button 
-          label="Đăng xuất" 
-          icon="pi pi-sign-out"
-          severity="secondary"
-          outlined
-          @click="handleLogout"
-        />
+      </Card>
+
+      <div class="promo-banners-grid">
+        <Card class="promo-mini-banner promo-mini-1">
+          <div class="promo-mini-content">
+            <i class="pi pi-star promo-mini-icon" />
+            <div>
+              <h4>Featured Stories</h4>
+              <p>Most loved stories</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card class="promo-mini-banner promo-mini-2">
+          <div class="promo-mini-content">
+            <i class="pi pi-heart promo-mini-icon" />
+            <div>
+              <h4>Favorites</h4>
+              <p>Save your favorite stories</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card class="promo-mini-banner promo-mini-3">
+          <div class="promo-mini-content">
+            <i class="pi pi-bell promo-mini-icon" />
+            <div>
+              <h4>Notifications</h4>
+              <p>New updates every day</p>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
 
-    <!-- Carousel Banner -->
     <div v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1 }">
       <Card class="banner-card" v-if="featuredStories.length > 0 && !loading">
         <Carousel 
@@ -34,14 +73,14 @@
               <div class="carousel-overlay">
                 <div class="carousel-content">
                   <h2 class="carousel-title">{{ slotProps.data.title }}</h2>
-                  <p class="carousel-author">Tác giả: {{ slotProps.data.author }}</p>
+                  <p class="carousel-author">Author: {{ slotProps.data.author }}</p>
                   <p class="carousel-description">{{ slotProps.data.description }}</p>
                   <div class="carousel-stats">
                     <span><i class="pi pi-eye" /> {{ formatNumber(slotProps.data.views) }}</span>
                     <span><i class="pi pi-heart" /> {{ formatNumber(slotProps.data.likes) }}</span>
                   </div>
                   <Button 
-                    label="Đọc ngay" 
+                    label="Read Now" 
                     icon="pi pi-book"
                     class="carousel-button"
                     @click="viewStory(slotProps.data.id)"
@@ -53,7 +92,6 @@
         </Carousel>
       </Card>
       
-      <!-- Carousel Skeleton -->
       <Card class="banner-card" v-if="loading">
         <div class="carousel-skeleton">
           <Skeleton width="100%" height="400px" />
@@ -61,7 +99,6 @@
       </Card>
     </div>
 
-    <!-- Stats Grid -->
     <div 
       class="stats-grid" 
       v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1, delay: 100 }"
@@ -93,7 +130,6 @@
       </Card>
     </div>
 
-    <!-- Dashboard Grid -->
     <div 
       class="dashboard-grid"
       v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1, delay: 200 }"
@@ -102,7 +138,7 @@
         <template #header>
           <div class="card-header-title">
             <i class="pi pi-clock" />
-            <span>Truyện gần đây</span>
+            <span>Recent Stories</span>
           </div>
         </template>
         <template #content>
@@ -127,7 +163,6 @@
               />
             </div>
             
-            <!-- Skeleton for recent stories -->
             <template v-if="loading">
               <div v-for="n in 3" :key="`skeleton-${n}`" class="recent-item">
                 <Skeleton width="60px" height="80px" />
@@ -141,7 +176,7 @@
             
             <div v-if="recentStories.length === 0 && !loading" class="empty-state">
               <i class="pi pi-inbox" />
-              <p>Chưa có truyện nào</p>
+              <p>No stories yet</p>
             </div>
           </div>
         </template>
@@ -151,7 +186,7 @@
         <template #header>
           <div class="card-header-title">
             <i class="pi pi-star" />
-            <span>Phổ biến</span>
+            <span>Popular</span>
           </div>
         </template>
         <template #content>
@@ -173,7 +208,6 @@
               </div>
             </div>
             
-            <!-- Skeleton for popular stories -->
             <template v-if="loading">
               <div v-for="n in 5" :key="`popular-skeleton-${n}`" class="popular-item">
                 <Skeleton shape="circle" size="40px" />
@@ -190,7 +224,7 @@
             
             <div v-if="popularStories.length === 0 && !loading" class="empty-state">
               <i class="pi pi-inbox" />
-              <p>Chưa có truyện nào</p>
+              <p>No stories yet</p>
             </div>
           </div>
         </template>
@@ -198,52 +232,13 @@
     </div>
 
     <Card 
-      class="dashboard-card quick-actions"
+      class="dashboard-card all-stories-card"
       v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1, delay: 300 }"
     >
       <template #header>
         <div class="card-header-title">
-          <i class="pi pi-bolt" />
-          <span>Thao tác nhanh</span>
-        </div>
-      </template>
-      <template #content>
-        <div class="actions-grid">
-          <Button 
-            label="Thêm truyện mới" 
-            icon="pi pi-plus"
-            class="action-btn"
-            @click="handleAddStory"
-          />
-          <Button 
-            label="Quản lý truyện" 
-            icon="pi pi-list"
-            severity="secondary"
-            outlined
-            class="action-btn"
-            @click="handleManageStories"
-          />
-          <Button 
-            label="Cài đặt" 
-            icon="pi pi-cog"
-            severity="secondary"
-            outlined
-            class="action-btn"
-            @click="handleSettings"
-          />
-        </div>
-      </template>
-    </Card>
-
-    <!-- All Stories Grid -->
-    <Card 
-      class="dashboard-card all-stories-card"
-      v-animateonscroll="{ enterClass: 'fadeinup', threshold: 0.1, delay: 400 }"
-    >
-      <template #header>
-        <div class="card-header-title">
-          <i class="pi pi-book" />
-          <span>Tất cả truyện ({{ allStories.length }})</span>
+            <i class="pi pi-book" />
+            <span>All Stories ({{ allStories.length }})</span>
         </div>
       </template>
       <template #content>
@@ -266,18 +261,18 @@
               <div class="story-card-overlay">
                 <div class="story-card-badge" v-if="story.isFeatured">
                   <i class="pi pi-star" />
-                  <span>Nổi bật</span>
+                  <span>Featured</span>
                 </div>
-                <div class="story-card-category">{{ story.category || 'Không phân loại' }}</div>
+                <div class="story-card-category">{{ story.category || 'Uncategorized' }}</div>
               </div>
             </div>
             <div class="story-card-content">
               <h3 class="story-card-title">{{ story.title }}</h3>
               <p class="story-card-author">
                 <i class="pi pi-user" />
-                {{ story.author || 'Không rõ tác giả' }}
+                {{ story.author || 'Unknown author' }}
               </p>
-              <p class="story-card-description">{{ story.description || 'Chưa có mô tả' }}</p>
+              <p class="story-card-description">{{ story.description || 'No description' }}</p>
               <div class="story-card-footer">
                 <div class="story-card-stats">
                   <span class="stat-item">
@@ -296,11 +291,11 @@
         </div>
         <div v-else class="empty-state">
           <i class="pi pi-inbox" />
-          <p>Chưa có truyện nào</p>
+          <p>No stories yet</p>
         </div>
         <div v-if="allStories.length > 12" class="show-more-container">
           <Button 
-            :label="showAllStories ? 'Ẩn bớt' : `Xem thêm (${allStories.length - 12} truyện)`"
+            :label="showAllStories ? 'Show Less' : `Show More (${allStories.length - 12})`"
             icon="pi pi-angle-down"
             :iconPos="showAllStories ? 'left' : 'right'"
             severity="secondary"
@@ -321,9 +316,12 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Carousel from 'primevue/carousel'
 import Skeleton from 'primevue/skeleton'
-import { storyService } from '@/api/storyService'
+import { userStoryService } from '@/api/user/storyService'
+import { useTokenRefresh } from '@/composables/useTokenRefresh'
+import { cookieUtils } from '@/utils/cookie'
 
 const router = useRouter()
+const { stopAutoRefresh } = useTokenRefresh()
 
 const user = ref(null)
 const loading = ref(true)
@@ -341,69 +339,34 @@ const allStories = ref([])
 const showAllStories = ref(false)
 
 const statsList = computed(() => [
-  { icon: 'pi pi-book', value: stats.value.totalStories, label: 'Tổng số truyện' },
-  { icon: 'pi pi-eye', value: stats.value.totalViews, label: 'Lượt xem' },
-  { icon: 'pi pi-heart', value: stats.value.totalLikes, label: 'Yêu thích' },
-  { icon: 'pi pi-users', value: stats.value.totalUsers, label: 'Người dùng' }
+  { icon: 'pi pi-book', value: stats.value.totalStories, label: 'Stories' },
+  { icon: 'pi pi-eye', value: stats.value.totalViews, label: 'Views' },
+  { icon: 'pi pi-heart', value: stats.value.totalLikes, label: 'Likes' },
+  { icon: 'pi pi-users', value: stats.value.totalUsers, label: 'Users' }
 ])
 
 onMounted(() => {
-  // Load user info
-  const userStr = localStorage.getItem('user')
-  if (userStr) {
-    user.value = JSON.parse(userStr)
-  }
-  
-  // Load data
   loadData()
 })
 
 const loadData = async () => {
   loading.value = true
   try {
-    console.log('Loading dashboard data...')
-    
-    // Load stats
-    console.log('Fetching stats...')
-    const statsData = await storyService.getStats()
-    console.log('Stats loaded:', statsData)
+    const statsData = await userStoryService.getStats()
     stats.value = statsData
 
-    // Load featured stories for carousel
-    console.log('Fetching featured stories...')
-    const featured = await storyService.getAll(true)
-    console.log('Featured stories loaded:', featured)
+    const featured = await userStoryService.getAll(true)
     featuredStories.value = featured.slice(0, 5)
 
-    // Load recent stories
-    console.log('Fetching all stories...')
-    const allStoriesData = await storyService.getAll()
-    console.log('All stories loaded:', allStoriesData)
+    const allStoriesData = await userStoryService.getAll()
     recentStories.value = allStoriesData.slice(0, 5)
 
-    // Load popular stories
-    console.log('Fetching popular stories...')
-    const popular = await storyService.getPopular(5)
-    console.log('Popular stories loaded:', popular)
+    const popular = await userStoryService.getPopular(5)
     popularStories.value = popular
 
-    // Load all stories for grid
     allStories.value = allStoriesData
-    
-    console.log('All data loaded successfully!')
-    console.log('Featured:', featuredStories.value.length)
-    console.log('All stories:', allStories.value.length)
   } catch (error) {
-    console.error('Error loading data:', error)
-    console.error('Error details:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      url: error.config?.url
-    })
-    
-    // Show error message to user
-    alert('Không thể tải dữ liệu. Vui lòng kiểm tra console để xem chi tiết lỗi.')
+    alert('Failed to load data. Please try again.')
   } finally {
     loading.value = false
   }
@@ -425,36 +388,23 @@ const formatDate = (dateString) => {
   const diff = now - date
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   
-  if (days === 0) return 'Hôm nay'
-  if (days === 1) return 'Hôm qua'
-  if (days < 7) return `${days} ngày trước`
-  if (days < 30) return `${Math.floor(days / 7)} tuần trước`
-  return date.toLocaleDateString('vi-VN')
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7) return `${days} days ago`
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`
+  return date.toLocaleDateString('en-US')
 }
 
 const viewStory = (id) => {
-  // TODO: Navigate to story detail page
-  console.log('View story:', id)
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('user')
-  router.push('/login')
+const scrollToStories = () => {
+  const storiesSection = document.querySelector('.all-stories-card')
+  if (storiesSection) {
+    storiesSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 
-const handleAddStory = () => {
-  router.push('/stories/add')
-}
-
-const handleManageStories = () => {
-  console.log('Manage stories')
-}
-
-const handleSettings = () => {
-  console.log('Settings')
-}
 </script>
 
 <style scoped>
@@ -466,27 +416,174 @@ const handleSettings = () => {
   min-height: 100vh;
 }
 
-.dashboard-header {
+
+.promo-banners {
   margin-bottom: 2rem;
-}
-
-.header-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.welcome-text {
+.promo-banner {
+  border-radius: 20px;
+  overflow: hidden;
+  border: none;
+  background: linear-gradient(135deg, #8B6F47 0%, #5C4033 100%);
+  box-shadow: 0 8px 24px rgba(92, 64, 51, 0.2);
+}
+
+:deep(.promo-banner .p-card-body) {
+  padding: 0;
+}
+
+:deep(.promo-banner .p-card-content) {
+  padding: 0;
+}
+
+.promo-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2.5rem 3rem;
+  background: linear-gradient(135deg, rgba(139, 111, 71, 0.95) 0%, rgba(92, 64, 51, 0.95) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-content::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(244, 228, 188, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.promo-text {
+  flex: 1;
+  z-index: 1;
+  position: relative;
+}
+
+.promo-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #5C4033;
-  margin-bottom: 0.5rem;
+  color: #F4E4BC;
+  margin: 0 0 0.75rem 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.welcome-subtitle {
+.promo-description {
   font-size: 1.1rem;
+  color: rgba(244, 228, 188, 0.9);
+  margin: 0 0 1.5rem 0;
+}
+
+.promo-button {
+  background: linear-gradient(135deg, #F4E4BC 0%, #E8D5B7 100%);
+  border: none;
+  color: #5C4033;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+:deep(.promo-button:hover) {
+  background: linear-gradient(135deg, #E8D5B7 0%, #F4E4BC 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.promo-icon {
+  font-size: 6rem;
+  color: rgba(244, 228, 188, 0.3);
+  z-index: 0;
+  position: relative;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.promo-banners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.promo-mini-banner {
+  border-radius: 16px;
+  border: 2px solid rgba(139, 111, 71, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+  background: white;
+}
+
+.promo-mini-banner:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(92, 64, 51, 0.2);
+  border-color: #8B6F47;
+}
+
+:deep(.promo-mini-banner .p-card-body) {
+  padding: 1.5rem;
+}
+
+:deep(.promo-mini-banner .p-card-content) {
+  padding: 0;
+}
+
+.promo-mini-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.promo-mini-icon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.promo-mini-1 .promo-mini-icon {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #5C4033;
+}
+
+.promo-mini-2 .promo-mini-icon {
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+  color: white;
+}
+
+.promo-mini-3 .promo-mini-icon {
+  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  color: white;
+}
+
+.promo-mini-content h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #5C4033;
+  margin: 0 0 0.25rem 0;
+}
+
+.promo-mini-content p {
+  font-size: 0.9rem;
   color: #8B6F47;
   margin: 0;
 }
@@ -829,46 +926,6 @@ const handleSettings = () => {
   font-size: 1rem;
 }
 
-.quick-actions {
-  margin-top: 1.5rem;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.action-btn {
-  height: 3rem;
-  font-size: 1rem;
-  border-radius: 12px;
-}
-
-:deep(.action-btn) {
-  background: linear-gradient(135deg, #8B6F47 0%, #5C4033 100%);
-  border: none;
-  color: #F4E4BC;
-  font-weight: 600;
-}
-
-:deep(.action-btn:hover) {
-  background: linear-gradient(135deg, #5C4033 0%, #8B6F47 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(92, 64, 51, 0.3);
-}
-
-:deep(.action-btn.p-button-outlined) {
-  background: transparent;
-  border: 2px solid #8B6F47;
-  color: #8B6F47;
-}
-
-:deep(.action-btn.p-button-outlined:hover) {
-  background: rgba(139, 111, 71, 0.1);
-}
-
-/* AnimateOnScroll animations */
 @keyframes fadein {
   from {
     opacity: 0;
@@ -927,7 +984,6 @@ const handleSettings = () => {
   animation: fadeinleft 0.6s ease forwards;
 }
 
-/* Skeleton styles */
 :deep(.p-skeleton) {
   background: linear-gradient(90deg, #F4E4BC 25%, #E8D5B7 50%, #F4E4BC 75%);
   background-size: 200% 100%;
@@ -963,8 +1019,26 @@ const handleSettings = () => {
   .welcome-text {
     font-size: 1.5rem;
   }
-  
-  .actions-grid {
+
+  .promo-content {
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .promo-icon {
+    font-size: 4rem;
+  }
+
+  .promo-title {
+    font-size: 1.5rem;
+  }
+
+  .promo-description {
+    font-size: 1rem;
+  }
+
+  .promo-banners-grid {
     grid-template-columns: 1fr;
   }
 
@@ -989,7 +1063,6 @@ const handleSettings = () => {
   }
 }
 
-/* All Stories Grid */
 .all-stories-card {
   margin-top: 2rem;
 }
@@ -1101,6 +1174,7 @@ const handleSettings = () => {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1127,6 +1201,7 @@ const handleSettings = () => {
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

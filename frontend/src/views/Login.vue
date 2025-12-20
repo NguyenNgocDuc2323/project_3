@@ -5,29 +5,20 @@
         <template #content>
           <div class="card-header">
             <div class="header-icon">📖</div>
-            <h2 class="card-title">Chào mừng trở lại!</h2>
-            <p class="card-subtitle">Đăng nhập để tiếp tục khám phá</p>
+            <h2 class="card-title">Welcome Back</h2>
+            <p class="card-subtitle">Sign in to continue</p>
           </div>
           
           <form @submit.prevent="handleLogin" class="login-form">
-            <Message 
-              v-if="errors.general" 
-              severity="error" 
-              :closable="false"
-              class="error-message"
-            >
-              {{ errors.general }}
-            </Message>
-            
             <div class="form-group">
               <label for="username" class="form-label">
                 <i class="pi pi-user" />
-                Tên đăng nhập
+                Username
               </label>
               <InputText 
                 id="username" 
                 v-model="form.username" 
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Enter username"
                 class="form-input"
                 :class="{ 'p-invalid': errors.username }"
                 autocomplete="username"
@@ -38,8 +29,8 @@
             <PasswordInput 
               id="password"
               v-model="form.password"
-              label="Mật khẩu"
-              placeholder="Nhập mật khẩu"
+              label="Password"
+              placeholder="Enter password"
               :error="errors.password"
               :feedback="false"
               autocomplete="current-password"
@@ -47,17 +38,17 @@
 
             <div class="form-options">
               <RadioCheckbox 
-                v-model="rememberMe" 
+                v-model="form.remember_me" 
                 inputId="remember"
-                label="Ghi nhớ đăng nhập"
+                label="Remember me"
                 binary
               />
-              <a href="#" class="forgot-password">Quên mật khẩu?</a>
+              <a href="#" @click.prevent class="forgot-password">Forgot password?</a>
             </div>
 
             <Button 
               type="submit" 
-              label="Đăng nhập" 
+              label="Sign In" 
               icon="pi pi-sign-in"
               class="submit-button"
               :loading="loading"
@@ -65,12 +56,12 @@
             />
 
             <Divider>
-              <span class="divider-text">hoặc</span>
+              <span class="divider-text">or</span>
             </Divider>
 
             <div class="register-link">
-              <span>Chưa có tài khoản?</span>
-              <a href="#" @click.prevent="$router.push('/register')" class="link"> Đăng ký ngay</a>
+              <span>Don't have an account?</span>
+              <a href="#" @click.prevent="$router.push('/register')" class="link"> Sign up</a>
             </div>
           </form>
         </template>
@@ -82,23 +73,26 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
-import Message from 'primevue/message'
 import PasswordInput from '@/components/PasswordInput.vue'
 import RadioCheckbox from '@/components/RadioCheckbox.vue'
 import { authService } from '@/api/authService'
+import { useTokenRefresh } from '@/composables/useTokenRefresh'
 
 const router = useRouter()
+const toast = useToast()
+const { startAutoRefresh } = useTokenRefresh()
 
 const form = ref({
   username: '',
-  password: ''
+  password: '',
+  remember_me: false
 })
 
-const rememberMe = ref(false)
 const loading = ref(false)
 const errors = ref({})
 
@@ -106,13 +100,13 @@ const validateForm = () => {
   errors.value = {}
   
   if (!form.value.username.trim()) {
-    errors.value.username = 'Vui lòng nhập tên đăng nhập'
+    errors.value.username = 'Username is required'
   }
   
   if (!form.value.password) {
-    errors.value.password = 'Vui lòng nhập mật khẩu'
+    errors.value.password = 'Password is required'
   } else if (form.value.password.length < 6) {
-    errors.value.password = 'Mật khẩu phải có ít nhất 6 ký tự'
+    errors.value.password = 'Password must be at least 6 characters'
   }
   
   return Object.keys(errors.value).length === 0
@@ -129,13 +123,28 @@ const handleLogin = async () => {
   try {
     const response = await authService.login(form.value.username, form.value.password)
     
-    localStorage.setItem('accessToken', response.accessToken)
-    localStorage.setItem('refreshToken', response.refreshToken)
     localStorage.setItem('user', JSON.stringify(response.user))
+    
+    startAutoRefresh()
+    
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: `Welcome back, ${response.user.username}!`,
+      life: 3000
+    })
     
     router.push('/dashboard')
   } catch (err) {
-    errors.value.general = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
+    const errorMessage = err.response?.data?.message || 'Login failed. Please try again.'
+    errors.value.general = errorMessage
+    
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: errorMessage,
+      life: 4000
+    })
   } finally {
     loading.value = false
   }
@@ -333,17 +342,6 @@ const handleLogin = async () => {
 .register-link .link:hover {
   color: #5C4033;
   text-decoration: underline;
-}
-
-.error-message {
-  margin-bottom: 0.5rem;
-}
-
-:deep(.p-message-error) {
-  background: #fee;
-  border-color: #e24c4c;
-  color: #e24c4c;
-  border-radius: 10px;
 }
 
 .p-error {

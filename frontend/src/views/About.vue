@@ -4,10 +4,10 @@
     <section class="hero-section" v-animateonscroll="{ enterClass: 'fadein', threshold: 0.1 }">
       <div class="hero-content">
         <h1 class="hero-title">
-          <span class="title-line">Chào mừng đến với</span>
-          <span class="title-main">Đọc Chuyện</span>
+          <span class="title-line">Welcome to</span>
+          <span class="title-main">Story Reader</span>
         </h1>
-        <p class="hero-subtitle">Nơi những câu chuyện hay được kể</p>
+        <p class="hero-subtitle">Where great stories are told</p>
       </div>
     </section>
 
@@ -16,9 +16,9 @@
       <div class="section-header">
         <h2 class="section-title">
           <i class="pi pi-star"></i>
-          Truyện nổi bật
+          Featured Stories
         </h2>
-        <p class="section-subtitle">Khám phá những câu chuyện được yêu thích nhất</p>
+        <p class="section-subtitle">Discover the most loved stories</p>
       </div>
       
       <Card class="carousel-card" v-if="featuredStories.length > 0">
@@ -38,7 +38,7 @@
                 <img :src="slotProps.data.imageUrl" :alt="slotProps.data.title" />
                 <div class="story-overlay">
                   <Button 
-                    label="Đọc ngay" 
+                    label="Read Now" 
                     icon="pi pi-book"
                     class="read-button"
                   />
@@ -65,9 +65,9 @@
           <div class="card-icon">
             <i class="pi pi-book"></i>
           </div>
-          <h3 class="card-title">Kho truyện phong phú</h3>
+          <h3 class="card-title">Rich Story Collection</h3>
           <p class="card-description">
-            Hàng ngàn câu chuyện đa dạng về thể loại đang chờ bạn khám phá. Từ phiêu lưu đến lãng mạn, từ huyền bí đến khoa học viễn tưởng.
+            Thousands of diverse stories across genres await your discovery. From adventure to romance, from mystery to science fiction.
           </p>
         </div>
 
@@ -75,9 +75,9 @@
           <div class="card-icon">
             <i class="pi pi-users"></i>
           </div>
-          <h3 class="card-title">Cộng đồng đông đảo</h3>
+          <h3 class="card-title">Active Community</h3>
           <p class="card-description">
-            Tham gia cùng hàng ngàn độc giả yêu thích đọc truyện. Chia sẻ, đánh giá và khám phá những câu chuyện mới mỗi ngày.
+            Join thousands of readers who love stories. Share, rate and discover new stories every day.
           </p>
         </div>
 
@@ -85,9 +85,9 @@
           <div class="card-icon">
             <i class="pi pi-heart"></i>
           </div>
-          <h3 class="card-title">Trải nghiệm tuyệt vời</h3>
+          <h3 class="card-title">Great Experience</h3>
           <p class="card-description">
-            Giao diện đẹp mắt, dễ sử dụng. Đọc truyện mọi lúc mọi nơi trên mọi thiết bị. Trải nghiệm đọc sách hoàn hảo nhất.
+            Beautiful interface, easy to use. Read stories anytime, anywhere on any device. The perfect reading experience.
           </p>
         </div>
       </div>
@@ -114,7 +114,7 @@ import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Carousel from 'primevue/carousel'
 import Button from 'primevue/button'
-import { storyService } from '@/api/storyService'
+import { userStoryService } from '@/api/user/storyService'
 
 const router = useRouter()
 const featuredStories = ref([])
@@ -144,21 +144,20 @@ const responsiveOptions = [
 ]
 
 const statsList = [
-  { icon: 'pi pi-book', value: stats.value.totalStories, label: 'Tổng số truyện' },
-  { icon: 'pi pi-eye', value: stats.value.totalViews, label: 'Lượt xem' },
-  { icon: 'pi pi-heart', value: stats.value.totalLikes, label: 'Yêu thích' },
-  { icon: 'pi pi-users', value: stats.value.totalUsers, label: 'Người dùng' }
+  { icon: 'pi pi-book', value: stats.value.totalStories, label: 'Stories' },
+  { icon: 'pi pi-eye', value: stats.value.totalViews, label: 'Views' },
+  { icon: 'pi pi-heart', value: stats.value.totalLikes, label: 'Likes' },
+  { icon: 'pi pi-users', value: stats.value.totalUsers, label: 'Users' }
 ]
 
 onMounted(async () => {
   try {
-    const featured = await storyService.getAll(true)
+    const featured = await userStoryService.getAll(true)
     featuredStories.value = featured.slice(0, 6)
     
-    const statsData = await storyService.getStats()
+    const statsData = await userStoryService.getStats()
     stats.value = statsData
   } catch (error) {
-    console.error('Error loading data:', error)
   }
 })
 
@@ -183,7 +182,6 @@ const viewStory = (id) => {
   background: linear-gradient(to bottom, #F9F7F4 0%, #F4E4BC 100%);
 }
 
-/* Hero Section */
 .hero-section {
   background: linear-gradient(135deg, rgba(92, 64, 51, 0.95) 0%, rgba(139, 111, 71, 0.95) 100%);
   padding: 6rem 2rem;
@@ -244,7 +242,6 @@ const viewStory = (id) => {
   font-weight: 400;
 }
 
-/* Carousel Section */
 .carousel-section {
   padding: 5rem 2rem;
   max-width: 1600px;
@@ -400,7 +397,6 @@ const viewStory = (id) => {
   margin-right: 0.35rem;
 }
 
-/* About Content */
 .about-content {
   padding: 5rem 2rem;
   max-width: 1400px;
@@ -456,7 +452,6 @@ const viewStory = (id) => {
   line-height: 1.7;
 }
 
-/* Stats Section */
 .stats-section {
   padding: 5rem 2rem;
   background: linear-gradient(135deg, rgba(92, 64, 51, 0.05) 0%, rgba(139, 111, 71, 0.05) 100%);

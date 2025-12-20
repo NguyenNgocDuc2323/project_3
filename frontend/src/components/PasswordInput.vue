@@ -33,11 +33,11 @@ defineProps({
   },
   label: {
     type: String,
-    default: 'Mật khẩu'
+    default: 'Password'
   },
   placeholder: {
     type: String,
-    default: 'Nhập mật khẩu'
+    default: 'Enter password'
   },
   error: {
     type: String,
@@ -93,7 +93,6 @@ defineEmits(['update:modelValue'])
   margin-top: 0.25rem;
 }
 
-/* Password Input Styling */
 :deep(.password-input) {
   width: 100% !important;
   max-width: 100% !important;
@@ -101,7 +100,6 @@ defineEmits(['update:modelValue'])
   flex-direction: column;
 }
 
-/* Override any form-input styles that might be applied */
 :deep(.password-input.p-inputwrapper) {
   width: 100% !important;
   max-width: 100% !important;
@@ -142,7 +140,6 @@ defineEmits(['update:modelValue'])
   border-color: #e24c4c !important;
 }
 
-/* Toggle icon styling - Đảm bảo cả 2 icon (ẩn/hiện) có cùng màu và size chính xác */
 :deep(.password-input .p-password-input-icon),
 :deep(.password-input .p-password-toggle-icon),
 :deep(.password-input .p-password-toggle-mask-icon),
@@ -189,7 +186,6 @@ defineEmits(['update:modelValue'])
   color: inherit !important;
 }
 
-/* SVG icon inside toggle - Đảm bảo cả 2 SVG icon có cùng màu và size chính xác */
 :deep(.password-input .p-password-toggle-mask-icon svg),
 :deep(.password-input .p-password-mask-icon svg) {
   width: 1.2rem !important;
@@ -208,7 +204,6 @@ defineEmits(['update:modelValue'])
   flex-shrink: 0 !important;
 }
 
-/* Đảm bảo tất cả path, circle, rect bên trong SVG có cùng màu (màu nhạt) */
 :deep(.password-input .p-password-toggle-mask-icon svg path),
 :deep(.password-input .p-password-toggle-mask-icon svg circle),
 :deep(.password-input .p-password-toggle-mask-icon svg rect),
@@ -238,7 +233,6 @@ defineEmits(['update:modelValue'])
   color: #8B6F47 !important;
 }
 
-/* Đảm bảo cả 2 icon container (ẩn/hiện) có cùng màu và size chính xác */
 :deep(.password-input .p-password-toggle-mask-icon),
 :deep(.password-input .p-password-mask-icon) {
   line-height: 1 !important;
@@ -256,7 +250,6 @@ defineEmits(['update:modelValue'])
   box-sizing: border-box !important;
 }
 
-/* Force màu cho cả 2 icon container (màu nhạt) */
 :deep(.password-input .p-password-toggle-mask-icon *),
 :deep(.password-input .p-password-mask-icon *) {
   color: rgba(139, 111, 71, 0.7) !important;
@@ -276,7 +269,6 @@ defineEmits(['update:modelValue'])
   stroke: #8B6F47 !important;
 }
 
-/* Password Strength Panel */
 :deep(.password-input .p-password-panel) {
   margin-top: 0.5rem;
   padding: 0.75rem;

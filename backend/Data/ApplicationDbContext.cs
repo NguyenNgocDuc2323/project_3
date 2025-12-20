@@ -13,6 +13,8 @@ namespace Backend.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Story> Stories { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +29,7 @@ namespace Backend.Data
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.PasswordHash).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.Role).IsRequired().HasDefaultValue(2); // 1 = Admin, 2 = User
             });
 
             modelBuilder.Entity<RefreshToken>(entity =>
@@ -54,6 +57,32 @@ namespace Backend.Data
                 entity.Property(e => e.Category).HasMaxLength(50);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsFeatured);
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.Name);
+            });
+
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Author).HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.IsFeatured);
+                entity.HasIndex(e => e.CategoryId);
+
+                entity.HasOne(e => e.Category)
+                      .WithMany(c => c.Products)
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

@@ -9,8 +9,8 @@
           <div class="brand-glow"></div>
         </div>
         <span class="brandText">
-          <span class="brand-text-main">Đọc Chuyện</span>
-          <span class="brand-text-sub">Kho truyện hay</span>
+          <span class="brand-text-main">Story Reader</span>
+          <span class="brand-text-sub">Great Stories</span>
         </span>
       </router-link>
 
@@ -34,9 +34,17 @@
           <i class="pi pi-th-large nav-icon"></i>
           <span>Dashboard</span>
         </router-link>
+        <router-link
+          v-if="isAdmin"
+          to="/admin"
+          class="navLink admin-link"
+        >
+          <i class="pi pi-cog nav-icon"></i>
+          <span>Admin</span>
+        </router-link>
         <Button 
           v-if="!isAuthenticated"
-          label="Đăng nhập" 
+          label="Sign In" 
           severity="secondary"
           outlined
           @click="$router.push('/login')"
@@ -46,49 +54,118 @@
             <i class="pi pi-sign-in"></i>
           </template>
         </Button>
-        <Button 
-          v-else
-          label="Đăng xuất" 
-          severity="secondary"
-          outlined
-          @click="handleLogout"
-          class="loginBtn"
-        >
-          <template #icon>
-            <i class="pi pi-sign-out"></i>
-          </template>
-        </Button>
+        <div v-else class="user-menu-wrapper">
+          <Button 
+            icon="pi pi-user"
+            severity="secondary"
+            outlined
+            rounded
+            @click="toggleUserMenu"
+            class="userMenuBtn"
+            :aria-label="userInfo?.fullName || userInfo?.username || 'User menu'"
+          />
+          <Menu 
+            ref="userMenu"
+            :model="userMenuItems"
+            :popup="true"
+            class="user-dropdown-menu"
+          >
+            <template #start>
+              <div class="user-menu-header">
+                <div class="user-menu-header-name">
+                  <i class="pi pi-user"></i>
+                  {{ userInfo?.fullName || userInfo?.username || 'User' }}
+                </div>
+                <div v-if="userInfo?.email" class="user-menu-header-email">
+                  {{ userInfo.email }}
+                </div>
+              </div>
+            </template>
+          </Menu>
+        </div>
       </nav>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
+import Menu from 'primevue/menu'
+import { useTokenRefresh } from '@/composables/useTokenRefresh'
+import { cookieUtils } from '@/utils/cookie'
 
 const router = useRouter()
+const { stopAutoRefresh } = useTokenRefresh()
 const isAuthenticated = ref(false)
+const isAdmin = ref(false)
 const isScrolled = ref(false)
+const userInfo = ref(null)
+const userMenu = ref(null)
 
 const navItems = [
-  { to: '/dashboard', label: 'Trang chủ', icon: 'pi pi-home' },
-  { to: '/about', label: 'Giới thiệu', icon: 'pi pi-info-circle' }
+  { to: '/dashboard', label: 'Home', icon: 'pi pi-home' },
+  { to: '/about', label: 'About', icon: 'pi pi-info-circle' }
 ]
 
+const userMenuItems = computed(() => [
+  {
+    label: 'Update Profile',
+    icon: 'pi pi-user-edit',
+    command: () => {
+      // TODO: Navigate to update profile page
+      console.log('Update profile')
+    }
+  },
+  {
+    separator: true
+  },
+  {
+    label: 'Sign Out',
+    icon: 'pi pi-sign-out',
+    command: () => {
+      handleLogout()
+    }
+  }
+])
+
+const toggleUserMenu = (event) => {
+  userMenu.value.toggle(event)
+}
+
 const checkAuth = () => {
-  const token = localStorage.getItem('accessToken')
+  const token = cookieUtils.get('accessToken')
   isAuthenticated.value = !!token
+  
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr)
+      userInfo.value = user
+      isAdmin.value = user.role === 1 || user.role === '1'
+    } catch (e) {
+      isAdmin.value = false
+      userInfo.value = null
+    }
+  } else {
+    isAdmin.value = false
+    userInfo.value = null
+  }
 }
 
 const handleLogout = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
+  stopAutoRefresh()
+  
+  cookieUtils.remove('accessToken')
+  cookieUtils.remove('refreshToken')
   localStorage.removeItem('user')
   isAuthenticated.value = false
-  router.push('/dashboard')
+  userInfo.value = null
+  
+  router.push('/login')
 }
+
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20
@@ -106,7 +183,6 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// Check auth when route changes
 router.afterEach(() => {
   checkAuth()
 })
@@ -369,6 +445,16 @@ router.afterEach(() => {
   transform: scale(1.2);
 }
 
+.navLink.admin-link {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.navLink.admin-link:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 165, 0, 0.15) 100%);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
 @media (max-width: 640px) {
   .navLink span {
     display: none;
@@ -385,6 +471,20 @@ router.afterEach(() => {
   margin-left: 0.75rem;
   position: relative;
   overflow: hidden;
+}
+
+.user-menu-wrapper {
+  margin-left: 0.75rem;
+  position: relative;
+}
+
+.userMenuBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 :deep(.p-button-outlined.p-button-secondary) {
@@ -430,6 +530,108 @@ router.afterEach(() => {
   transform: translateY(0);
 }
 
+:deep(.userMenuBtn.p-button-outlined.p-button-secondary) {
+  color: #F4E4BC;
+  border-color: #F4E4BC;
+  border-width: 2px;
+  background: rgba(244, 228, 188, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.userMenuBtn.p-button-outlined.p-button-secondary:hover) {
+  background: rgba(244, 228, 188, 0.15);
+  border-color: #F4E4BC;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(244, 228, 188, 0.3);
+  color: #F4E4BC;
+}
+
+:deep(.userMenuBtn.p-button-icon-only) {
+  width: 44px;
+  height: 44px;
+}
+
+:deep(.userMenuBtn .p-button-icon) {
+  font-size: 1.2rem;
+}
+
+:deep(.user-dropdown-menu.p-menu) {
+  background: linear-gradient(135deg, rgba(92, 64, 51, 0.98) 0%, rgba(139, 111, 71, 0.98) 100%);
+  border: 2px solid rgba(244, 228, 188, 0.3);
+  border-radius: 16px;
+  padding: 1rem 0.5rem;
+  box-shadow: 0 8px 32px rgba(92, 64, 51, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  min-width: 220px;
+  margin-top: 0.5rem;
+}
+
+:deep(.user-dropdown-menu .p-menu-list) {
+  padding: 0;
+}
+
+:deep(.user-dropdown-menu .p-menuitem-link) {
+  color: #5C4033;
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  margin: 0.25rem 0;
+  transition: all 0.3s ease;
+}
+
+:deep(.user-dropdown-menu .p-menuitem-link:hover) {
+  background: rgba(139, 111, 71, 0.15);
+  color: #5C4033;
+  transform: translateX(4px);
+}
+
+:deep(.user-dropdown-menu .p-menuitem-link .p-menuitem-icon) {
+  color: #8B6F47;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+:deep(.user-dropdown-menu .p-menuitem-link .p-menuitem-text) {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #5C4033;
+}
+
+:deep(.user-dropdown-menu .p-menu-separator) {
+  border-top: 1px solid rgba(139, 111, 71, 0.2);
+  margin: 0.5rem 0;
+}
+
+.user-menu-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  margin: 0 0.25rem 0.5rem 0.25rem;
+}
+
+.user-menu-header-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #5C4033;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-menu-header-name i {
+  font-size: 1.1rem;
+  color: #8B6F47;
+}
+
+.user-menu-header-email {
+  font-size: 0.85rem;
+  color: #6B4F3F;
+  margin: 0.25rem 0 0 1.75rem;
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 1rem 1.25rem;
@@ -442,6 +644,15 @@ router.afterEach(() => {
 
   :deep(.p-button-label) {
     display: none;
+  }
+
+  .userMenuBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  :deep(.userMenuBtn .p-button-icon) {
+    font-size: 1.1rem;
   }
 }
 </style>

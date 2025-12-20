@@ -8,5 +8,6 @@ namespace Backend.Services
         Task<AuthResponse?> RefreshTokenAsync(string refreshToken);
         Task<bool> RevokeTokenAsync(string refreshToken);
         Task<User?> RegisterAsync(string username, string email, string password, string? fullName = null);
+        Task<bool> DeleteUserAsync(int userId);
     }
 }

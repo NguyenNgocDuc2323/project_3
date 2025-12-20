@@ -6,6 +6,7 @@ using Backend.Data;
 using Backend.Models;
 using Backend.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,12 +27,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
+    options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.EnableRetryOnFailure()
+        new MySqlServerVersion(new Version(8, 0, 21)),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure()
     ));
 
-// JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
@@ -80,7 +81,6 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 }
 
-// Auto-create database and seed data in development (simpler for student project)
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -88,14 +88,21 @@ if (app.Environment.IsDevelopment())
 
     try
     {
-        // Delete and recreate database to ensure correct structure (for student project only!)
-        app.Logger.LogInformation("Resetting database for development...");
-        db.Database.EnsureDeleted(); // Delete old database
-        db.Database.EnsureCreated(); // Create new database with correct tables
-        app.Logger.LogInformation("Database created successfully with tables: Users, RefreshTokens, Stories");
+        app.Logger.LogInformation("Checking database migrations...");
+        
+        if (db.Database.CanConnect())
+        {
+            app.Logger.LogInformation("Database connection successful!");
+        }
+        
+        await db.Database.MigrateAsync();
+        app.Logger.LogInformation("Database migrations applied successfully!");
 
-        // Auto-seed stories data
-        if (!await db.Stories.AnyAsync())
+        if (await db.Stories.AnyAsync())
+        {
+            app.Logger.LogInformation("Stories table already has data, skipping seed.");
+        }
+        else
         {
             app.Logger.LogInformation("Seeding stories data...");
             await SeedStoriesAsync(db);
@@ -104,23 +111,23 @@ if (app.Environment.IsDevelopment())
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Failed to create database. Ensure SQL Server LocalDB is installed and accessible.");
+        app.Logger.LogError(ex, "Failed to connect to database. Please check MySQL connection settings.");
         app.Logger.LogError("Error: {Message}", ex.Message);
+        app.Logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
     }
 }
 
-// Seed stories function
 static async Task SeedStoriesAsync(ApplicationDbContext db)
 {
     var stories = new List<Story>
     {
         new Story
         {
-            Title = "Hành Trình Vĩ Đại",
-            Author = "Nguyễn Văn A",
-            Description = "Câu chuyện về một cuộc phiêu lưu kỳ diệu qua các vùng đất xa lạ, nơi những điều kỳ diệu đang chờ đợi. Một chuyến đi sẽ thay đổi cuộc đời mãi mãi.",
+            Title = "The Great Journey",
+            Author = "John Smith",
+            Description = "A story about a magical adventure through strange lands where wonders await. A journey that will change life forever.",
             ImageUrl = "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&h=1200&fit=crop&q=80",
-            Category = "Phiêu lưu",
+            Category = "Adventure",
             Views = 12500,
             Likes = 890,
             IsFeatured = true,
@@ -128,11 +135,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Vương Quốc Bí Ẩn",
-            Author = "Trần Thị B",
-            Description = "Khám phá vương quốc cổ xưa với những bí mật được giấu kín qua hàng ngàn năm. Liệu bạn có đủ can đảm để khám phá?",
+            Title = "The Hidden Kingdom",
+            Author = "Sarah Johnson",
+            Description = "Explore an ancient kingdom with secrets hidden for thousands of years. Do you have the courage to discover them?",
             ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Huyền bí",
+            Category = "Mystery",
             Views = 10200,
             Likes = 756,
             IsFeatured = true,
@@ -140,9 +147,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Người Hùng Thầm Lặng",
-            Author = "Lê Văn C",
-            Description = "Câu chuyện cảm động về một người hùng không tên, người đã hy sinh tất cả vì người khác. Một bài học về lòng dũng cảm và sự hy sinh.",
+            Title = "The Silent Hero",
+            Author = "Michael Brown",
+            Description = "A touching story about a nameless hero who sacrificed everything for others. A lesson in courage and sacrifice.",
             ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
             Category = "Drama",
             Views = 9800,
@@ -152,11 +159,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Giấc Mơ Xa Xôi",
-            Author = "Phạm Thị D",
-            Description = "Một giấc mơ đưa chúng ta đến những nơi xa xôi, nơi mọi điều đều có thể xảy ra. Đâu là ranh giới giữa giấc mơ và hiện thực?",
+            Title = "Distant Dream",
+            Author = "Emily Davis",
+            Description = "A dream takes us to distant places where anything can happen. Where is the boundary between dream and reality?",
             ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
-            Category = "Lãng mạn",
+            Category = "Romance",
             Views = 8500,
             Likes = 521,
             IsFeatured = false,
@@ -164,11 +171,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Tình Yêu Vĩnh Cửu",
-            Author = "Hoàng Văn E",
-            Description = "Câu chuyện tình yêu vượt qua mọi thử thách của thời gian và không gian. Một tình yêu thật sự sẽ tồn tại mãi mãi.",
+            Title = "Eternal Love",
+            Author = "David Wilson",
+            Description = "A love story that transcends all challenges of time and space. True love will last forever.",
             ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
-            Category = "Lãng mạn",
+            Category = "Romance",
             Views = 7200,
             Likes = 489,
             IsFeatured = false,
@@ -176,9 +183,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Thế Giới Ma Thuật",
-            Author = "Vũ Thị F",
-            Description = "Bước vào thế giới đầy phép thuật, nơi phù thủy và pháp sư cai trị. Một thế giới nơi mọi điều không thể đều trở thành có thể.",
+            Title = "The Magical World",
+            Author = "Jessica Martinez",
+            Description = "Step into a world full of magic, where wizards and sorcerers rule. A world where the impossible becomes possible.",
             ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
             Category = "Fantasy",
             Views = 11200,
@@ -188,11 +195,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Cuộc Sống Mới",
-            Author = "Đặng Văn G",
-            Description = "Bắt đầu lại từ đầu, tìm kiếm ý nghĩa thực sự của cuộc sống. Đôi khi chúng ta cần quay lại để tiến về phía trước.",
+            Title = "New Life",
+            Author = "Robert Taylor",
+            Description = "Start over from the beginning, searching for the true meaning of life. Sometimes we need to go back to move forward.",
             ImageUrl = "https://images.unsplash.com/photo-1521542464131-cb30f7a44e91?w=800&h=1200&fit=crop&q=80",
-            Category = "Đời sống",
+            Category = "Life",
             Views = 6500,
             Likes = 412,
             IsFeatured = false,
@@ -200,11 +207,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Bí Mật Cổ Xưa",
-            Author = "Bùi Thị H",
-            Description = "Khám phá những bí mật được chôn giấu từ thời cổ đại. Mỗi bí mật đều ẩn chứa một sức mạnh không thể tưởng tượng.",
+            Title = "Ancient Secrets",
+            Author = "Lisa Anderson",
+            Description = "Discover secrets buried since ancient times. Each secret holds unimaginable power.",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Lịch sử",
+            Category = "History",
             Views = 9300,
             Likes = 678,
             IsFeatured = false,
@@ -212,11 +219,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Hành Tinh Xanh",
-            Author = "Nguyễn Minh K",
-            Description = "Một cuộc phiêu lưu không gian đưa chúng ta đến một hành tinh xa xôi, nơi có những sinh vật kỳ lạ và những phát hiện đáng kinh ngạc.",
+            Title = "The Blue Planet",
+            Author = "James White",
+            Description = "A space adventure takes us to a distant planet with strange creatures and amazing discoveries.",
             ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "Khoa học viễn tưởng",
+            Category = "Science Fiction",
             Views = 15800,
             Likes = 1200,
             IsFeatured = true,
@@ -224,11 +231,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Cổng Vào Quá Khứ",
-            Author = "Trần Đức L",
-            Description = "Một cổng thời gian bí ẩn xuất hiện, cho phép con người du hành về quá khứ. Nhưng mỗi thay đổi đều có hậu quả khôn lường.",
+            Title = "Gateway to the Past",
+            Author = "Patricia Harris",
+            Description = "A mysterious time portal appears, allowing people to travel to the past. But every change has unforeseen consequences.",
             ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Khoa học viễn tưởng",
+            Category = "Science Fiction",
             Views = 14200,
             Likes = 956,
             IsFeatured = true,
@@ -236,11 +243,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Trái Tim Thủy Tinh",
-            Author = "Lê Thảo M",
-            Description = "Câu chuyện tình yêu trong suốt như thủy tinh, dễ vỡ nhưng đẹp đẽ vô cùng. Một tình yêu thuần khiết sẽ mãi mãi tồn tại.",
+            Title = "Glass Heart",
+            Author = "Christopher Lee",
+            Description = "A love story as transparent as glass, fragile but incredibly beautiful. Pure love will last forever.",
             ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Lãng mạn",
+            Category = "Romance",
             Views = 8800,
             Likes = 645,
             IsFeatured = false,
@@ -248,11 +255,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Vùng Đất Bị Lãng Quên",
-            Author = "Phạm Quang N",
-            Description = "Khám phá một vùng đất cổ xưa đã bị lãng quên qua hàng thế kỷ. Những bí mật đang chờ đợi được khám phá.",
+            Title = "The Forgotten Land",
+            Author = "Amanda Green",
+            Description = "Explore an ancient land forgotten for centuries. Secrets await discovery.",
             ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Phiêu lưu",
+            Category = "Adventure",
             Views = 11200,
             Likes = 789,
             IsFeatured = false,
@@ -260,11 +267,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Bóng Ma Trong Gương",
-            Author = "Hoàng Lan O",
-            Description = "Một tấm gương cổ xưa với bí mật đáng sợ. Ai nhìn vào sẽ thấy tương lai của chính mình, nhưng cái giá phải trả là gì?",
+            Title = "Ghost in the Mirror",
+            Author = "Daniel King",
+            Description = "An ancient mirror with a terrifying secret. Those who look into it will see their future, but what is the price?",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Huyền bí",
+            Category = "Mystery",
             Views = 13400,
             Likes = 912,
             IsFeatured = true,
@@ -272,11 +279,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Những Ngôi Sao Lấp Lánh",
-            Author = "Vũ Hải P",
-            Description = "Một câu chuyện về những ước mơ và hy vọng dưới bầu trời đầy sao. Mỗi ngôi sao đều mang theo một điều ước.",
+            Title = "Twinkling Stars",
+            Author = "Michelle Scott",
+            Description = "A story about dreams and hopes under a starry sky. Each star carries a wish.",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Đời sống",
+            Category = "Life",
             Views = 7600,
             Likes = 534,
             IsFeatured = false,
@@ -284,9 +291,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Chiến Binh Bóng Đêm",
-            Author = "Đặng Vũ Q",
-            Description = "Một chiến binh với sức mạnh bóng tối phải đối mặt với những thử thách lớn nhất trong cuộc đời. Liệu ánh sáng có chiến thắng?",
+            Title = "Warrior of the Night",
+            Author = "Kevin Adams",
+            Description = "A warrior with dark powers must face the greatest challenges of life. Will light prevail?",
             ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
             Category = "Fantasy",
             Views = 16200,
@@ -296,11 +303,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Hoa Nở Trong Tuyết",
-            Author = "Bùi Mai R",
-            Description = "Một câu chuyện tình yêu đẹp như hoa nở giữa mùa đông giá lạnh. Tình yêu thật sự sẽ vượt qua mọi khó khăn.",
+            Title = "Flower in the Snow",
+            Author = "Rachel Moore",
+            Description = "A beautiful love story like a flower blooming in the cold winter. True love will overcome all difficulties.",
             ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
-            Category = "Lãng mạn",
+            Category = "Romance",
             Views = 6900,
             Likes = 478,
             IsFeatured = false,
@@ -308,11 +315,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Cuộc Chiến Giữa Các Thế Giới",
-            Author = "Nguyễn Hoàng S",
-            Description = "Một cuộc chiến lớn giữa các thế giới song song đang bắt đầu. Số phận của nhiều thế giới nằm trong tay những anh hùng.",
+            Title = "War Between Worlds",
+            Author = "Thomas Wright",
+            Description = "A great war between parallel worlds is beginning. The fate of many worlds lies in the hands of heroes.",
             ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "Khoa học viễn tưởng",
+            Category = "Science Fiction",
             Views = 14500,
             Likes = 1023,
             IsFeatured = true,
@@ -320,9 +327,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Nữ Hoàng Rừng Xanh",
-            Author = "Trần Linh T",
-            Description = "Câu chuyện về một nữ hoàng bảo vệ khu rừng cổ tích. Sức mạnh của thiên nhiên và tình yêu với mẹ Trái Đất.",
+            Title = "Queen of the Green Forest",
+            Author = "Jennifer Lewis",
+            Description = "A story about a queen protecting the fairy forest. The power of nature and love for Mother Earth.",
             ImageUrl = "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=800&h=1200&fit=crop&q=80",
             Category = "Fantasy",
             Views = 10800,
@@ -332,11 +339,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Nhật Ký Mất Tích",
-            Author = "Lê Anh U",
-            Description = "Một cuốn nhật ký cổ với những trang giấy bị mất tích. Mỗi trang được tìm thấy sẽ tiết lộ một bí mật mới.",
+            Title = "The Missing Diary",
+            Author = "Brian Clark",
+            Description = "An ancient diary with missing pages. Each page found will reveal a new secret.",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Huyền bí",
+            Category = "Mystery",
             Views = 9200,
             Likes = 623,
             IsFeatured = false,
@@ -344,11 +351,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Người Ngoài Hành Tinh",
-            Author = "Phạm Đức V",
-            Description = "Một chủng tộc người ngoài hành tinh đến Trái Đất với mục đích bí ẩn. Họ là bạn hay thù?",
+            Title = "The Aliens",
+            Author = "Nicole Young",
+            Description = "An alien race arrives on Earth with mysterious intentions. Are they friend or foe?",
             ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
-            Category = "Khoa học viễn tưởng",
+            Category = "Science Fiction",
             Views = 12800,
             Likes = 887,
             IsFeatured = true,
@@ -356,9 +363,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Lâu Đài Trên Mây",
-            Author = "Hoàng Thị X",
-            Description = "Một lâu đài tuyệt đẹp nằm trên những đám mây. Chỉ những người có trái tim trong sáng mới có thể đến đó.",
+            Title = "Castle in the Clouds",
+            Author = "Ryan Mitchell",
+            Description = "A beautiful castle sits on the clouds. Only those with pure hearts can reach it.",
             ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
             Category = "Fantasy",
             Views = 8400,
@@ -368,11 +375,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Trái Tim Của Đại Dương",
-            Author = "Vũ Minh Y",
-            Description = "Sâu thẳm dưới đại dương có một kho báu bí ẩn. Những người mạo hiểm sẽ tìm thấy gì ở đó?",
+            Title = "Heart of the Ocean",
+            Author = "Stephanie Hall",
+            Description = "Deep in the ocean lies a mysterious treasure. What will adventurers find there?",
             ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Phiêu lưu",
+            Category = "Adventure",
             Views = 11500,
             Likes = 801,
             IsFeatured = false,
@@ -380,11 +387,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Bản Giao Hưởng Của Thời Gian",
-            Author = "Đặng Quỳnh Z",
-            Description = "Một bản nhạc cổ xưa có thể điều khiển dòng chảy của thời gian. Ai sở hữu nó sẽ có quyền lực vô song.",
+            Title = "Symphony of Time",
+            Author = "Andrew Baker",
+            Description = "An ancient melody that can control the flow of time. Whoever possesses it will have unmatched power.",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Huyền bí",
+            Category = "Mystery",
             Views = 13100,
             Likes = 934,
             IsFeatured = true,
@@ -392,9 +399,9 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Ngọn Lửa Vĩnh Cửu",
-            Author = "Bùi Hồng AA",
-            Description = "Một ngọn lửa không bao giờ tắt, chứa đựng sức mạnh của mặt trời. Nó sẽ trao cho ai có thể chạm vào nó.",
+            Title = "The Eternal Flame",
+            Author = "Laura Garcia",
+            Description = "A flame that never dies, containing the power of the sun. It will grant power to whoever can touch it.",
             ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
             Category = "Fantasy",
             Views = 9900,
@@ -404,11 +411,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Bức Thư Từ Quá Khứ",
-            Author = "Nguyễn Lan BB",
-            Description = "Một bức thư được gửi từ quá khứ xa xôi, chứa đựng những cảnh báo quan trọng cho tương lai. Liệu có ai tin vào nó?",
+            Title = "Letter from the Past",
+            Author = "Mark Thompson",
+            Description = "A letter sent from the distant past, containing important warnings for the future. Will anyone believe it?",
             ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "Lịch sử",
+            Category = "History",
             Views = 8700,
             Likes = 589,
             IsFeatured = false,
@@ -416,11 +423,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Hành Tinh Tương Lai",
-            Author = "Trần Hưng CC",
-            Description = "Du hành đến một hành tinh ở tương lai xa, nơi công nghệ và con người đã hòa hợp thành một.",
+            Title = "Planet of the Future",
+            Author = "Sandra Walker",
+            Description = "Travel to a planet in the distant future, where technology and humanity have merged into one.",
             ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Khoa học viễn tưởng",
+            Category = "Science Fiction",
             Views = 13800,
             Likes = 967,
             IsFeatured = true,
@@ -428,11 +435,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Tình Bạn Bất Diệt",
-            Author = "Lê Mai DD",
-            Description = "Câu chuyện về tình bạn vượt qua mọi ranh giới và thử thách. Một tình bạn sẽ mãi mãi tồn tại.",
+            Title = "Eternal Friendship",
+            Author = "Paul Rodriguez",
+            Description = "A story about friendship that transcends all boundaries and challenges. A friendship that will last forever.",
             ImageUrl = "https://images.unsplash.com/photo-1521542464131-cb30f7a44e91?w=800&h=1200&fit=crop&q=80",
-            Category = "Đời sống",
+            Category = "Life",
             Views = 7100,
             Likes = 445,
             IsFeatured = false,
@@ -440,11 +447,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Thành Phố Ma",
-            Author = "Phạm Đông EE",
-            Description = "Một thành phố bị ma ám, nơi những linh hồn lang thang tìm kiếm sự giải thoát. Ai dám bước vào?",
+            Title = "Ghost City",
+            Author = "Karen Foster",
+            Description = "A haunted city where wandering souls seek liberation. Who dares to enter?",
             ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Huyền bí",
+            Category = "Mystery",
             Views = 12400,
             Likes = 856,
             IsFeatured = false,

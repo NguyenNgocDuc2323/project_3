@@ -5,29 +5,20 @@
         <template #content>
           <div class="card-header">
             <div class="header-icon">📖</div>
-            <h2 class="card-title">Tạo tài khoản mới</h2>
-            <p class="card-subtitle">Đăng ký để bắt đầu hành trình của bạn</p>
+            <h2 class="card-title">Create Account</h2>
+            <p class="card-subtitle">Sign up to get started</p>
           </div>
           
           <form @submit.prevent="handleRegister" class="register-form">
-            <Message 
-              v-if="errors.general" 
-              severity="error" 
-              :closable="false"
-              class="error-message"
-            >
-              {{ errors.general }}
-            </Message>
-            
             <div class="form-group">
               <label for="username" class="form-label">
                 <i class="pi pi-user" />
-                Tên đăng nhập <span class="required">*</span>
+                Username <span class="required">*</span>
               </label>
               <InputText 
                 id="username" 
                 v-model="form.username" 
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Enter username"
                 class="form-input"
                 :class="{ 'p-invalid': errors.username }"
                 autocomplete="username"
@@ -44,7 +35,7 @@
                 id="email" 
                 v-model="form.email" 
                 type="email"
-                placeholder="Nhập email"
+                placeholder="Enter email"
                 class="form-input"
                 :class="{ 'p-invalid': errors.email }"
                 autocomplete="email"
@@ -55,12 +46,12 @@
             <div class="form-group">
               <label for="fullName" class="form-label">
                 <i class="pi pi-id-card" />
-                Họ và tên
+                Full Name
               </label>
               <InputText 
                 id="fullName" 
                 v-model="form.fullName" 
-                placeholder="Nhập họ và tên (tùy chọn)"
+                placeholder="Enter full name (optional)"
                 class="form-input"
               />
             </div>
@@ -68,8 +59,8 @@
             <PasswordInput 
               id="password"
               v-model="form.password"
-              label="Mật khẩu"
-              placeholder="Nhập mật khẩu"
+              label="Password"
+              placeholder="Enter password"
               :error="errors.password"
               :required="true"
               :feedback="true"
@@ -78,7 +69,7 @@
 
             <Button 
               type="submit" 
-              label="Đăng ký" 
+              label="Sign Up" 
               icon="pi pi-user-plus"
               class="submit-button"
               :loading="loading"
@@ -86,12 +77,12 @@
             />
 
             <Divider>
-              <span class="divider-text">hoặc</span>
+              <span class="divider-text">or</span>
             </Divider>
 
             <div class="login-link">
-              <span>Đã có tài khoản?</span>
-              <a href="#" @click.prevent="$router.push('/login')" class="link"> Đăng nhập ngay</a>
+              <span>Already have an account?</span>
+              <a href="#" @click.prevent="$router.push('/login')" class="link"> Sign in</a>
             </div>
           </form>
         </template>
@@ -103,15 +94,16 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
-import Message from 'primevue/message'
 import PasswordInput from '@/components/PasswordInput.vue'
 import { authService } from '@/api/authService'
 
 const router = useRouter()
+const toast = useToast()
 
 const form = ref({
   username: '',
@@ -127,21 +119,21 @@ const validateForm = () => {
   errors.value = {}
   
   if (!form.value.username.trim()) {
-    errors.value.username = 'Vui lòng nhập tên đăng nhập'
+    errors.value.username = 'Username is required'
   } else if (form.value.username.length < 3) {
-    errors.value.username = 'Tên đăng nhập phải có ít nhất 3 ký tự'
+    errors.value.username = 'Username must be at least 3 characters'
   }
   
   if (!form.value.email.trim()) {
-    errors.value.email = 'Vui lòng nhập email'
+    errors.value.email = 'Email is required'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    errors.value.email = 'Email không hợp lệ'
+    errors.value.email = 'Invalid email'
   }
   
   if (!form.value.password) {
-    errors.value.password = 'Vui lòng nhập mật khẩu'
+    errors.value.password = 'Password is required'
   } else if (form.value.password.length < 6) {
-    errors.value.password = 'Mật khẩu phải có ít nhất 6 ký tự'
+    errors.value.password = 'Password must be at least 6 characters'
   }
   
   return Object.keys(errors.value).length === 0
@@ -163,13 +155,28 @@ const handleRegister = async () => {
       form.value.fullName
     )
     
-    localStorage.setItem('accessToken', response.accessToken)
-    localStorage.setItem('refreshToken', response.refreshToken)
-    localStorage.setItem('user', JSON.stringify(response.user))
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: `Account created. Please sign in.`,
+      life: 3000
+    })
     
-    router.push('/dashboard')
+    setTimeout(() => {
+      router.push('/login')
+    }, 1500)
   } catch (err) {
-    errors.value.general = err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.'
+    const errorData = err.response?.data || {}
+    const errorMessage = errorData.message || errorData.error || err.message || 'Registration failed. Please try again.'
+    
+    errors.value.general = errorMessage
+    
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: errorMessage,
+      life: 5000
+    })
   } finally {
     loading.value = false
   }
@@ -347,17 +354,6 @@ const handleRegister = async () => {
 .login-link .link:hover {
   color: #5C4033;
   text-decoration: underline;
-}
-
-.error-message {
-  margin-bottom: 0.5rem;
-}
-
-:deep(.p-message-error) {
-  background: #fee;
-  border-color: #e24c4c;
-  color: #e24c4c;
-  border-radius: 10px;
 }
 
 .p-error {

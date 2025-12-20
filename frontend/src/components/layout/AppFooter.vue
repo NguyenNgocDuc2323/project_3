@@ -11,12 +11,12 @@
               <div class="icon-glow"></div>
             </div>
             <div class="brand-info">
-              <div class="title">Đọc Chuyện</div>
-              <div class="subtitle">Kho truyện hay</div>
+              <div class="title">Story Reader</div>
+              <div class="subtitle">Great Stories</div>
             </div>
           </div>
           <div class="description">
-            Nơi bạn có thể đắm chìm trong những câu chuyện hay. Khám phá thế giới của những câu chuyện tuyệt vời.
+            Where you can immerse yourself in great stories. Discover the world of amazing stories.
           </div>
           <div class="social-links">
             <a href="#" class="social-link" aria-label="Facebook">
@@ -35,29 +35,29 @@
         </div>
 
         <div class="footer-section middle">
-          <h3 class="section-title">Liên kết nhanh</h3>
+          <h3 class="section-title">Quick Links</h3>
           <div class="links">
             <router-link to="/dashboard" class="link">
               <i class="pi pi-home"></i>
-              <span>Trang chủ</span>
+              <span>Home</span>
             </router-link>
             <router-link to="/about" class="link">
               <i class="pi pi-info-circle"></i>
-              <span>Về chúng tôi</span>
+              <span>About Us</span>
             </router-link>
             <a href="#" class="link">
               <i class="pi pi-envelope"></i>
-              <span>Liên hệ</span>
+              <span>Contact</span>
             </a>
             <a href="#" class="link">
               <i class="pi pi-file"></i>
-              <span>Điều khoản</span>
+              <span>Terms</span>
             </a>
           </div>
         </div>
 
         <div class="footer-section right">
-          <h3 class="section-title">Thông tin</h3>
+          <h3 class="section-title">Information</h3>
           <div class="info-list">
             <div class="info-item">
               <i class="pi pi-phone"></i>
@@ -65,11 +65,11 @@
             </div>
             <div class="info-item">
               <i class="pi pi-envelope"></i>
-              <span>Email: contact@dochuyen.com</span>
+              <span>Email: contact@storyreader.com</span>
             </div>
             <div class="info-item">
               <i class="pi pi-map-marker"></i>
-              <span>123 Đường Sách, TP.HCM</span>
+              <span>123 Book Street, HCMC</span>
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@
       <div class="footer-bottom">
         <div class="copyright">
           <i class="pi pi-copyright"></i>
-          <span>{{ year }} Đọc Chuyện. All rights reserved.</span>
+          <span>{{ year }} Story Reader. All rights reserved.</span>
         </div>
         <div class="divider"></div>
         <div class="footer-links">

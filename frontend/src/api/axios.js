@@ -1,62 +1,64 @@
 import axios from 'axios'
+import { cookieUtils } from '@/utils/cookie'
 
 const apiClient = axios.create({
-  baseURL: '/api', // Use proxy in development, will be replaced in production
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 })
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    const token = cookieUtils.get('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-            console.log('API Request:', config.method?.toUpperCase(), config.url, config.params)
     return config
   },
   (error) => {
-    console.error('Request error:', error)
     return Promise.reject(error)
   }
 )
 
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.config.url, response.status, response.data)
     return response
   },
   async (error) => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    })
-    
     if (error.response?.status === 401) {
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        try {
-          const { authService } = await import('./authService')
-          const response = await authService.refreshToken(refreshToken)
-          localStorage.setItem('accessToken', response.accessToken)
-          localStorage.setItem('refreshToken', response.refreshToken)
-          // Retry original request
+      try {
+        const { authService } = await import('./authService')
+        const response = await authService.refreshToken(null)
+        
+        if (response && response.accessToken) {
+          const accessTokenExpirationMinutes = 15
+          cookieUtils.set('accessToken', response.accessToken, accessTokenExpirationMinutes)
+          
+          if (response.refreshToken) {
+            const refreshTokenExpirationDays = 7
+            const refreshTokenExpirationMinutes = refreshTokenExpirationDays * 24 * 60
+            cookieUtils.set('refreshToken', response.refreshToken, refreshTokenExpirationMinutes)
+          }
+          
           error.config.headers.Authorization = `Bearer ${response.accessToken}`
           return apiClient.request(error.config)
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError)
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 100))
+        const newToken = cookieUtils.get('accessToken')
+        if (newToken) {
+          error.config.headers.Authorization = `Bearer ${newToken}`
+          return apiClient.request(error.config)
+        }
+      } catch (refreshError) {
+        cookieUtils.remove('accessToken')
+        cookieUtils.remove('refreshToken')
+        localStorage.removeItem('user')
+        if (window.location.pathname !== '/login') {
           window.location.href = '/login'
         }
-      } else {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
       }
     }
     return Promise.reject(error)
