@@ -3,8 +3,15 @@ import About from '../views/About.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Dashboard from '../views/user/Dashboard.vue'
-import AddStory from '../views/AddStory.vue'
 import AdminDashboard from '../views/admin/Dashboard.vue'
+import StoriesList from '../views/admin/stories/List.vue'
+import StoriesCreate from '../views/admin/stories/Create.vue'
+import StoriesEdit from '../views/admin/stories/Edit.vue'
+import UsersList from '../views/admin/users/List.vue'
+import UsersEdit from '../views/admin/users/Edit.vue'
+import CategoriesList from '../views/admin/categories/List.vue'
+import CategoriesCreate from '../views/admin/categories/Create.vue'
+import CategoriesEdit from '../views/admin/categories/Edit.vue'
 import { cookieUtils } from '@/utils/cookie'
 
 const routes = [
@@ -43,10 +50,52 @@ const routes = [
     meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/stories/add',
-    name: 'AddStory',
-    component: AddStory,
-    meta: { layout: 'default', requiresAuth: true }
+    path: '/admin/stories/list',
+    name: 'StoriesList',
+    component: StoriesList,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/stories/create',
+    name: 'StoriesCreate',
+    component: StoriesCreate,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/stories/edit/:id',
+    name: 'StoriesEdit',
+    component: StoriesEdit,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/users/list',
+    name: 'UsersList',
+    component: UsersList,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/users/edit/:id',
+    name: 'UsersEdit',
+    component: UsersEdit,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/categories/list',
+    name: 'CategoriesList',
+    component: CategoriesList,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/categories/create',
+    name: 'CategoriesCreate',
+    component: CategoriesCreate,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/categories/edit/:id',
+    name: 'CategoriesEdit',
+    component: CategoriesEdit,
+    meta: { layout: 'default', requiresAuth: true, requiresAdmin: true }
   }
 ]
 

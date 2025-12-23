@@ -1,249 +1,416 @@
 <template>
   <div class="admin-dashboard">
     <div class="dashboard-header">
-      <h1>Story Management</h1>
-      <p>Manage all stories in the system</p>
+      <h1>Admin Dashboard</h1>
+      <p>Manage your platform</p>
     </div>
 
-    <Card class="dashboard-card">
-      <template #content>
-        <div v-if="loading" class="loading-state">
-          <p>Loading stories...</p>
+    <Card class="stories-carousel-card" v-if="featuredStories.length > 0">
+      <template #header>
+        <div class="carousel-header">
+          <h3>Featured Stories</h3>
         </div>
-        <DataTable 
-          v-else
-          :value="allStories" 
-          :paginator="true" 
-          :rows="10"
-          :rowsPerPageOptions="[10, 20, 50]"
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          currentPageReportTemplate="{first} to {last} of {totalRecords}"
-          responsiveLayout="scroll"
-          :globalFilterFields="['title', 'author', 'category']"
-          stripedRows
-          :globalFilter="globalFilter"
+      </template>
+      <template #content>
+        <Carousel 
+          :value="featuredStories" 
+          :numVisible="3" 
+          :numScroll="1"
+          :autoplayInterval="4000"
+          :circular="true"
+          :showIndicators="true"
+          :showNavigators="true"
+          :responsiveOptions="responsiveOptions"
         >
-          <template #header>
-            <div class="table-header">
-              <span class="table-title">Stories ({{ allStories.length }})</span>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="globalFilter" placeholder="Search..." />
-              </span>
+          <template #item="slotProps">
+            <div class="story-carousel-item" @click="navigateToStoryEdit(slotProps.data.id)">
+              <div class="story-carousel-image-wrapper">
+                <img :src="slotProps.data.imageUrl" :alt="slotProps.data.title" class="story-carousel-image" />
+                <div class="story-carousel-overlay">
+                  <Tag v-if="slotProps.data.isFeatured" value="Featured" severity="success" />
+                </div>
+              </div>
+              <div class="story-carousel-content">
+                <h4 class="story-carousel-title">{{ slotProps.data.title }}</h4>
+                <p class="story-carousel-author">{{ slotProps.data.author }}</p>
+                <div class="story-carousel-stats">
+                  <span><i class="pi pi-eye" /> {{ formatNumber(slotProps.data.views) }}</span>
+                  <span><i class="pi pi-heart" /> {{ formatNumber(slotProps.data.likes) }}</span>
+                </div>
+              </div>
             </div>
           </template>
-          
-          <Column field="id" header="ID" :sortable="true" style="width: 80px" />
-          <Column field="title" header="Title" :sortable="true" />
-          <Column field="author" header="Author" :sortable="true" />
-          <Column field="category" header="Category" :sortable="true" />
-          <Column field="views" header="Views" :sortable="true" style="width: 100px" />
-          <Column field="likes" header="Likes" :sortable="true" style="width: 100px" />
-          <Column field="isFeatured" header="Featured" :sortable="true" style="width: 100px">
-            <template #body="slotProps">
-              <Tag v-if="slotProps.data.isFeatured" value="Yes" severity="success" />
-              <Tag v-else value="No" severity="secondary" />
-            </template>
-          </Column>
-          <Column header="Actions" style="width: 200px">
-            <template #body="slotProps">
-              <Button 
-                icon="pi pi-pencil" 
-                class="p-button-rounded p-button-text p-button-plain"
-                @click="editStory(slotProps.data)"
-                v-tooltip.top="'Edit'"
-              />
-              <Button 
-                icon="pi pi-trash" 
-                class="p-button-rounded p-button-text p-button-danger"
-                @click="confirmDelete(slotProps.data)"
-                v-tooltip.top="'Delete'"
-              />
-            </template>
-          </Column>
-        </DataTable>
+        </Carousel>
       </template>
     </Card>
 
-    <Dialog 
-      :visible="showDeleteDialog"
-      @update:visible="showDeleteDialog = $event"
-      modal 
-      header="Confirm Delete"
-      :style="{ width: '450px' }"
-    >
-      <div class="delete-confirm">
-        <p>Are you sure you want to delete <strong>{{ selectedStory?.title }}</strong>?</p>
-        <p class="warning-text">This action cannot be undone.</p>
-      </div>
-      <template #footer>
-        <Button label="Cancel" icon="pi pi-times" @click="showDeleteDialog = false" severity="secondary" outlined />
-        <Button label="Delete" icon="pi pi-check" @click="deleteStory" severity="danger" />
-      </template>
-    </Dialog>
+    <div class="charts-grid">
+      <Card class="chart-card">
+        <template #header>
+          <div class="chart-header">
+            <h3>Views & Likes (Last 7 Days)</h3>
+          </div>
+        </template>
+        <template #content>
+          <Line :data="viewsLikesChartData" :options="chartOptions" />
+        </template>
+      </Card>
 
-    <Dialog 
-      :visible="showEditDialog"
-      @update:visible="showEditDialog = $event"
-      modal 
-      header="Edit Story"
-      :style="{ width: '600px' }"
-    >
-      <div class="edit-form" v-if="selectedStory">
-        <div class="form-group">
-          <label>Title</label>
-          <InputText v-model="editForm.title" />
-        </div>
-        <div class="form-group">
-          <label>Author</label>
-          <InputText v-model="editForm.author" />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <Textarea v-model="editForm.description" rows="4" />
-        </div>
-        <div class="form-group">
-          <label>Image URL</label>
-          <InputText v-model="editForm.imageUrl" />
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <InputText v-model="editForm.category" />
-        </div>
-        <div class="form-group">
-          <Checkbox v-model="editForm.isFeatured" inputId="featured" :binary="true" />
-          <label for="featured" class="checkbox-label">Featured</label>
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancel" icon="pi pi-times" @click="showEditDialog = false" severity="secondary" outlined />
-        <Button label="Save" icon="pi pi-check" @click="saveStory" />
-      </template>
-    </Dialog>
+      <Card class="chart-card">
+        <template #header>
+          <div class="chart-header">
+            <h3>Stories by Category</h3>
+          </div>
+        </template>
+        <template #content>
+          <Bar :data="categoryChartData" :options="chartOptions" />
+        </template>
+      </Card>
+
+      <Card class="chart-card">
+        <template #header>
+          <div class="chart-header">
+            <h3>User Distribution</h3>
+          </div>
+        </template>
+        <template #content>
+          <Pie :data="userDistributionData" :options="pieChartOptions" />
+        </template>
+      </Card>
+
+      <Card class="chart-card">
+        <template #header>
+          <div class="chart-header">
+            <h3>Revenue (Last 30 Days)</h3>
+          </div>
+        </template>
+        <template #content>
+          <Line :data="revenueChartData" :options="revenueChartOptions" />
+        </template>
+      </Card>
+    </div>
+
+    <div class="management-grid">
+      <Card class="management-card" @click="navigateToStories">
+        <template #content>
+          <div class="management-content">
+            <div class="management-icon">
+              <i class="pi pi-book" />
+            </div>
+            <h3>Manage Stories</h3>
+            <p>View, edit, and delete stories</p>
+            <Button label="Go to Stories" icon="pi pi-arrow-right" class="management-btn" />
+          </div>
+        </template>
+      </Card>
+
+      <Card class="management-card" @click="navigateToUsers">
+        <template #content>
+          <div class="management-content">
+            <div class="management-icon">
+              <i class="pi pi-users" />
+            </div>
+            <h3>Manage Users</h3>
+            <p>View and manage user accounts</p>
+            <Button label="Go to Users" icon="pi pi-arrow-right" class="management-btn" />
+          </div>
+        </template>
+      </Card>
+
+      <Card class="management-card" @click="navigateToAddStory">
+        <template #content>
+          <div class="management-content">
+            <div class="management-icon">
+              <i class="pi pi-plus-circle" />
+            </div>
+            <h3>Add New Story</h3>
+            <p>Create a new story</p>
+            <Button label="Add Story" icon="pi pi-arrow-right" class="management-btn" />
+          </div>
+        </template>
+      </Card>
+
+      <Card class="management-card" @click="navigateToCategories">
+        <template #content>
+          <div class="management-content">
+            <div class="management-icon">
+              <i class="pi pi-tags" />
+            </div>
+            <h3>Manage Categories</h3>
+            <p>Manage story categories</p>
+            <Button label="Go to Categories" icon="pi pi-arrow-right" class="management-btn" />
+          </div>
+        </template>
+      </Card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
-import Textarea from 'primevue/textarea'
-import Checkbox from 'primevue/checkbox'
+import Carousel from 'primevue/carousel'
 import Tag from 'primevue/tag'
-import Tooltip from 'primevue/tooltip'
+import { Line, Bar, Pie } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js'
 import { adminStoryService } from '@/api/admin/storyService'
-import { useToast } from 'primevue/usetoast'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 
 const router = useRouter()
-const toast = useToast()
 
-const loading = ref(true)
-const allStories = ref([])
-const showDeleteDialog = ref(false)
-const showEditDialog = ref(false)
-const selectedStory = ref(null)
-const globalFilter = ref('')
-
-const editForm = ref({
-  title: '',
-  author: '',
-  description: '',
-  imageUrl: '',
-  category: '',
-  isFeatured: false
+const stats = ref({
+  totalStories: 0,
+  totalUsers: 0,
+  totalViews: 0,
+  totalLikes: 0
 })
+
+const featuredStories = ref([])
+const loading = ref(true)
+
+const responsiveOptions = [
+  {
+    breakpoint: '1400px',
+    numVisible: 3,
+    numScroll: 1
+  },
+  {
+    breakpoint: '1024px',
+    numVisible: 2,
+    numScroll: 1
+  },
+  {
+    breakpoint: '768px',
+    numVisible: 1,
+    numScroll: 1
+  }
+]
 
 onMounted(() => {
-  loadData()
+  loadStats()
+  loadFeaturedStories()
+  generateFakeChartData()
 })
 
-const loadData = async () => {
+const loadStats = async () => {
+  try {
+    const data = await adminStoryService.getStats()
+    stats.value = data
+  } catch (error) {
+    console.error('Failed to load stats:', error)
+  }
+}
+
+const loadFeaturedStories = async () => {
   loading.value = true
   try {
-    const allStoriesData = await adminStoryService.getAll()
-    allStories.value = allStoriesData
+    const stories = await adminStoryService.getAll()
+    featuredStories.value = stories.filter(s => s.isFeatured).slice(0, 6)
+    if (featuredStories.value.length === 0) {
+      featuredStories.value = stories.slice(0, 6)
+    }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load stories. Please try again.',
-      life: 4000
-    })
+    console.error('Failed to load featured stories:', error)
   } finally {
     loading.value = false
   }
 }
 
-const confirmDelete = (story) => {
-  selectedStory.value = story
-  showDeleteDialog.value = true
+const formatNumber = (num) => {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+  return num.toString()
 }
 
-const deleteStory = async () => {
-  if (!selectedStory.value) return
+const generateFakeChartData = () => {
+  const last7Days = []
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    last7Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+  }
 
-  try {
-    await adminStoryService.delete(selectedStory.value.id)
-    toast.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Story deleted successfully',
-      life: 3000
-    })
-    showDeleteDialog.value = false
-    loadData()
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to delete story. Please try again.',
-      life: 4000
-    })
+  viewsLikesChartData.value = {
+    labels: last7Days,
+    datasets: [
+      {
+        label: 'Views',
+        data: [1200, 1900, 3000, 2500, 2800, 3200, 3500],
+        fill: false,
+        borderColor: '#8B6F47',
+        tension: 0.4
+      },
+      {
+        label: 'Likes',
+        data: [80, 120, 150, 130, 140, 180, 200],
+        fill: false,
+        borderColor: '#dc3545',
+        tension: 0.4
+      }
+    ]
+  }
+
+  categoryChartData.value = {
+    labels: ['Adventure', 'Mystery', 'Romance', 'Fantasy', 'Sci-Fi', 'Drama'],
+    datasets: [
+      {
+        label: 'Stories',
+        data: [5, 4, 6, 3, 4, 2],
+        backgroundColor: [
+          '#8B6F47',
+          '#5C4033',
+          '#D4A574',
+          '#A0826D',
+          '#7A5F3F',
+          '#6B4F3F'
+        ]
+      }
+    ]
+  }
+
+  userDistributionData.value = {
+    labels: ['Admin', 'Users'],
+    datasets: [
+      {
+        data: [2, 48],
+        backgroundColor: ['#dc3545', '#8B6F47']
+      }
+    ]
+  }
+
+  const last30Days = []
+  const revenueData = []
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    if (i % 5 === 0) {
+      last30Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+    } else {
+      last30Days.push('')
+    }
+    revenueData.push(Math.floor(Math.random() * 500) + 200)
+  }
+
+  revenueChartData.value = {
+    labels: last30Days,
+    datasets: [
+      {
+        label: 'Revenue ($)',
+        data: revenueData,
+        fill: true,
+        borderColor: '#28a745',
+        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+        tension: 0.4
+      }
+    ]
   }
 }
 
-const editStory = (story) => {
-  selectedStory.value = story
-  editForm.value = {
-    title: story.title,
-    author: story.author || '',
-    description: story.description || '',
-    imageUrl: story.imageUrl,
-    category: story.category || '',
-    isFeatured: story.isFeatured || false
+const viewsLikesChartData = ref({})
+const categoryChartData = ref({})
+const userDistributionData = ref({})
+const revenueChartData = ref({})
+
+const chartOptions = computed(() => {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          usePointStyle: true
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
   }
-  showEditDialog.value = true
+})
+
+const pieChartOptions = computed(() => {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true
+        }
+      }
+    }
+  }
+})
+
+const revenueChartOptions = computed(() => {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return '$' + value
+          }
+        }
+      }
+    }
+  }
+})
+
+const navigateToStories = () => {
+  router.push('/admin/stories/list')
 }
 
-const saveStory = async () => {
-  if (!selectedStory.value) return
+const navigateToUsers = () => {
+  router.push('/admin/users/list')
+}
 
-  try {
-    await adminStoryService.update(selectedStory.value.id, {
-      ...selectedStory.value,
-      ...editForm.value
-    })
-    toast.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Story updated successfully',
-      life: 3000
-    })
-    showEditDialog.value = false
-    loadData()
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to update story. Please try again.',
-      life: 4000
-    })
-  }
+const navigateToAddStory = () => {
+  router.push('/admin/stories/create')
+}
+
+const navigateToCategories = () => {
+  router.push('/admin/categories/list')
+}
+
+const navigateToStoryEdit = (id) => {
+  router.push(`/admin/stories/edit/${id}`)
 }
 </script>
 
@@ -252,7 +419,7 @@ const saveStory = async () => {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  min-height: 100vh;
+  min-height: calc(100vh - 200px);
 }
 
 .dashboard-header {
@@ -262,8 +429,8 @@ const saveStory = async () => {
 .dashboard-header h1 {
   font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
   color: #333;
+  margin-bottom: 0.5rem;
 }
 
 .dashboard-header p {
@@ -271,90 +438,213 @@ const saveStory = async () => {
   font-size: 1rem;
 }
 
-.dashboard-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+.chart-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
 }
 
-.table-title {
+:deep(.chart-card .p-card-header) {
+  padding: 1.5rem 1.5rem 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+:deep(.chart-card .p-card-body) {
+  padding: 0;
+}
+
+:deep(.chart-card .p-card-content) {
+  padding: 1.5rem;
+  height: 350px;
+}
+
+.chart-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
   color: #333;
+  margin: 0;
 }
 
-.loading-state {
-  padding: 2rem;
+.stories-carousel-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+:deep(.stories-carousel-card .p-card-header) {
+  padding: 1.5rem 1.5rem 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+:deep(.stories-carousel-card .p-card-body) {
+  padding: 0;
+}
+
+:deep(.stories-carousel-card .p-card-content) {
+  padding: 1.5rem;
+}
+
+.carousel-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.story-carousel-item {
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.story-carousel-item:hover {
+  transform: translateY(-5px);
+}
+
+.story-carousel-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  background: #f5f5f5;
+}
+
+.story-carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.story-carousel-item:hover .story-carousel-image {
+  transform: scale(1.1);
+}
+
+.story-carousel-overlay {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.story-carousel-content {
   text-align: center;
+}
+
+.story-carousel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.story-carousel-author {
+  font-size: 0.85rem;
   color: #666;
+  margin: 0 0 0.75rem 0;
 }
 
-.delete-confirm {
-  padding: 1rem 0;
-}
-
-.warning-text {
-  color: #dc3545;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.edit-form {
+.story-carousel-stats {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   gap: 1rem;
+  font-size: 0.85rem;
+  color: #8B6F47;
 }
 
-.form-group {
+.story-carousel-stats i {
+  margin-right: 0.25rem;
+}
+
+.management-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.management-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.management-card:hover {
+  border-color: #8B6F47;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+:deep(.management-card .p-card-body) {
+  padding: 1.5rem;
+}
+
+:deep(.management-card .p-card-content) {
+  padding: 0;
+}
+
+.management-content {
+  text-align: center;
+}
+
+.management-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: #f5f5f5;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #8B6F47;
+  margin: 0 auto 1rem;
 }
 
-.form-group label {
+.management-content h3 {
+  font-size: 1.25rem;
   font-weight: 600;
   color: #333;
+  margin: 0 0 0.5rem 0;
 }
 
-.checkbox-label {
-  margin-left: 0.5rem;
-  font-weight: 500;
-  color: #333;
-}
-
-:deep(.p-datatable) {
+.management-content p {
   font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 1rem 0;
 }
 
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background: #f8f9fa;
+.management-btn {
+  width: 100%;
 }
 
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 1rem;
   }
-  
-  .table-header {
-    flex-direction: column;
-    align-items: stretch;
+
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .table-header .p-input-icon-left {
-    width: 100%;
+
+  :deep(.chart-card .p-card-content) {
+    height: 300px;
+  }
+
+  .management-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

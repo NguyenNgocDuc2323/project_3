@@ -282,7 +282,7 @@ const handleSubmit = async () => {
     successMessage.value = 'Story added successfully!'
     
     setTimeout(() => {
-      router.push('/dashboard')
+      router.push('/admin/stories/list')
     }, 1500)
   } catch (err) {
     errors.value.general = err.response?.data?.message || 'An error occurred. Please try again.'
@@ -292,7 +292,7 @@ const handleSubmit = async () => {
 }
 
 const handleCancel = () => {
-  router.push('/dashboard')
+  router.push('/admin/stories/list')
 }
 </script>
 

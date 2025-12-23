@@ -89,10 +89,12 @@ namespace Backend.Controllers
                     totalUsers
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new
+                return StatusCode(500, new
                 {
+                    message = "Error retrieving stats",
+                    error = ex.Message,
                     totalStories = 0,
                     totalViews = 0,
                     totalLikes = 0,
