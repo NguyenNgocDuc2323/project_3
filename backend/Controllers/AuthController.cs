@@ -142,7 +142,6 @@ namespace Backend.Controllers
                 _logger.LogError(ex, "Error occurred during registration for user: {Username}, {Email}. Error: {Error}, Inner: {Inner}", 
                     request?.Username, request?.Email, errorMessage, innerError);
                 
-                // Log full exception details for debugging
                 _logger.LogError("Full exception details: {Exception}", ex.ToString());
                 
                 return StatusCode(500, new { 
@@ -207,7 +206,6 @@ namespace Backend.Controllers
                 var canConnect = db.Database.CanConnect();
                 var usersCount = canConnect ? await db.Users.CountAsync() : -1;
                 
-                // Try to get column info (MySQL specific)
                 var connection = db.Database.GetDbConnection();
                 await connection.OpenAsync();
                 var command = connection.CreateCommand();
@@ -265,6 +263,16 @@ namespace Backend.Controllers
             }
 
             return Ok(new { message = "Token revoked successfully" });
+        }
+
+        [HttpGet("test-hot-reload")]
+        public IActionResult TestHotReload()
+        {
+            return Ok(new { 
+                message = "Hot reload test - Version 1.0", 
+                timestamp = DateTime.UtcNow,
+                status = "Backend code changes will auto-reload!"
+            });
         }
     }
 }

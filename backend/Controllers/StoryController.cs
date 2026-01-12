@@ -8,7 +8,7 @@ using System;
 namespace Backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/stories")]
     [AllowAnonymous]
     public class StoryController : ControllerBase
     {

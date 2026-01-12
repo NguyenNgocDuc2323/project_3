@@ -1,0 +1,71 @@
+.admin-categories-list {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.admin-categories-list .card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.admin-categories-list .table {
+  margin-bottom: 0;
+}
+
+.admin-categories-list .table thead th {
+  border-top: none;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #495057;
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+
+.admin-categories-list .table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.admin-categories-list .table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.admin-categories-list .table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.admin-categories-list .input-group-text {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+}
+
+.admin-categories-list .form-control:focus,
+.admin-categories-list .form-select:focus {
+  border-color: #8B4513;
+  box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+}
+
+.admin-categories-list .btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .admin-categories-list {
+    padding: 1rem 0;
+  }
+  
+  .admin-categories-list .table {
+    font-size: 0.875rem;
+  }
+  
+  .admin-categories-list .table thead th,
+  .admin-categories-list .table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+}

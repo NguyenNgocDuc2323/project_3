@@ -11,7 +11,12 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 32;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,7 +27,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API documentation for Project 3 - Full Stack Application"
     });
 
-    // Thêm JWT Authentication vào Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.\nExample: \"Bearer 12345abcdef\"",
@@ -50,13 +54,12 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVueApp",
+    options.AddPolicy("AllowReactApp",
         policy =>
         {
             policy.WithOrigins(
                     "http://localhost:3000",
-                    "http://localhost:80",
-                    "http://frontend:80"
+                    "http://localhost:5173"
                   )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
@@ -105,9 +108,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
-app.UseCors("AllowVueApp");
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,0 +1,43 @@
+.admin-dashboard {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.admin-dashboard .card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.admin-dashboard .card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.quick-action-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-dashboard .card-body {
+  padding: 1.5rem;
+}
+
+.admin-dashboard .card .bg-opacity-10 {
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 1rem 0;
+  }
+}

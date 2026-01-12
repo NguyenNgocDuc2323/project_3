@@ -1,23 +1,19 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 
-const isDocker = process.env.DOCKER_ENV === 'true'
-const apiUrl = process.env.VITE_API_URL || (isDocker ? 'http://backend:5000' : 'http://localhost:5000')
+const apiUrl = process.env.VITE_API_URL || 'http://localhost:5000'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
   server: {
-    host: '0.0.0.0',
+    host: 'localhost',
     port: 3000,
-    watch: {
-      usePolling: true
-    },
     proxy: {
       '/api': {
         target: apiUrl,

@@ -130,7 +130,6 @@ namespace Backend.Services
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                // Log the inner exception for debugging
                 var innerMessage = ex.InnerException?.Message ?? "No inner exception";
                 throw new InvalidOperationException($"Database error: {ex.Message}. Inner: {innerMessage}", ex);
             }

@@ -1,0 +1,139 @@
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem 0;
+}
+
+.login-page .card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.login-page .card-body {
+  padding: 2.5rem;
+}
+
+.login-card-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0.5rem;
+}
+
+.login-page .form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.login-page .form-control {
+  border: 1px solid #ced4da;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.login-page .form-control:focus {
+  border-color: #8B4513;
+  box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+  outline: 0;
+}
+
+.login-page .form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.login-page .form-control.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.login-page .invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.login-page .btn-primary {
+  padding: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.login-page .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(139, 69, 19, 0.3);
+}
+
+.login-page .btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.login-page .alert {
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+}
+
+.login-page hr {
+  border-color: #dee2e6;
+  opacity: 0.5;
+}
+
+.login-page a {
+  color: #8B4513;
+  font-weight: 600;
+  transition: color 0.15s ease-in-out;
+}
+
+.login-page a:hover {
+  color: #654321;
+  text-decoration: underline;
+}
+
+.login-page .text-muted {
+  color: #6c757d !important;
+  font-size: 0.9rem;
+}
+
+.login-page .mb-3 span {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.login-page .mb-3:hover span {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 1rem 0;
+  }
+  
+  .login-page .card-body {
+    padding: 2rem 1.5rem;
+  }
+  
+  .login-card-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-page .card-body {
+    padding: 1.5rem;
+  }
+  
+  .login-card-title {
+    font-size: 1.25rem;
+  }
+}
