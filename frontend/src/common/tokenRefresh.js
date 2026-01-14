@@ -20,29 +20,15 @@ const refreshTokenOnScroll = async () => {
     return
   }
 
-  const refreshToken = cookieUtils.get('refreshToken')
-  if (!refreshToken) {
-    return
-  }
-
   isRefreshingOnScroll = true
 
   try {
-    const response = await refreshClient.post('/auth/refresh', {
-      refreshToken: refreshToken
-    })
+    const response = await refreshClient.post('/auth/refresh', {})
     
-    // Handle both PascalCase (from backend) and camelCase formats
     const newAccessToken = response.data?.accessToken || response.data?.AccessToken
-    const newRefreshToken = response.data?.refreshToken || response.data?.RefreshToken
     
     if (newAccessToken) {
       cookieUtils.set('accessToken', newAccessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES)
-      
-      if (newRefreshToken) {
-        const refreshMinutes = TOKEN_EXPIRATION.REFRESH_TOKEN_DAYS * 24 * 60
-        cookieUtils.set('refreshToken', newRefreshToken, refreshMinutes)
-      }
     }
   } catch (error) {
     console.error('Error refreshing token on scroll:', error)

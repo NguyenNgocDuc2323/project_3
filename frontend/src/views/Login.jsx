@@ -4,6 +4,7 @@ import PasswordInput from '../components/PasswordInput'
 import RadioCheckbox from '../components/RadioCheckbox'
 import { authService } from '../common/services'
 import { ROUTES } from '../common/constants'
+import { isAdmin } from '../common/utils'
 import './Login.css'
 
 const Login = () => {
@@ -55,7 +56,12 @@ const Login = () => {
         })
       }
       
-      navigate(ROUTES.DASHBOARD)
+      // Redirect admin đến /admin, user thường đến /dashboard
+      if (isAdmin()) {
+        navigate(ROUTES.ADMIN)
+      } else {
+        navigate(ROUTES.DASHBOARD)
+      }
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Login failed. Please try again.'
       setErrors({ general: errorMessage })

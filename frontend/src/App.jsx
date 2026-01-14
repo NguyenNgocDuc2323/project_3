@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Toast from './components/Toast'
 import DefaultLayout from './layouts/DefaultLayout'
+import AdminLayout from './layouts/AdminLayout'
 import BlankLayout from './layouts/BlankLayout'
 import { ProtectedRoute } from './common/ProtectedRoute'
 import { ROUTES } from './common/constants'
 import { initScrollTokenRefresh, cleanupScrollTokenRefresh } from './common/tokenRefresh'
+import { isAuthenticated, isAdmin } from './common/utils'
+import { authService } from './common/services'
 
 import Login from './views/Login'
 import Register from './views/Register'
@@ -21,14 +24,45 @@ import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
 
+// Component để redirect từ HOME dựa trên role
+const HomeRedirect = () => {
+  if (!isAuthenticated()) {
+    return <Navigate to={ROUTES.LOGIN} replace />
+  }
+  
+  if (isAdmin()) {
+    return <Navigate to={ROUTES.ADMIN} replace />
+  }
+  
+  return <Navigate to={ROUTES.DASHBOARD} replace />
+}
+
 function App() {
+  const [isInitializing, setIsInitializing] = useState(true)
+
   useEffect(() => {
+    const initializeAuth = async () => {
+      if (!isAuthenticated()) {
+        try {
+          await authService.refreshToken()
+        } catch (error) {
+          console.error('Failed to refresh token on app init:', error)
+        }
+      }
+      setIsInitializing(false)
+    }
+
+    initializeAuth()
     initScrollTokenRefresh()
     
     return () => {
       cleanupScrollTokenRefresh()
     }
   }, [])
+
+  if (isInitializing) {
+    return null
+  }
 
   return (
     <>
@@ -46,13 +80,15 @@ function App() {
         } />
         
         <Route path={ROUTES.ABOUT} element={
-          <DefaultLayout>
-            <About />
-          </DefaultLayout>
+          <ProtectedRoute requireUserOnly={true}>
+            <DefaultLayout>
+              <About />
+            </DefaultLayout>
+          </ProtectedRoute>
         } />
         
         <Route path={ROUTES.DASHBOARD} element={
-          <ProtectedRoute>
+          <ProtectedRoute requireUserOnly={true}>
             <DefaultLayout>
               <Dashboard />
             </DefaultLayout>
@@ -61,69 +97,69 @@ function App() {
         
         <Route path={ROUTES.ADMIN} element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <AdminDashboard />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/stories/list" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <StoriesList />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/stories/create" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <StoriesCreate />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/stories/edit/:id" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <StoriesEdit />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/users/list" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <UsersList />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/users/edit/:id" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <UsersEdit />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/categories/list" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <CategoriesList />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/categories/create" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <CategoriesCreate />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         <Route path="/admin/categories/edit/:id" element={
           <ProtectedRoute requireAdmin={true}>
-            <DefaultLayout>
+            <AdminLayout>
               <CategoriesEdit />
-            </DefaultLayout>
+            </AdminLayout>
           </ProtectedRoute>
         } />
         
-        <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+        <Route path={ROUTES.HOME} element={<HomeRedirect />} />
       </Routes>
     </>
   )

@@ -39,11 +39,16 @@ export const authService = {
     const response = await apiClient.post("/auth/refresh", {});
 
     const newAccessToken = response.data?.accessToken || response.data?.AccessToken;
+    const user = response.data?.user || response.data?.User;
 
     if (newAccessToken) {
       cookieUtils.set("accessToken", newAccessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES);
     } else {
       cookieUtils.remove("accessToken");
+    }
+
+    if (user) {
+      storageUtils.set("user", user);
     }
 
     return response.data;

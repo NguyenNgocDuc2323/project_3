@@ -51,11 +51,13 @@ namespace Backend.Controllers
                 return Unauthorized(new { message = "Invalid username or password" });
             }
 
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            
             Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !isDevelopment,
+                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
                 Path = "/"
             });
@@ -63,8 +65,8 @@ namespace Backend.Controllers
             Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
             {
                 HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !isDevelopment,
+                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
                 Path = "/"
             });
@@ -114,11 +116,13 @@ namespace Backend.Controllers
 
                 _logger.LogInformation("Registration and auto-login successful for user: {Username}", request.Username);
 
+                var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+                
                 Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
+                    Secure = !isDevelopment,
+                    SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                     Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
                     Path = "/"
                 });
@@ -126,8 +130,8 @@ namespace Backend.Controllers
                 Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
                 {
                     HttpOnly = false,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
+                    Secure = !isDevelopment,
+                    SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                     Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
                     Path = "/"
                 });
@@ -153,14 +157,10 @@ namespace Backend.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest? request = null)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var refreshToken = request.RefreshToken ?? Request.Cookies["refreshToken"];
+            // RefreshToken có thể đến từ body hoặc cookie (HttpOnly)
+            var refreshToken = request?.RefreshToken ?? Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -174,11 +174,13 @@ namespace Backend.Controllers
                 return Unauthorized(new { message = "Invalid or expired refresh token" });
             }
 
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            
             Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !isDevelopment,
+                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
                 Path = "/"
             });
@@ -186,8 +188,8 @@ namespace Backend.Controllers
             Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
             {
                 HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !isDevelopment,
+                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
                 Path = "/"
             });
@@ -248,14 +250,16 @@ namespace Backend.Controllers
         }
 
         [HttpPost("revoke")]
-        public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
+        public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest? request = null)
         {
-            if (!ModelState.IsValid)
+            var refreshToken = request?.RefreshToken ?? Request.Cookies["refreshToken"];
+            
+            if (string.IsNullOrEmpty(refreshToken))
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { message = "Refresh token is required" });
             }
 
-            var result = await _authService.RevokeTokenAsync(request.RefreshToken);
+            var result = await _authService.RevokeTokenAsync(refreshToken);
 
             if (!result)
             {
