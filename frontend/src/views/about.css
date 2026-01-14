@@ -1,0 +1,91 @@
+.about-container {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.about-container .about-hero {
+  padding: 2.5rem;
+  text-align: center;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff, #f0f4ff);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 3rem;
+}
+
+.about-container .about-title {
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  color: #1a1a1a;
+}
+
+.about-container .highlight {
+  color: #0a58ca;
+}
+
+.about-container .about-subtitle {
+  color: #3d4351;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.about-container .about-image-wrapper {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.about-container .about-image {
+  max-width: 80%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.about-container .section-title {
+  font-weight: 700;
+  margin-top: 3rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  color: #1a1a1a;
+}
+
+.about-container .section-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #0a58ca;
+  margin-top: 6px;
+  border-radius: 2px;
+}
+
+.about-container .section-text {
+  color: #2e3440;
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.about-container .about-quote {
+  background: #e8f0ff;
+  border-left: 4px solid #0a58ca;
+  padding: 1.2rem 1rem;
+  margin: 2rem 0;
+  border-radius: 6px;
+  font-style: italic;
+  color: #1c1f26;
+}
+
+.about-container .section-list {
+  color: #2c323c;
+  padding-left: 1.2rem;
+  line-height: 1.7;
+}
+
+.about-container .closing-text {
+  margin-top: 3rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+  color: #0a58ca;
+}
