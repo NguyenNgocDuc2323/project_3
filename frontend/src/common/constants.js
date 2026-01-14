@@ -21,7 +21,7 @@ export const ROUTES = {
 
 export const STORAGE_KEYS = {
   USER: 'user',
-  ACCESS_TOKEN: 'accessToken',
+  ACCESS_TOKEN: 'token',
   REFRESH_TOKEN: 'refreshToken'
 }
 

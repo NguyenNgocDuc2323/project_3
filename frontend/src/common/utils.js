@@ -1,62 +1,72 @@
 export const cookieUtils = {
   set(name, value, minutes = 1) {
-    const expires = new Date()
-    expires.setTime(expires.getTime() + minutes * 60 * 1000)
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/`
+    if (!value) {
+      return;
+    }
+
+    const expires = new Date();
+    expires.setTime(expires.getTime() + minutes * 60 * 1000);
+
+    const isSecure = window.location.protocol === "https:";
+    const secureFlag = isSecure ? "; Secure" : "";
+    const sameSite = "SameSite=Lax";
+
+    const cookieString = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; ${sameSite}${secureFlag}`;
+
+    document.cookie = cookieString;
   },
-  
+
   get(name) {
-    const nameEQ = name + '='
-    const cookies = document.cookie.split(';')
-    
+    const nameEQ = name + "=";
+    const cookies = document.cookie.split(";");
+
     for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i]
-      while (cookie.charAt(0) === ' ') {
-        cookie = cookie.substring(1, cookie.length)
+      let cookie = cookies[i];
+      while (cookie.charAt(0) === " ") {
+        cookie = cookie.substring(1, cookie.length);
       }
       if (cookie.indexOf(nameEQ) === 0) {
-        return decodeURIComponent(cookie.substring(nameEQ.length, cookie.length))
+        const value = decodeURIComponent(cookie.substring(nameEQ.length, cookie.length));
+        return value;
       }
     }
-    return null
+    return null;
   },
-  
+
   remove(name) {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`
-  }
-}
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+  },
+};
 
 export const storageUtils = {
   set(key, value) {
-    localStorage.setItem(key, JSON.stringify(value))
+    localStorage.setItem(key, JSON.stringify(value));
   },
-  
+
   get(key) {
-    const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : null
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
   },
-  
+
   remove(key) {
-    localStorage.removeItem(key)
-  }
-}
+    localStorage.removeItem(key);
+  },
+};
 
 export const isAuthenticated = () => {
-  return cookieUtils.get('accessToken') !== null
-}
+  return cookieUtils.get("accessToken") !== null;
+};
 
 export const isAdmin = () => {
-  const user = storageUtils.get('user')
-  return user && (user.role === 1 || user.role === '1')
-}
+  const user = storageUtils.get("user");
+  return user && (user.role === 1 || user.role === "1");
+};
 
 export const getCurrentUser = () => {
-  return storageUtils.get('user')
-}
+  return storageUtils.get("user");
+};
 
 export const logout = () => {
-  cookieUtils.remove('accessToken')
-  cookieUtils.remove('refreshToken')
-  storageUtils.remove('user')
-}
-
+  cookieUtils.remove("accessToken");
+  storageUtils.remove("user");
+};

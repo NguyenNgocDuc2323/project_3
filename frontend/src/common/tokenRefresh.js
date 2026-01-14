@@ -32,12 +32,16 @@ const refreshTokenOnScroll = async () => {
       refreshToken: refreshToken
     })
     
-    if (response.data?.accessToken) {
-      cookieUtils.set('accessToken', response.data.accessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES)
+    // Handle both PascalCase (from backend) and camelCase formats
+    const newAccessToken = response.data?.accessToken || response.data?.AccessToken
+    const newRefreshToken = response.data?.refreshToken || response.data?.RefreshToken
+    
+    if (newAccessToken) {
+      cookieUtils.set('accessToken', newAccessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES)
       
-      if (response.data.refreshToken) {
+      if (newRefreshToken) {
         const refreshMinutes = TOKEN_EXPIRATION.REFRESH_TOKEN_DAYS * 24 * 60
-        cookieUtils.set('refreshToken', response.data.refreshToken, refreshMinutes)
+        cookieUtils.set('refreshToken', newRefreshToken, refreshMinutes)
       }
     }
   } catch (error) {

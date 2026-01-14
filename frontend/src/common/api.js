@@ -1,126 +1,106 @@
-import axios from 'axios'
-import { cookieUtils } from './utils'
-import { API_BASE_URL, TOKEN_EXPIRATION } from './constants'
+import axios from "axios";
+import { cookieUtils } from "./utils";
+import { API_BASE_URL, TOKEN_EXPIRATION } from "./constants";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json",
   },
-  withCredentials: true
-})
+  withCredentials: true,
+});
 
 const refreshClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json",
   },
-  withCredentials: true
-})
+  withCredentials: true,
+});
 
-let isRefreshing = false
-let failedQueue = []
+let isRefreshing = false;
+let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
-      prom.reject(error)
+      prom.reject(error);
     } else {
-      prom.resolve(token)
+      prom.resolve(token);
     }
-  })
-  
-  failedQueue = []
-}
+  });
+
+  failedQueue = [];
+};
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = cookieUtils.get('accessToken')
+    const token = cookieUtils.get("accessToken");
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config
+    const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
+          failedQueue.push({ resolve, reject });
         })
-          .then(token => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            return apiClient(originalRequest)
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
           })
-          .catch(err => {
-            return Promise.reject(err)
-          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
 
-      originalRequest._retry = true
-      isRefreshing = true
-
-      const refreshToken = cookieUtils.get('refreshToken')
-
-      if (!refreshToken) {
-        isRefreshing = false
-        cookieUtils.remove('accessToken')
-        cookieUtils.remove('refreshToken')
-        localStorage.removeItem('user')
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
-        }
-        return Promise.reject(error)
-      }
+      originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const response = await refreshClient.post('/auth/refresh', {
-          refreshToken: refreshToken
-        })
-        
-        if (response.data?.accessToken) {
-          cookieUtils.set('accessToken', response.data.accessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES)
-          
-          if (response.data.refreshToken) {
-            const refreshMinutes = TOKEN_EXPIRATION.REFRESH_TOKEN_DAYS * 24 * 60
-            cookieUtils.set('refreshToken', response.data.refreshToken, refreshMinutes)
-          }
+        const response = await refreshClient.post("/auth/refresh", {});
 
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`
-          
-          processQueue(null, response.data.accessToken)
-          isRefreshing = false
+        const newAccessToken = response.data?.accessToken || response.data?.AccessToken;
 
-          return apiClient(originalRequest)
+        if (newAccessToken) {
+          cookieUtils.set("accessToken", newAccessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES);
+
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+          processQueue(null, newAccessToken);
+          isRefreshing = false;
+
+          return apiClient(originalRequest);
         } else {
-          throw new Error('No access token in refresh response')
+          throw new Error("No access token in refresh response");
         }
       } catch (refreshError) {
-        isRefreshing = false
-        processQueue(refreshError, null)
-        cookieUtils.remove('accessToken')
-        cookieUtils.remove('refreshToken')
-        localStorage.removeItem('user')
-        
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+        isRefreshing = false;
+        processQueue(refreshError, null);
+        cookieUtils.remove("accessToken");
+        localStorage.removeItem("user");
+
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
         }
-        
-        return Promise.reject(refreshError)
+
+        return Promise.reject(refreshError);
       }
     }
 
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
-export default apiClient
-
+export default apiClient;
