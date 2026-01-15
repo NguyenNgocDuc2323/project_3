@@ -26,8 +26,10 @@ namespace Backend.Models
 
         public bool IsActive { get; set; } = true;
 
-        public int Role { get; set; } = 2; // 1 = Admin, 2 = User
+        public int Role { get; set; } = 2;
 
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+        public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     }
 }

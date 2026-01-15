@@ -4,10 +4,11 @@ namespace Backend.Models
 {
     public class LoginRequest
     {
-        [Required(ErrorMessage = "Tên đăng nhập là bắt buộc")]
-        public string Username { get; set; } = string.Empty;
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+        [Required]
         public string Password { get; set; } = string.Empty;
     }
 }

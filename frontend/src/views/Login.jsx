@@ -10,7 +10,7 @@ import './Login.css'
 const Login = () => {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    username: '',
+    email: '',
     password: '',
     remember_me: false
   })
@@ -20,8 +20,10 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {}
     
-    if (!form.username.trim()) {
-      newErrors.username = 'Username is required'
+    if (!form.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = 'Invalid email format'
     }
     
     if (!form.password) {
@@ -45,7 +47,7 @@ const Login = () => {
     setErrors({})
     
     try {
-      const response = await authService.login(form.username, form.password)
+      const response = await authService.login(form.email, form.password)
       
       if (window.showToast) {
         window.showToast({
@@ -102,20 +104,20 @@ const Login = () => {
                   )}
 
                   <div className="mb-3">
-                    <label htmlFor="username" className="form-label">
-                      Username
+                    <label htmlFor="email" className="form-label">
+                      Email
                     </label>
                     <input
-                      type="text"
-                      className={`form-control ${errors.username ? 'is-invalid' : ''}`}
-                      id="username"
-                      value={form.username}
-                      onChange={(e) => setForm({ ...form, username: e.target.value })}
-                      placeholder="Enter username"
-                      autoComplete="username"
+                      type="email"
+                      className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                      id="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="Enter email"
+                      autoComplete="email"
                     />
-                    {errors.username && (
-                      <div className="invalid-feedback">{errors.username}</div>
+                    {errors.email && (
+                      <div className="invalid-feedback">{errors.email}</div>
                     )}
                   </div>
 
@@ -136,7 +138,7 @@ const Login = () => {
                       inputId="remember"
                       label="Remember me"
                     />
-                    <a href="#" onClick={(e) => e.preventDefault()} className="text-decoration-none">
+                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/forgot-password') }} className="text-decoration-none">
                       Forgot password?
                     </a>
                   </div>

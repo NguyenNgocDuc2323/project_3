@@ -14,13 +14,15 @@ namespace Backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger, IConfiguration configuration, IServiceProvider serviceProvider)
+        public AuthController(IAuthService authService, IEmailService emailService, ILogger<AuthController> logger, IConfiguration configuration, IServiceProvider serviceProvider)
         {
             _authService = authService;
+            _emailService = emailService;
             _logger = logger;
             _configuration = configuration;
             _serviceProvider = serviceProvider;
@@ -44,11 +46,11 @@ namespace Backend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var response = await _authService.LoginAsync(request.Username, request.Password);
+            var response = await _authService.LoginAsync(request.Email, request.Password);
 
             if (response == null)
             {
-                return Unauthorized(new { message = "Invalid username or password" });
+                return Unauthorized(new { message = "Invalid email or password" });
             }
 
             var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
@@ -89,6 +91,14 @@ namespace Backend.Controllers
                 _logger.LogInformation("Attempting to register user: {Username}, {Email}", 
                     request.Username, request.Email);
 
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var smtpHost = _configuration["Email:SmtpHost"];
+                var smtpPort = _configuration["Email:SmtpPort"];
+                var smtpUsername = _configuration["Email:SmtpUsername"];
+                var smtpPasswordConfigured = !string.IsNullOrEmpty(_configuration["Email:SmtpPassword"]);
+                _logger.LogInformation("Email config check - Environment: {Env}, Host: {Host}, Port: {Port}, Username: {Username}, Password configured: {HasPassword}", 
+                    environment, smtpHost, smtpPort, smtpUsername, smtpPasswordConfigured);
+
                 var user = await _authService.RegisterAsync(
                     request.Username,
                     request.Email,
@@ -105,7 +115,7 @@ namespace Backend.Controllers
 
                 _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
 
-                var response = await _authService.LoginAsync(request.Username, request.Password);
+                var response = await _authService.LoginAsync(request.Email, request.Password);
 
                 if (response == null)
                 {
@@ -115,6 +125,21 @@ namespace Backend.Controllers
                 }
 
                 _logger.LogInformation("Registration and auto-login successful for user: {Username}", request.Username);
+
+                bool emailSent = false;
+                try
+                {
+                    _logger.LogInformation("Attempting to send registration confirmation email to: {Email}", user.Email);
+                    await _emailService.SendRegistrationConfirmationEmailAsync(user.Email, user.Username);
+                    _logger.LogInformation("Registration confirmation email sent successfully to: {Email}", user.Email);
+                    emailSent = true;
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Failed to send registration confirmation email to {Email}. Error: {Error}, StackTrace: {StackTrace}", 
+                        user.Email, emailEx.Message, emailEx.StackTrace);
+                    // Don't fail registration if email fails, but log the error
+                }
 
                 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
                 
@@ -136,7 +161,12 @@ namespace Backend.Controllers
                     Path = "/"
                 });
 
-                return Ok(response);
+                return Ok(new { 
+                    accessToken = response.AccessToken,
+                    refreshToken = response.RefreshToken,
+                    user = response.User,
+                    emailSent = emailSent
+                });
             }
             catch (Exception ex)
             {
@@ -277,6 +307,114 @@ namespace Backend.Controllers
                 timestamp = DateTime.UtcNow,
                 status = "Backend code changes will auto-reload!"
             });
+        }
+
+        [HttpGet("email-config")]
+        public IActionResult GetEmailConfig()
+        {
+            try
+            {
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var smtpHost = _configuration["Email:SmtpHost"];
+                var smtpPort = _configuration["Email:SmtpPort"];
+                var smtpUsername = _configuration["Email:SmtpUsername"];
+                var smtpPassword = _configuration["Email:SmtpPassword"];
+                var fromEmail = _configuration["Email:FromEmail"];
+                var fromName = _configuration["Email:FromName"];
+
+                return Ok(new
+                {
+                    environment = environment,
+                    smtpHost = smtpHost,
+                    smtpPort = smtpPort,
+                    smtpUsername = smtpUsername,
+                    smtpPasswordConfigured = !string.IsNullOrEmpty(smtpPassword),
+                    fromEmail = fromEmail,
+                    fromName = fromName,
+                    isConfigured = !string.IsNullOrEmpty(smtpHost) && 
+                                   !string.IsNullOrEmpty(smtpUsername) && 
+                                   !string.IsNullOrEmpty(smtpPassword)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get email config: {Error}", ex.Message);
+                return StatusCode(500, new { 
+                    message = "Failed to get email config",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("test-email")]
+        public async Task<IActionResult> TestEmail([FromBody] dynamic request)
+        {
+            try
+            {
+                var testEmail = (string)(request?.email?.ToString() ?? "thom.dt.2436@aptechlearning.edu.vn");
+                _logger.LogInformation("Testing email send to: {Email}", testEmail);
+                
+                var smtpHost = _configuration["Email:SmtpHost"];
+                var smtpPort = _configuration["Email:SmtpPort"];
+                var smtpUsername = _configuration["Email:SmtpUsername"];
+                _logger.LogInformation("Email config - Host: {Host}, Port: {Port}, Username: {Username}", 
+                    smtpHost, smtpPort, smtpUsername);
+                
+                await _emailService.SendRegistrationConfirmationEmailAsync(testEmail, "Test User");
+                
+                return Ok(new { 
+                    message = "Test email sent successfully",
+                    email = testEmail,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Test email failed: {Error}, InnerException: {InnerException}", 
+                    ex.Message, ex.InnerException?.Message);
+                return StatusCode(500, new { 
+                    message = "Failed to send test email",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _authService.ForgotPasswordAsync(request.Email);
+
+            if (!result)
+            {
+                return Ok(new { message = "If the email exists, a password reset link has been sent." });
+            }
+
+            return Ok(new { message = "If the email exists, a password reset link has been sent." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+
+            if (!result)
+            {
+                return BadRequest(new { message = "Invalid or expired reset token." });
+            }
+
+            return Ok(new { message = "Password has been reset successfully." });
         }
     }
 }

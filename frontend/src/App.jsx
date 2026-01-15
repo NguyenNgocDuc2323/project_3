@@ -12,6 +12,8 @@ import { authService } from './common/services'
 
 import Login from './views/Login'
 import Register from './views/Register'
+import ForgotPassword from './views/ForgotPassword'
+import ResetPassword from './views/ResetPassword'
 import About from './views/About'
 import Dashboard from './views/user/Dashboard'
 import AdminDashboard from './views/admin/Dashboard'
@@ -76,6 +78,16 @@ function App() {
         <Route path={ROUTES.REGISTER} element={
           <BlankLayout>
             <Register />
+          </BlankLayout>
+        } />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={
+          <BlankLayout>
+            <ForgotPassword />
+          </BlankLayout>
+        } />
+        <Route path={ROUTES.RESET_PASSWORD} element={
+          <BlankLayout>
+            <ResetPassword />
           </BlankLayout>
         } />
         

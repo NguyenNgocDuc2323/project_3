@@ -54,7 +54,7 @@ const Register = () => {
     setErrors({})
     
     try {
-      await authService.register(
+      const result = await authService.register(
         form.username,
         form.email,
         form.password,
@@ -62,12 +62,21 @@ const Register = () => {
       )
       
       if (window.showToast) {
-        window.showToast({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Registration successful! Please login.',
-          life: 3000
-        })
+        if (result?.emailSent) {
+          window.showToast({
+            severity: 'success',
+            summary: 'Registration Successful',
+            detail: 'Confirmation email has been sent to your email! Please check your inbox.',
+            life: 5000
+          })
+        } else {
+          window.showToast({
+            severity: 'success',
+            summary: 'Registration Successful',
+            detail: 'Registration successful! However, confirmation email could not be sent. Please login.',
+            life: 5000
+          })
+        }
       }
       
       navigate(ROUTES.LOGIN)

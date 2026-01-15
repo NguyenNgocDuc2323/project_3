@@ -14,17 +14,19 @@ namespace Backend.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
-        public async Task<AuthResponse?> LoginAsync(string username, string password)
+        public async Task<AuthResponse?> LoginAsync(string email, string password)
         {
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             {
@@ -218,6 +220,61 @@ namespace Backend.Services
             {
                 return false;
             }
+        }
+
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            var existingTokens = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow)
+                .ToListAsync();
+
+            foreach (var token in existingTokens)
+            {
+                token.IsUsed = true;
+            }
+
+            var resetToken = new PasswordResetToken
+            {
+                Token = GenerateRandomToken(),
+                UserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.PasswordResetTokens.Add(resetToken);
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendPasswordResetEmailAsync(email, resetToken.Token);
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var resetToken = await _context.PasswordResetTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Token == token && t.User.Email == email);
+
+            if (resetToken == null || resetToken.IsUsed || resetToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            resetToken.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            resetToken.IsUsed = true;
+            resetToken.User.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

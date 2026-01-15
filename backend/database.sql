@@ -44,6 +44,21 @@ CREATE TABLE IF NOT EXISTS RefreshTokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- PasswordResetTokens Table - Store password reset tokens
+-- ============================================
+CREATE TABLE IF NOT EXISTS PasswordResetTokens (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Token VARCHAR(255) NOT NULL,
+    UserId INT NOT NULL,
+    ExpiresAt DATETIME(6) NOT NULL,
+    IsUsed TINYINT(1) NOT NULL DEFAULT 0,
+    CreatedAt DATETIME(6) NOT NULL,
+    UNIQUE INDEX IX_PasswordResetTokens_Token (Token),
+    INDEX IX_PasswordResetTokens_UserId (UserId),
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- Stories Table - Store story information
 -- ============================================
 CREATE TABLE IF NOT EXISTS Stories (
@@ -149,6 +164,8 @@ SELECT 'Database project_3 and all tables created successfully!' AS Status;
 SELECT 'Users Table: ' AS Info, COUNT(*) AS TotalRows FROM Users
 UNION ALL
 SELECT 'RefreshTokens Table: ', COUNT(*) FROM RefreshTokens
+UNION ALL
+SELECT 'PasswordResetTokens Table: ', COUNT(*) FROM PasswordResetTokens
 UNION ALL
 SELECT 'Stories Table: ', COUNT(*) FROM Stories
 UNION ALL

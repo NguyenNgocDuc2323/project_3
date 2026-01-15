@@ -3,9 +3,9 @@ import { cookieUtils, storageUtils } from "./utils";
 import { TOKEN_EXPIRATION } from "./constants";
 
 export const authService = {
-  async login(username, password) {
+  async login(email, password) {
     const response = await apiClient.post("/auth/login", {
-      username,
+      email,
       password,
     });
 
@@ -57,6 +57,22 @@ export const authService = {
   logout() {
     cookieUtils.remove("accessToken");
     storageUtils.remove("user");
+  },
+
+  async forgotPassword(email) {
+    const response = await apiClient.post("/auth/forgot-password", {
+      email,
+    });
+    return response.data;
+  },
+
+  async resetPassword(email, token, newPassword) {
+    const response = await apiClient.post("/auth/reset-password", {
+      email,
+      token,
+      newPassword,
+    });
+    return response.data;
   },
 };
 
