@@ -5,6 +5,9 @@ import ChatBox from '../../components/ChatBox/ChatBox'
 import './Dashboard.css'
 
 const Dashboard = () => {
+  const FACEBOOK_URL = 'https://facebook.com/'
+  const ZALO_URL = 'https://zalo.me/'
+
   const [allProducts, setAllProducts] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [popularProducts, setPopularProducts] = useState([])
@@ -178,8 +181,29 @@ const Dashboard = () => {
         )}
       </section>
 
-      {/* AI ChatBox */}
-      <ChatBox />
+      <div className="contact-float" aria-label="Contact quick actions">
+        <ChatBox />
+        <a
+          className="contact-btn contact-facebook"
+          href={FACEBOOK_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Contact via Facebook"
+          title="Facebook"
+        >
+          <i className="bi bi-facebook"></i>
+        </a>
+        <a
+          className="contact-btn contact-zalo"
+          href={ZALO_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Contact via Zalo"
+          title="Zalo"
+        >
+          <span className="zalo-badge">Z</span>
+        </a>
+      </div>
     </Container>
   )
 }

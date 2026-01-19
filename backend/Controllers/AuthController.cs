@@ -138,7 +138,6 @@ namespace Backend.Controllers
                 {
                     _logger.LogError(emailEx, "Failed to send registration confirmation email to {Email}. Error: {Error}, StackTrace: {StackTrace}", 
                         user.Email, emailEx.Message, emailEx.StackTrace);
-                    // Don't fail registration if email fails, but log the error
                 }
 
                 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
@@ -189,7 +188,6 @@ namespace Backend.Controllers
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest? request = null)
         {
-            // RefreshToken có thể đến từ body hoặc cookie (HttpOnly)
             var refreshToken = request?.RefreshToken ?? Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(refreshToken))

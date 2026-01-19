@@ -58,7 +58,6 @@ namespace Backend.Services
 
                 using var client = new SmtpClient();
                 
-                // Mailtrap supports STARTTLS on all ports
                 var secureSocketOptions = smtpPort == 465 
                     ? SecureSocketOptions.SslOnConnect 
                     : SecureSocketOptions.StartTls;
@@ -134,7 +133,6 @@ namespace Backend.Services
 
                 using var client = new SmtpClient();
                 
-                // Mailtrap supports STARTTLS on all ports
                 var secureSocketOptions = smtpPort == 465 
                     ? SecureSocketOptions.SslOnConnect 
                     : SecureSocketOptions.StartTls;

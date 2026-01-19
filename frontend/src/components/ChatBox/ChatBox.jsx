@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Button, Card } from 'react-bootstrap'
+import { Button, Modal } from 'react-bootstrap'
 import { chatService } from '../../common/services'
 import './ChatBox.css'
 
@@ -35,9 +35,10 @@ const ChatBox = () => {
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return
 
+    const userText = inputMessage.trim()
     const userMessage = {
       id: Date.now(),
-      text: inputMessage.trim(),
+      text: userText,
       sender: 'user',
       timestamp: new Date()
     }
@@ -47,8 +48,7 @@ const ChatBox = () => {
     setIsLoading(true)
 
     try {
-      // Gọi API chat
-      const response = await chatService.sendMessage(userMessage.text)
+      const response = await chatService.sendMessage(userText)
       
       const aiMessage = {
         id: Date.now() + 1,
@@ -60,9 +60,13 @@ const ChatBox = () => {
       setMessages(prev => [...prev, aiMessage])
     } catch (error) {
       console.error('Error sending message:', error)
+      const serverError =
+        error?.response?.data?.error ||
+        error?.response?.data?.message
+
       const errorMessage = {
         id: Date.now() + 1,
-        text: 'Sorry, an error occurred. Please try again later.',
+        text: serverError || 'Sorry, an error occurred. Please try again later.',
         sender: 'ai',
         timestamp: new Date()
       }
@@ -72,7 +76,7 @@ const ChatBox = () => {
     }
   }
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
@@ -88,39 +92,37 @@ const ChatBox = () => {
 
   return (
     <>
-      {/* Floating Button */}
       <Button
-        className={`chat-toggle-btn ${isOpen ? 'active' : ''}`}
+        className={`chat-toggle-btn contact-btn ${isOpen ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         variant="primary"
         size="lg"
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
       >
-        <i className={`bi ${isOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'}`}></i>
+        <i className={`chat-toggle-icon bi ${isOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'}`}></i>
       </Button>
 
-      {/* Chat Window */}
-      {isOpen && (
-        <Card className="chat-window">
-          <Card.Header className="chat-header">
-            <div className="d-flex align-items-center">
-              <div className="chat-avatar me-2">
-                <i className="bi bi-robot"></i>
-              </div>
-              <div>
-                <h6 className="mb-0">AI Assistant</h6>
-                <small className="text-muted">Online</small>
-              </div>
+      <Modal
+        show={isOpen}
+        onHide={() => setIsOpen(false)}
+        centered
+        backdrop="static"
+        dialogClassName="chat-modal-dialog"
+        contentClassName="chat-modal-content"
+      >
+        <Modal.Header className="chat-header" closeButton closeVariant="white">
+          <div className="d-flex align-items-center">
+            <div className="chat-avatar me-2">
+              <i className="chat-header-icon bi bi-robot"></i>
             </div>
-            <Button
-              variant="link"
-              className="p-0 text-muted"
-              onClick={() => setIsOpen(false)}
-            >
-              <i className="bi bi-x-lg"></i>
-            </Button>
-          </Card.Header>
+            <div>
+              <h6 className="mb-0">AI Assistant</h6>
+              <small>Online</small>
+            </div>
+          </div>
+        </Modal.Header>
 
-          <Card.Body className="chat-body">
+        <Modal.Body className="chat-body">
             <div className="messages-container">
               {messages.map((message) => (
                 <div
@@ -128,9 +130,9 @@ const ChatBox = () => {
                   className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'}`}
                 >
                   <div className="message-content">
-                    {message.sender === 'ai' && (
+                    {message.sender !== 'user' && (
                       <div className="message-avatar">
-                        <i className="bi bi-robot"></i>
+                        <i className="message-avatar-icon bi bi-robot"></i>
                       </div>
                     )}
                     <div className="message-bubble">
@@ -141,7 +143,7 @@ const ChatBox = () => {
                     </div>
                     {message.sender === 'user' && (
                       <div className="message-avatar user-avatar">
-                        <i className="bi bi-person-fill"></i>
+                        <i className="message-avatar-icon bi bi-person-fill"></i>
                       </div>
                     )}
                   </div>
@@ -151,7 +153,7 @@ const ChatBox = () => {
                 <div className="message ai-message">
                   <div className="message-content">
                     <div className="message-avatar">
-                      <i className="bi bi-robot"></i>
+                      <i className="message-avatar-icon bi bi-robot"></i>
                     </div>
                     <div className="message-bubble">
                       <div className="typing-indicator">
@@ -165,9 +167,9 @@ const ChatBox = () => {
               )}
               <div ref={messagesEndRef} />
             </div>
-          </Card.Body>
+        </Modal.Body>
 
-          <Card.Footer className="chat-footer">
+        <Modal.Footer className="chat-footer">
             <div className="input-group">
               <input
                 ref={inputRef}
@@ -176,20 +178,21 @@ const ChatBox = () => {
                 placeholder="Type your message..."
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 disabled={isLoading}
               />
               <Button
                 variant="primary"
+                className="chat-send-btn"
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
+                aria-label="Send message"
               >
-                <i className="bi bi-send-fill"></i>
+                <i className="chat-send-icon bi bi-send-fill"></i>
               </Button>
             </div>
-          </Card.Footer>
-        </Card>
-      )}
+        </Modal.Footer>
+      </Modal>
     </>
   )
 }

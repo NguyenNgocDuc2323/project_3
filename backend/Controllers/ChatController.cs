@@ -1,22 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using OpenAI;
-using OpenAI.Chat;
+using System.Text;
+using System.Text.Json;
 
 namespace Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [AllowAnonymous]
     public class ChatController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<ChatController> _logger;
+        private readonly HttpClient _httpClient;
 
-        public ChatController(IConfiguration configuration, ILogger<ChatController> logger)
+        public ChatController(IConfiguration configuration, ILogger<ChatController> logger, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _logger = logger;
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         [HttpPost]
@@ -29,19 +31,88 @@ namespace Backend.Controllers
 
             try
             {
-                var apiKey = _configuration["OpenAI:ApiKey"];
+                var geminiApiKey = Environment.GetEnvironmentVariable("GOOGLE_GEMINI_API_KEY") 
+                    ?? _configuration["GoogleGemini:ApiKey"];
+                var model = Environment.GetEnvironmentVariable("GOOGLE_GEMINI_MODEL") 
+                    ?? _configuration["GoogleGemini:Model"] 
+                    ?? "gemini-2.5-flash";
                 
-                if (string.IsNullOrWhiteSpace(apiKey) || 
-                    !apiKey.StartsWith("sk-", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(geminiApiKey))
                 {
-                    _logger.LogInformation("OpenAI API key not configured, using mock responses");
+                    _logger.LogInformation("Google Gemini API key not configured, using mock responses");
                     var mockResponse = GenerateMockResponse(request.Message);
                     await Task.Delay(500);
-                    return Ok(new { response = mockResponse });
+                    return Ok(new { response = mockResponse, mode = "mock" });
                 }
 
-                var response = await GenerateAIResponse(request.Message, apiKey);
-                return Ok(new { response });
+                try
+                {
+                    var response = await GenerateGeminiResponse(request.Message, geminiApiKey, model);
+                    return Ok(new { response, mode = "gemini" });
+                }
+                catch (HttpRequestException httpEx)
+                {
+                    _logger.LogError(httpEx, "Google Gemini HTTP error: {Message}", httpEx.Message);
+
+                    var message = httpEx.Message ?? "AI service error";
+                    var isQuota =
+                        message.Contains("quota", StringComparison.OrdinalIgnoreCase) ||
+                        message.Contains("429", StringComparison.OrdinalIgnoreCase) ||
+                        message.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
+
+                    var is404 = message.Contains("404", StringComparison.OrdinalIgnoreCase) ||
+                                 message.Contains("Not Found", StringComparison.OrdinalIgnoreCase);
+
+                    var is503 = message.Contains("503", StringComparison.OrdinalIgnoreCase) ||
+                                message.Contains("ServiceUnavailable", StringComparison.OrdinalIgnoreCase) ||
+                                message.Contains("overloaded", StringComparison.OrdinalIgnoreCase) ||
+                                message.Contains("UNAVAILABLE", StringComparison.OrdinalIgnoreCase);
+
+                    if (is404)
+                    {
+                        _logger.LogWarning("Google Gemini model not found (404). Falling back to mock responses.");
+                        var mockResponse = GenerateMockResponse(request.Message);
+                        return Ok(new
+                        {
+                            response = mockResponse,
+                            mode = "mock",
+                            warning = "Google Gemini API model không tìm thấy. Đang dùng mock response."
+                        });
+                    }
+
+                    if (is503)
+                    {
+                        _logger.LogWarning("Google Gemini service overloaded (503). Falling back to mock responses.");
+                        var mockResponse = GenerateMockResponse(request.Message);
+                        return Ok(new
+                        {
+                            response = mockResponse,
+                            mode = "mock",
+                            warning = "Google Gemini API đang quá tải. Vui lòng thử lại sau. Đang dùng mock response."
+                        });
+                    }
+
+                    if (isQuota)
+                    {
+                        _logger.LogWarning("Google Gemini quota/rate limit detected. Falling back to mock responses.");
+                        var mockResponse = GenerateMockResponse(request.Message);
+                        return Ok(new
+                        {
+                            response = mockResponse,
+                            mode = "mock",
+                            warning = "Google Gemini API đã hết quota / rate limit. Đang dùng mock response."
+                        });
+                    }
+
+                    _logger.LogWarning("Google Gemini API error. Falling back to mock responses.");
+                    var fallbackResponse = GenerateMockResponse(request.Message);
+                    return Ok(new
+                    {
+                        response = fallbackResponse,
+                        mode = "mock",
+                        warning = $"Google Gemini API lỗi: {message}. Đang dùng mock response."
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -57,6 +128,10 @@ namespace Backend.Controllers
             if (message.Contains("hello") || message.Contains("hi") || message.Contains("hey"))
             {
                 return "Hello! I'm your AI assistant. I'm currently running in mock mode for local development. How can I help you today?";
+            }
+            else if (message.Contains("xinh") || message.Contains("đẹp") || message.Contains("cute") || message.Contains("dễ thương"))
+            {
+                return "Mình không thể đánh giá ngoại hình nếu không thấy ảnh, nhưng chắc chắn bạn có nét dễ thương theo cách riêng. Bạn muốn mình góp ý về phong cách (tóc/đồ/skin-care) không?";
             }
             else if (message.Contains("book") || message.Contains("story") || message.Contains("read"))
             {
@@ -80,45 +155,77 @@ namespace Backend.Controllers
             }
             else
             {
-                return $"Thanks for your message about \"{userMessage}\". I understand you're interested in this topic. For better assistance, you can:\n- Browse books by category\n- Check out featured books\n- Contact us for detailed support\n\nDo you have any specific questions?";
+                return "Mình đang chạy mock mode nên trả lời sẽ hơi chung chung. Bạn có thể hỏi mình về:\n- Tìm sách/câu chuyện\n- Gợi ý theo thể loại\n- Cách dùng website\n\nBạn muốn mình giúp cụ thể phần nào?";
             }
         }
 
-        private async Task<string> GenerateAIResponse(string userMessage, string apiKey)
+        private async Task<string> GenerateGeminiResponse(string userMessage, string apiKey, string model)
         {
-            try
+            var systemPrompt = "You are a helpful AI assistant for a book and story website. " +
+                "You help customers find books, answer questions about the website, and provide recommendations. " +
+                "Be friendly, concise, and helpful. Keep responses under 200 words.";
+
+            var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+            var requestBody = new
             {
-                var openAIClient = new OpenAIClient(apiKey);
-                var chatClient = openAIClient.GetChatClient("gpt-3.5-turbo");
-
-                var systemPrompt = "You are a helpful AI assistant for a book and story website. " +
-                    "You help customers find books, answer questions about the website, and provide recommendations. " +
-                    "Be friendly, concise, and helpful. Keep responses under 200 words.";
-
-                var chatMessages = new List<ChatMessage>
+                contents = new[]
                 {
-                    new SystemChatMessage(systemPrompt),
-                    new UserChatMessage(userMessage)
-                };
-
-                var chatCompletion = await chatClient.CompleteChatAsync(chatMessages);
-
-                if (chatCompletion?.Value?.Content != null && chatCompletion.Value.Content.Count > 0)
-                {
-                    var content = chatCompletion.Value.Content[0];
-                    if (content is TextContent textContent)
+                    new
                     {
-                        return textContent.Text ?? "I apologize, but I couldn't generate a response. Please try again.";
+                        parts = new[]
+                        {
+                            new { text = $"{systemPrompt}\n\nUser: {userMessage}" }
+                        }
                     }
+                },
+                generationConfig = new
+                {
+                    temperature = 0.7,
+                    maxOutputTokens = 500,
+                    topP = 0.8,
+                    topK = 40
                 }
+            };
 
-                return "I apologize, but I couldn't generate a response. Please try again.";
-            }
-            catch (Exception ex)
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
             {
-                _logger.LogError(ex, "Error calling OpenAI API: {Message}", ex.Message);
-                throw;
+                Content = content
+            };
+            request.Headers.Add("x-goog-api-key", apiKey);
+
+            _logger.LogInformation("Calling Gemini API: Model={Model}, URL={Url}", model, apiUrl);
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Gemini API error: Status={Status}, Response={Response}", 
+                    response.StatusCode, responseContent);
+                throw new HttpRequestException($"Gemini API returned {response.StatusCode}: {responseContent}");
             }
+
+            var jsonDoc = JsonDocument.Parse(responseContent);
+
+            if (jsonDoc.RootElement.TryGetProperty("candidates", out var candidates) &&
+                candidates.GetArrayLength() > 0 &&
+                candidates[0].TryGetProperty("content", out var contentElement) &&
+                contentElement.TryGetProperty("parts", out var parts) &&
+                parts.GetArrayLength() > 0 &&
+                parts[0].TryGetProperty("text", out var textElement))
+            {
+                var responseText = textElement.GetString();
+                return string.IsNullOrWhiteSpace(responseText)
+                    ? "I apologize, but I couldn't generate a response. Please try again."
+                    : responseText;
+            }
+
+            _logger.LogError("Invalid Gemini API response format: {Response}", responseContent);
+            throw new Exception("Invalid response format from Gemini API");
         }
     }
 

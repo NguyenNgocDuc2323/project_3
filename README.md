@@ -44,6 +44,38 @@ npm run dev
 
 Frontend chạy tại: `http://localhost:3000`
 
+## Cấu hình AI Chat (Google Gemini)
+
+Dự án sử dụng **Google Gemini API** (miễn phí) thay vì OpenAI để tránh phải thanh toán.
+
+### Cách lấy Google Gemini API Key miễn phí:
+
+1. Truy cập: https://aistudio.google.com/apikey
+2. Đăng nhập bằng tài khoản Google của bạn
+3. Click "Create API Key" → Chọn project hoặc tạo project mới
+4. Copy API key được tạo
+
+### Cấu hình API Key (Sử dụng file .env - Khuyến nghị):
+
+1. Copy file `backend/.env.example` thành `backend/.env`:
+   ```powershell
+   cd backend
+   copy .env.example .env
+   ```
+
+2. Mở file `backend/.env` và thêm API key của bạn:
+   ```
+   GOOGLE_GEMINI_API_KEY=your_api_key_here
+   GOOGLE_GEMINI_MODEL=gemini-1.5-flash
+   ```
+
+**Lưu ý quan trọng:**
+- File `.env` đã được thêm vào `.gitignore` nên **KHÔNG** bị push lên GitHub
+- File `.env.example` là template, mọi người sẽ copy và thêm API key của riêng họ
+- Google Gemini có free tier rộng rãi (60 requests/phút, 1,500 requests/ngày)
+- Model `gemini-1.5-flash` là model miễn phí, nhanh và hiệu quả
+- Nếu không có API key, hệ thống sẽ tự động dùng mock responses
+
 ## Cấu trúc Frontend
 
 ```

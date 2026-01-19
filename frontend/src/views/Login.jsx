@@ -53,7 +53,7 @@ const Login = () => {
         window.showToast({
           severity: 'success',
           summary: 'Success',
-          detail: `Welcome back, ${response.user?.username || 'User'}!`,
+          detail: `Welcome back, ${response.user?.fullName || response.user?.username || 'User'}!`,
           life: 3000
         })
       }

@@ -68,12 +68,6 @@ const AppHeader = () => {
                 {item.label}
               </Nav.Link>
             ))}
-            {isAuthenticated() && (
-              <Nav.Link as={Link} to={ROUTES.DASHBOARD}>
-                <i className="bi bi-grid me-1"></i>
-                Dashboard
-              </Nav.Link>
-            )}
             {isAdmin() && (
               <Nav.Link as={Link} to={ROUTES.ADMIN}>
                 <i className="bi bi-gear me-1"></i>
