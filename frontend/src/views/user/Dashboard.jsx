@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, Row, Col, Container, Badge, Button } from 'react-bootstrap'
 import { productService } from '../../common/services'
+import ChatBox from '../../components/ChatBox/ChatBox'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -176,6 +177,9 @@ const Dashboard = () => {
           </Row>
         )}
       </section>
+
+      {/* AI ChatBox */}
+      <ChatBox />
     </Container>
   )
 }

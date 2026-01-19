@@ -171,3 +171,9 @@ export const productService = {
     return apiClient.delete(`/products/${id}`);
   },
 };
+
+export const chatService = {
+  sendMessage(message) {
+    return apiClient.post("/chat", { message });
+  },
+};
