@@ -217,6 +217,16 @@
   color: white;
 }
 
+.message-bubble.error-message {
+  background: #fff3cd !important;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+
+.message-bubble.error-message p {
+  color: #856404;
+}
+
 .message-time {
   display: block;
   margin-top: 4px;

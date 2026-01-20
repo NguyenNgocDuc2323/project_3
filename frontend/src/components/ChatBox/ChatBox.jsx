@@ -8,7 +8,7 @@ const ChatBox = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! I am your AI assistant. How can I help you today?',
+      text: 'Hello! I am your AI assistant. How can I help you today?\n\nHere are some questions you can ask me:\n• What books do you recommend?\n• How do I find books by category?\n• What are the featured books?\n• Can you help me navigate the website?',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -62,13 +62,15 @@ const ChatBox = () => {
       console.error('Error sending message:', error)
       const serverError =
         error?.response?.data?.error ||
-        error?.response?.data?.message
+        error?.response?.data?.message ||
+        error?.message
 
       const errorMessage = {
         id: Date.now() + 1,
         text: serverError || 'Sorry, an error occurred. Please try again later.',
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        isError: true
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
@@ -135,8 +137,8 @@ const ChatBox = () => {
                         <i className="message-avatar-icon bi bi-robot"></i>
                       </div>
                     )}
-                    <div className="message-bubble">
-                      <p className="mb-0">{message.text}</p>
+                    <div className={`message-bubble ${message.isError ? 'error-message' : ''}`}>
+                      <p className="mb-0" style={{ whiteSpace: 'pre-line' }}>{message.text}</p>
                       <small className="message-time">
                         {formatTime(message.timestamp)}
                       </small>

@@ -39,10 +39,8 @@ namespace Backend.Controllers
                 
                 if (string.IsNullOrWhiteSpace(geminiApiKey))
                 {
-                    _logger.LogInformation("Google Gemini API key not configured, using mock responses");
-                    var mockResponse = GenerateMockResponse(request.Message);
-                    await Task.Delay(500);
-                    return Ok(new { response = mockResponse, mode = "mock" });
+                    _logger.LogWarning("Google Gemini API key not configured");
+                    return StatusCode(500, new { error = "AI service is not configured. Please contact administrator." });
                 }
 
                 try
@@ -70,92 +68,30 @@ namespace Backend.Controllers
 
                     if (is404)
                     {
-                        _logger.LogWarning("Google Gemini model not found (404). Falling back to mock responses.");
-                        var mockResponse = GenerateMockResponse(request.Message);
-                        return Ok(new
-                        {
-                            response = mockResponse,
-                            mode = "mock",
-                            warning = "Google Gemini API model không tìm thấy. Đang dùng mock response."
-                        });
+                        _logger.LogWarning("Google Gemini model not found (404).");
+                        return StatusCode(404, new { error = "Google Gemini API model not found. Please check configuration." });
                     }
 
                     if (is503)
                     {
-                        _logger.LogWarning("Google Gemini service overloaded (503). Falling back to mock responses.");
-                        var mockResponse = GenerateMockResponse(request.Message);
-                        return Ok(new
-                        {
-                            response = mockResponse,
-                            mode = "mock",
-                            warning = "Google Gemini API đang quá tải. Vui lòng thử lại sau. Đang dùng mock response."
-                        });
+                        _logger.LogWarning("Google Gemini service overloaded (503).");
+                        return StatusCode(503, new { error = "Google Gemini API is overloaded. Please try again later." });
                     }
 
                     if (isQuota)
                     {
-                        _logger.LogWarning("Google Gemini quota/rate limit detected. Falling back to mock responses.");
-                        var mockResponse = GenerateMockResponse(request.Message);
-                        return Ok(new
-                        {
-                            response = mockResponse,
-                            mode = "mock",
-                            warning = "Google Gemini API đã hết quota / rate limit. Đang dùng mock response."
-                        });
+                        _logger.LogWarning("Google Gemini quota/rate limit detected.");
+                        return StatusCode(429, new { error = "Google Gemini API quota/rate limit exceeded. Please try again later." });
                     }
 
-                    _logger.LogWarning("Google Gemini API error. Falling back to mock responses.");
-                    var fallbackResponse = GenerateMockResponse(request.Message);
-                    return Ok(new
-                    {
-                        response = fallbackResponse,
-                        mode = "mock",
-                        warning = $"Google Gemini API lỗi: {message}. Đang dùng mock response."
-                    });
+                    _logger.LogWarning("Google Gemini API error.");
+                    return StatusCode(500, new { error = $"Google Gemini API error: {message}. Please try again later." });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing chat message");
                 return StatusCode(500, new { error = "An error occurred while processing your request. Please try again later." });
-            }
-        }
-
-        private string GenerateMockResponse(string userMessage)
-        {
-            var message = userMessage.ToLower().Trim();
-
-            if (message.Contains("hello") || message.Contains("hi") || message.Contains("hey"))
-            {
-                return "Hello! I'm your AI assistant. I'm currently running in mock mode for local development. How can I help you today?";
-            }
-            else if (message.Contains("xinh") || message.Contains("đẹp") || message.Contains("cute") || message.Contains("dễ thương"))
-            {
-                return "Mình không thể đánh giá ngoại hình nếu không thấy ảnh, nhưng chắc chắn bạn có nét dễ thương theo cách riêng. Bạn muốn mình góp ý về phong cách (tóc/đồ/skin-care) không?";
-            }
-            else if (message.Contains("book") || message.Contains("story") || message.Contains("read"))
-            {
-                return "We have a great collection of books and stories! You can browse by category or check out our featured books on the homepage. What type of books are you interested in?";
-            }
-            else if (message.Contains("price") || message.Contains("cost") || message.Contains("buy"))
-            {
-                return "For pricing information and purchasing details, please check individual book pages or contact us. Would you like help finding a specific book?";
-            }
-            else if (message.Contains("thank") || message.Contains("thanks"))
-            {
-                return "You're welcome! I'm happy to help. Feel free to ask if you have any other questions!";
-            }
-            else if (message.Contains("bye") || message.Contains("goodbye") || message.Contains("see you"))
-            {
-                return "Goodbye! Have a great day. See you again soon!";
-            }
-            else if (message.Contains("help") || message.Contains("support"))
-            {
-                return "I can help you with:\n- Finding books and stories\n- Browsing by categories\n- Website navigation\n- Answering common questions\n\nWhat would you like help with?";
-            }
-            else
-            {
-                return "Mình đang chạy mock mode nên trả lời sẽ hơi chung chung. Bạn có thể hỏi mình về:\n- Tìm sách/câu chuyện\n- Gợi ý theo thể loại\n- Cách dùng website\n\nBạn muốn mình giúp cụ thể phần nào?";
             }
         }
 
