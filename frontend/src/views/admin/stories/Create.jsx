@@ -50,13 +50,13 @@ const StoriesCreate = () => {
         window.showToast({
           severity: 'success',
           summary: 'Success',
-          detail: 'Story created successfully',
+          detail: 'Guide created successfully',
           life: 3000
         })
       }
       navigate('/admin/stories/list')
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to create story'
+      const errorMessage = error.response?.data?.message || 'Failed to create guide'
       setErrors({ general: errorMessage })
       if (window.showToast) {
         window.showToast({
@@ -87,7 +87,7 @@ const StoriesCreate = () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h1 className="display-6 fw-bold">
               <i className="bi bi-plus-circle me-2"></i>
-              Create New Story
+              Create New Guide
             </h1>
             <button
               className="btn btn-outline-secondary"
@@ -118,7 +118,7 @@ const StoriesCreate = () => {
                     name="title"
                     value={form.title}
                     onChange={handleChange}
-                    placeholder="Enter story title"
+                    placeholder="Enter guide title"
                   />
                   {errors.title && (
                     <div className="invalid-feedback">{errors.title}</div>
@@ -154,7 +154,7 @@ const StoriesCreate = () => {
                     rows="4"
                     value={form.description}
                     onChange={handleChange}
-                    placeholder="Enter story description"
+                    placeholder="Enter guide description"
                   />
                 </div>
 
@@ -192,7 +192,7 @@ const StoriesCreate = () => {
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <label htmlFor="category" className="form-label">
-                      Category
+                      Topic
                     </label>
                     <input
                       type="text"
@@ -201,7 +201,7 @@ const StoriesCreate = () => {
                       name="category"
                       value={form.category}
                       onChange={handleChange}
-                      placeholder="e.g., Fiction, Adventure"
+                      placeholder="e.g., Diamond Education, Gold Knowledge"
                     />
                   </div>
                   <div className="col-md-6 mb-3">
@@ -217,7 +217,7 @@ const StoriesCreate = () => {
                       />
                       <label className="form-check-label" htmlFor="isFeatured">
                         <i className="bi bi-star-fill text-warning me-1"></i>
-                        Featured Story
+                        Featured Guide
                       </label>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ const StoriesCreate = () => {
                     ) : (
                       <>
                         <i className="bi bi-check-circle me-2"></i>
-                        Create Story
+                        Create Guide
                       </>
                     )}
                   </button>

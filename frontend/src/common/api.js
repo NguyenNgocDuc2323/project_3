@@ -1,5 +1,5 @@
 import axios from "axios";
-import { cookieUtils } from "./utils";
+import { cookieUtils, storageUtils } from "./utils";
 import { API_BASE_URL, TOKEN_EXPIRATION } from "./constants";
 
 const apiClient = axios.create({
@@ -51,7 +51,8 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const hasSession = cookieUtils.get("accessToken") || storageUtils.get("user");
+    if (error.response?.status === 401 && !originalRequest._retry && hasSession) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -88,10 +89,11 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         isRefreshing = false;
         processQueue(refreshError, null);
+        const hasAccessToken = cookieUtils.get("accessToken");
         cookieUtils.remove("accessToken");
         localStorage.removeItem("user");
 
-        if (window.location.pathname !== "/login") {
+        if (hasAccessToken && window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
 

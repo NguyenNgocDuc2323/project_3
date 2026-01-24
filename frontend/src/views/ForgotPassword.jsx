@@ -69,15 +69,10 @@ const ForgotPassword = () => {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
-            <div className="card shadow-lg border-0">
-              <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <div className="mb-3">
-                    <span style={{ fontSize: '3rem' }}>🔒</span>
-                  </div>
-                  <h2 className="login-card-title mb-2">Forgot Password</h2>
-                  <p className="text-muted">Enter your email to reset password</p>
-                </div>
+            <div className="card auth-card">
+              <div className="auth-body">
+                <h2 className="auth-title">Forgot Password</h2>
+                <p className="auth-subtitle">Enter your email to receive reset link</p>
                 
                 {success ? (
                   <div className="alert alert-success" role="alert">
@@ -93,12 +88,12 @@ const ForgotPassword = () => {
                     )}
 
                     <div className="mb-3">
-                      <label htmlFor="email" className="form-label">
+                      <label htmlFor="email" className="auth-label">
                         Email
                       </label>
                       <input
                         type="email"
-                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                        className={`form-control auth-input ${errors.email ? 'is-invalid' : ''}`}
                         id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -112,7 +107,7 @@ const ForgotPassword = () => {
 
                     <button 
                       type="submit" 
-                      className="btn btn-primary w-100 mb-3"
+                      className="btn auth-primary"
                       disabled={loading}
                     >
                       {loading ? (
@@ -127,11 +122,11 @@ const ForgotPassword = () => {
                   </form>
                 )}
 
-                <div className="text-center">
-                  <a 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); navigate(ROUTES.LOGIN) }} 
-                    className="text-decoration-none"
+                <div className="auth-footer">
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); navigate(ROUTES.LOGIN) }}
+                    className="auth-link"
                   >
                     Back to Login
                   </a>

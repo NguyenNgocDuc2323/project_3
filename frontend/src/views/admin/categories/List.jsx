@@ -92,7 +92,7 @@ const CategoriesList = () => {
               <i className="bi bi-tags me-2"></i>
               Manage Categories
             </h1>
-            <p className="text-muted">Organize story categories</p>
+            <p className="text-muted">Organize jewelry categories</p>
           </div>
           <button
             className="btn btn-primary"
@@ -140,7 +140,7 @@ const CategoriesList = () => {
                         <td>{category.id}</td>
                         <td>
                           <div className="fw-bold">
-                            <i className="bi bi-tag-fill text-primary me-2"></i>
+                        <i className="bi bi-tag-fill text-primary me-2"></i>
                             {category.name}
                           </div>
                         </td>

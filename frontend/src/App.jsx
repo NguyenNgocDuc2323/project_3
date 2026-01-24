@@ -7,7 +7,7 @@ import BlankLayout from './layouts/BlankLayout'
 import { ProtectedRoute } from './common/ProtectedRoute'
 import { ROUTES } from './common/constants'
 import { initScrollTokenRefresh, cleanupScrollTokenRefresh } from './common/tokenRefresh'
-import { isAuthenticated, isAdmin } from './common/utils'
+import { isAuthenticated, isAdmin, getCurrentUser } from './common/utils'
 import { authService } from './common/services'
 
 import Login from './views/Login'
@@ -26,16 +26,12 @@ import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
 
-// Component để redirect từ HOME dựa trên role
+// Component để redirect từ HOME
 const HomeRedirect = () => {
-  if (!isAuthenticated()) {
-    return <Navigate to={ROUTES.LOGIN} replace />
-  }
-  
   if (isAdmin()) {
     return <Navigate to={ROUTES.ADMIN} replace />
   }
-  
+
   return <Navigate to={ROUTES.DASHBOARD} replace />
 }
 
@@ -44,7 +40,8 @@ function App() {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      if (!isAuthenticated()) {
+      const hasSession = isAuthenticated() || !!getCurrentUser()
+      if (hasSession && !isAuthenticated()) {
         try {
           await authService.refreshToken()
         } catch (error) {
@@ -92,19 +89,15 @@ function App() {
         } />
         
         <Route path={ROUTES.ABOUT} element={
-          <ProtectedRoute requireUserOnly={true}>
-            <DefaultLayout>
-              <About />
-            </DefaultLayout>
-          </ProtectedRoute>
+          <DefaultLayout>
+            <About />
+          </DefaultLayout>
         } />
         
         <Route path={ROUTES.DASHBOARD} element={
-          <ProtectedRoute requireUserOnly={true}>
-            <DefaultLayout>
-              <Dashboard />
-            </DefaultLayout>
-          </ProtectedRoute>
+          <DefaultLayout>
+            <Dashboard />
+          </DefaultLayout>
         } />
         
         <Route path={ROUTES.ADMIN} element={

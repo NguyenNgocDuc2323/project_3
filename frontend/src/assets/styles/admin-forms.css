@@ -26,7 +26,7 @@
 
 .admin-form-container .form-control:focus,
 .admin-form-container .form-select:focus {
-  border-color: #8B4513;
+  border-color: #111;
   box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
   outline: 0;
 }
@@ -58,12 +58,12 @@
 }
 
 .admin-form-container .form-check-input:checked {
-  background-color: #8B4513;
-  border-color: #8B4513;
+  background-color: #111;
+  border-color: #111;
 }
 
 .admin-form-container .form-check-input:focus {
-  border-color: #8B4513;
+  border-color: #111;
   box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
 }
 

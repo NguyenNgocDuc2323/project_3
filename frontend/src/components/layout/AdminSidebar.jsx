@@ -19,12 +19,12 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       exact: true
     },
     {
-      title: 'Stories',
-      icon: 'bi bi-book',
+      title: 'Gem Guides',
+      icon: 'bi bi-gem',
       path: '/admin/stories/list',
       children: [
-        { title: 'All Stories', path: '/admin/stories/list' },
-        { title: 'Create Story', path: '/admin/stories/create' }
+        { title: 'All Guides', path: '/admin/stories/list' },
+        { title: 'Create Guide', path: '/admin/stories/create' }
       ]
     },
     {
@@ -98,8 +98,8 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       <div className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <span className="brand-icon">📖</span>
-          {!isCollapsed && <span className="brand-text">Story Reader</span>}
+          <span className="brand-icon">💎</span>
+          {!isCollapsed && <span className="brand-text">Yash Gems</span>}
         </div>
         <button
           className="sidebar-toggle"

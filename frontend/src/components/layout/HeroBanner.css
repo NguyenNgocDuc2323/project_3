@@ -3,13 +3,13 @@
   position: relative;
   margin-bottom: 0;
   overflow: hidden;
-  padding-top: 115px;
+  padding-top: 99px;
   height: 100vh;
 }
 
 @media (max-width: 991px) {
   .hero-banner {
-    padding-top: 44px; 
+    padding-top: 117px;
   }
 }
 
@@ -24,8 +24,8 @@
 }
 
 .hero-banner .carousel-item {
-  min-height: calc(100vh - 115px);
-  height: calc(100vh - 115px);
+  min-height: calc(100vh - 99px);
+  height: calc(100vh - 99px);
 }
 
 .banner-slide {
@@ -36,42 +36,14 @@
   height: calc(100vh - 115px);
 }
 
-.banner-overlay {
+.banner-cta {
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(101, 67, 33, 0.7) 0%,
-    rgba(139, 69, 19, 0.6) 50%,
-    rgba(101, 67, 33, 0.7) 100%
-  );
-  z-index: 1;
-}
-
-.hero-banner .carousel-caption {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  bottom: 24px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 0;
-  text-align: center;
   z-index: 2;
-}
-
-.banner-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  color: white;
-  width: 100%;
-  padding: 2rem;
 }
 
 @media (max-width: 991px) {
@@ -80,8 +52,8 @@
   }
   
   .hero-banner .carousel-item {
-    min-height: calc(100vh - 44px);
-    height: calc(100vh - 44px);
+    min-height: calc(100vh - 99px);
+    height: calc(100vh - 99px);
   }
   
   .banner-slide {
@@ -90,12 +62,3 @@
   }
 }
 
-@media (max-width: 768px) {
-  .banner-content h2 {
-    font-size: 2rem;
-  }
-  
-  .banner-content p {
-    font-size: 1rem;
-  }
-}

@@ -103,8 +103,20 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            existingProduct.Title = product.Title;
-            existingProduct.Author = product.Author;
+            existingProduct.Name = product.Name;
+            existingProduct.Designer = product.Designer;
+            existingProduct.StyleCode = product.StyleCode;
+            existingProduct.ProductType = product.ProductType;
+            existingProduct.Brand = product.Brand;
+            existingProduct.GoldCarat = product.GoldCarat;
+            existingProduct.GoldWeight = product.GoldWeight;
+            existingProduct.DiamondCarat = product.DiamondCarat;
+            existingProduct.DiamondQuality = product.DiamondQuality;
+            existingProduct.StoneType = product.StoneType;
+            existingProduct.StoneCarat = product.StoneCarat;
+            existingProduct.Quantity = product.Quantity;
+            existingProduct.MakingCharges = product.MakingCharges;
+            existingProduct.MRP = product.MRP;
             existingProduct.Description = product.Description;
             existingProduct.ImageUrl = product.ImageUrl;
             existingProduct.CategoryId = product.CategoryId;

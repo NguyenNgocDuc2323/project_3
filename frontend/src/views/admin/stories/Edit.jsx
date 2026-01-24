@@ -35,12 +35,12 @@ const StoriesEdit = () => {
         isFeatured: story.isFeatured || false
       })
     } catch (error) {
-      console.error('Error loading story:', error)
+      console.error('Error loading guide:', error)
       if (window.showToast) {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load story',
+          detail: 'Failed to load guide',
           life: 4000
         })
       }
@@ -85,13 +85,13 @@ const StoriesEdit = () => {
         window.showToast({
           severity: 'success',
           summary: 'Success',
-          detail: 'Story updated successfully',
+          detail: 'Guide updated successfully',
           life: 3000
         })
       }
       navigate('/admin/stories/list')
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to update story'
+      const errorMessage = error.response?.data?.message || 'Failed to update guide'
       setErrors({ general: errorMessage })
       if (window.showToast) {
         window.showToast({
@@ -134,7 +134,7 @@ const StoriesEdit = () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h1 className="display-6 fw-bold">
               <i className="bi bi-pencil me-2"></i>
-              Edit Story
+              Edit Guide
             </h1>
             <button
               className="btn btn-outline-secondary"
@@ -165,7 +165,7 @@ const StoriesEdit = () => {
                     name="title"
                     value={form.title}
                     onChange={handleChange}
-                    placeholder="Enter story title"
+                    placeholder="Enter guide title"
                   />
                   {errors.title && (
                     <div className="invalid-feedback">{errors.title}</div>
@@ -201,7 +201,7 @@ const StoriesEdit = () => {
                     rows="4"
                     value={form.description}
                     onChange={handleChange}
-                    placeholder="Enter story description"
+                    placeholder="Enter guide description"
                   />
                 </div>
 
@@ -239,7 +239,7 @@ const StoriesEdit = () => {
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <label htmlFor="category" className="form-label">
-                      Category
+                      Topic
                     </label>
                     <input
                       type="text"
@@ -248,7 +248,7 @@ const StoriesEdit = () => {
                       name="category"
                       value={form.category}
                       onChange={handleChange}
-                      placeholder="e.g., Fiction, Adventure"
+                    placeholder="e.g., Diamond Education, Gold Knowledge"
                     />
                   </div>
                   <div className="col-md-6 mb-3">
@@ -264,7 +264,7 @@ const StoriesEdit = () => {
                       />
                       <label className="form-check-label" htmlFor="isFeatured">
                         <i className="bi bi-star-fill text-warning me-1"></i>
-                        Featured Story
+                        Featured Guide
                       </label>
                     </div>
                   </div>
@@ -291,7 +291,7 @@ const StoriesEdit = () => {
                     ) : (
                       <>
                         <i className="bi bi-check-circle me-2"></i>
-                        Update Story
+                        Update Guide
                       </>
                     )}
                   </button>

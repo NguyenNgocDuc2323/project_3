@@ -15,13 +15,13 @@ const PasswordInput = ({
 
   return (
     <div className="mb-3 password-input">
-      <label htmlFor={id} className="form-label">
+      <label htmlFor={id} className="auth-label">
         {label} {required && <span className="text-danger">*</span>}
       </label>
       <div className="input-group">
         <input
           type={showPassword ? 'text' : 'password'}
-          className={`form-control ${error ? 'is-invalid' : ''}`}
+          className={`form-control auth-input ${error ? 'is-invalid' : ''}`}
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -29,7 +29,7 @@ const PasswordInput = ({
           autoComplete={autoComplete}
         />
         <button
-          className="btn btn-outline-secondary"
+          className="btn auth-toggle"
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           aria-label="Toggle password visibility"

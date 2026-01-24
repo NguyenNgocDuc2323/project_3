@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
+import { categoryService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './AppHeader.css'
 
@@ -12,9 +13,12 @@ const AppHeader = () => {
   const [userInfo, setUserInfo] = useState(null)
 
   const navItems = [
-    { to: ROUTES.DASHBOARD, label: 'Home', icon: 'bi bi-house' },
+    { to: ROUTES.DASHBOARD, label: 'Shop', icon: 'bi bi-gem', hasCategories: true },
     { to: ROUTES.ABOUT, label: 'About', icon: 'bi bi-info-circle' }
   ]
+
+  const [productCategories, setProductCategories] = useState([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
   const handleScroll = () => {
     setIsScrolled(window.scrollY > 20)
@@ -31,6 +35,23 @@ const AppHeader = () => {
   }, [])
 
   useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setIsLoadingCategories(true)
+        const response = await categoryService.getAll()
+        const categories = response.data || []
+        setProductCategories(categories)
+      } catch (error) {
+        console.error('Failed to load categories:', error)
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
+
+  useEffect(() => {
     setUserInfo(getCurrentUser())
   }, [location])
 
@@ -42,14 +63,14 @@ const AppHeader = () => {
   return (
     <Navbar 
       expand="lg" 
-      className={`custom-navbar fixed-top ${isScrolled ? 'navbar-scrolled' : ''}`}
-      variant="dark"
+      className={`custom-navbar p-0 fixed-top ${isScrolled ? 'navbar-scrolled' : ''}`}
+      variant="light"
     >
       <Container>
         <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="d-flex align-items-center">
-          <span className="me-2" style={{ fontSize: '1.1rem' }}>📖</span>
+          <span className="me-2" style={{ fontSize: '1.1rem' }}>💎</span>
           <div>
-            <div className="fw-bold" style={{ fontSize: '1rem', lineHeight: '1.2' }}>Story Reader</div>
+            <div className="fw-bold" style={{ fontSize: '1rem', lineHeight: '1.2' }}>Yash Gems & Jewelleries</div>
           </div>
         </Navbar.Brand>
 
@@ -58,15 +79,50 @@ const AppHeader = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             {navItems.map(item => (
-              <Nav.Link
-                key={item.to}
-                as={Link}
-                to={item.to}
-                active={location.pathname === item.to}
-              >
-                <i className={`${item.icon} me-1`}></i>
-                {item.label}
-              </Nav.Link>
+              item.hasCategories ? (
+                <div key={item.to} className="nav-category-trigger">
+                  <Nav.Link
+                    as={Link}
+                    to={item.to}
+                    active={location.pathname === item.to}
+                  >
+                    <i className={`${item.icon} me-1`}></i>
+                    {item.label}
+                  </Nav.Link>
+                  <div className="nav-category-menu">
+                    <div className="menu-inner">
+                      <h6>Categories</h6>
+                      <div className="menu-grid">
+                        {isLoadingCategories ? (
+                          <span className="category-item">Loading...</span>
+                        ) : productCategories.length === 0 ? (
+                          <span className="category-item">No categories</span>
+                        ) : (
+                          productCategories.map((category) => (
+                            <button
+                              key={category.id || category.name}
+                              type="button"
+                              className="category-item"
+                            >
+                              {category.name || category.title}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Nav.Link
+                  key={item.to}
+                  as={Link}
+                  to={item.to}
+                  active={location.pathname === item.to}
+                >
+                  <i className={`${item.icon} me-1`}></i>
+                  {item.label}
+                </Nav.Link>
+              )
             ))}
             {isAdmin() && (
               <Nav.Link as={Link} to={ROUTES.ADMIN}>
@@ -76,25 +132,30 @@ const AppHeader = () => {
             )}
           </Nav>
 
-          <Nav>
+          <Nav className="nav-actions">
+            <button
+              type="button"
+              className="nav-icon-btn"
+              aria-label="Search"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+            >
+              <i className="bi bi-search"></i>
+            </button>
             {!isAuthenticated() ? (
               <button
-                className="btn btn-outline-light border-0 ms-2"
+                type="button"
+                className="nav-icon-btn"
+                aria-label="Sign in"
                 onClick={() => navigate(ROUTES.LOGIN)}
               >
-                <i className="bi bi-box-arrow-in-right me-1"></i>
-                Sign In
+                <i className="bi bi-person"></i>
               </button>
             ) : (
               <NavDropdown
-                title={
-                  <span>
-                    <i className="bi bi-person-circle me-1"></i>
-                    {userInfo?.fullName || userInfo?.username || 'User'}
-                  </span>
-                }
+                title={<i className="bi bi-person"></i>}
                 id="user-nav-dropdown"
                 align="end"
+                className="nav-icon-dropdown"
               >
                 <NavDropdown.ItemText>
                   <div>
@@ -119,6 +180,14 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
+            <button
+              type="button"
+              className="nav-icon-btn"
+              aria-label="Cart"
+            >
+              <i className="bi bi-bag"></i>
+              <span className="cart-count">0</span>
+            </button>
           </Nav>
         </Navbar.Collapse>
       </Container>

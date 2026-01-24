@@ -21,12 +21,12 @@ const StoriesList = () => {
       const response = await storyService.getAll()
       setStories(response.data || [])
     } catch (error) {
-      console.error('Error loading stories:', error)
+      console.error('Error loading guides:', error)
       if (window.showToast) {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load stories',
+          detail: 'Failed to load guides',
           life: 4000
         })
       }
@@ -52,12 +52,12 @@ const StoriesList = () => {
       }
       loadStories()
     } catch (error) {
-      console.error('Error deleting story:', error)
+      console.error('Error deleting guide:', error)
       if (window.showToast) {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to delete story',
+          detail: 'Failed to delete guide',
           life: 4000
         })
       }
@@ -75,7 +75,7 @@ const StoriesList = () => {
   const uniqueCategories = ['all', ...new Set(stories.map(s => s.category).filter(Boolean))]
 
   const getPlaceholderImage = (width = 60, height = 60) => {
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'%3E%3Crect width='${width}' height='${height}' fill='%23e9ecef'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='12' fill='%236c757d'%3E📖%3C/text%3E%3C/svg%3E`
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'%3E%3Crect width='${width}' height='${height}' fill='%23f6efe4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='12' fill='%238a6d3b'%3E%F0%9F%92%8E%3C/text%3E%3C/svg%3E`
   }
 
   if (loading) {
@@ -96,14 +96,14 @@ const StoriesList = () => {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h1 className="display-6 fw-bold mb-2">
-              <i className="bi bi-book me-2"></i>
-              Manage Stories
+              <i className="bi bi-gem me-2"></i>
+              Manage Gem Guides
             </h1>
-            <p className="text-muted">Create, edit, and delete stories</p>
+            <p className="text-muted">Create, edit, and delete jewelry insights</p>
           </div>
           <Link to="/admin/stories/create" className="btn btn-primary">
             <i className="bi bi-plus-circle me-2"></i>
-            Create New Story
+            Create New Guide
           </Link>
         </div>
 
@@ -116,7 +116,7 @@ const StoriesList = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search stories..."
+                placeholder="Search guides..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -134,7 +134,7 @@ const StoriesList = () => {
               >
                 {uniqueCategories.map(cat => (
                   <option key={cat} value={cat}>
-                    {cat === 'all' ? 'All Categories' : cat}
+                    {cat === 'all' ? 'All Topics' : cat}
                   </option>
                 ))}
               </select>
@@ -151,7 +151,7 @@ const StoriesList = () => {
                     <th style={{ width: '80px' }}>Image</th>
                     <th>Title</th>
                     <th>Author</th>
-                    <th>Category</th>
+                    <th>Topic</th>
                     <th>Views</th>
                     <th>Likes</th>
                     <th>Featured</th>
@@ -233,7 +233,7 @@ const StoriesList = () => {
                     <tr>
                       <td colSpan="8" className="text-center py-5 text-muted">
                         <i className="bi bi-inbox display-4 d-block mb-2"></i>
-                        No stories found
+                        No guides found
                       </td>
                     </tr>
                   )}
@@ -244,7 +244,7 @@ const StoriesList = () => {
         </div>
 
         <div className="mt-3 text-muted small">
-          Showing {filteredStories.length} of {stories.length} stories
+          Showing {filteredStories.length} of {stories.length} guides
         </div>
       </div>
     </div>

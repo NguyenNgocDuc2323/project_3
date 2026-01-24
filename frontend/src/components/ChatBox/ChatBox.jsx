@@ -18,6 +18,14 @@ const ChatBox = () => {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
+  const quickQuestions = [
+    'Show me best-selling rings',
+    'Do you have 18K gold necklaces?',
+    'Find engagement rings under $1,000',
+    'How to choose diamond quality?',
+    'What is your return policy?'
+  ]
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -76,6 +84,14 @@ const ChatBox = () => {
     }
   }
 
+  const handleQuickQuestion = (question) => {
+    if (isLoading) return
+    setInputMessage(question)
+    setTimeout(() => {
+      handleSendMessage()
+    }, 0)
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -123,6 +139,23 @@ const ChatBox = () => {
         </Modal.Header>
 
         <Modal.Body className="chat-body">
+            {messages.length <= 1 && !isLoading && (
+              <div className="quick-questions">
+                <div className="quick-title">Try asking</div>
+                <div className="quick-list">
+                  {quickQuestions.map((question) => (
+                    <button
+                      key={question}
+                      type="button"
+                      className="quick-btn"
+                      onClick={() => handleQuickQuestion(question)}
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="messages-container">
               {messages.map((message) => (
                 <div

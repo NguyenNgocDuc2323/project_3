@@ -8,10 +8,44 @@ namespace Backend.Models
 
         [Required]
         [StringLength(200)]
-        public string Title { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [StringLength(100)]
-        public string Author { get; set; } = string.Empty;
+        public string Designer { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string StyleCode { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string ProductType { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string Brand { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(20)]
+        public string GoldCarat { get; set; } = string.Empty;
+
+        public decimal GoldWeight { get; set; }
+
+        public decimal DiamondCarat { get; set; }
+
+        [StringLength(50)]
+        public string? DiamondQuality { get; set; }
+
+        [StringLength(50)]
+        public string? StoneType { get; set; }
+
+        public decimal StoneCarat { get; set; }
+
+        public int Quantity { get; set; } = 0;
+
+        public decimal MakingCharges { get; set; }
+
+        public decimal MRP { get; set; }
 
         [StringLength(1000)]
         public string? Description { get; set; }

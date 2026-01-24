@@ -106,7 +106,7 @@ const CategoriesCreate = () => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    placeholder="e.g., Fiction, Adventure, Mystery"
+                    placeholder="e.g., Rings, Necklaces, Bridal Sets"
                   />
                   {errors.name && (
                     <div className="invalid-feedback">{errors.name}</div>
