@@ -66,14 +66,14 @@ const Register = () => {
           window.showToast({
             severity: 'success',
             summary: 'Registration Successful',
-            detail: 'Confirmation email has been sent to your email! Please check your inbox.',
+            detail: 'Verification email has been sent. Please check your inbox to activate your account.',
             life: 5000
           })
         } else {
           window.showToast({
             severity: 'success',
             summary: 'Registration Successful',
-            detail: 'Registration successful! However, confirmation email could not be sent. Please login.',
+            detail: 'Account created but verification email could not be sent. Please contact support.',
             life: 5000
           })
         }
@@ -102,15 +102,10 @@ const Register = () => {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
-            <div className="card shadow-lg border-0">
-              <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <div className="mb-3">
-                    <span style={{ fontSize: '3rem' }}>📖</span>
-                  </div>
-                  <h2 className="login-card-title mb-2">Create Account</h2>
-                  <p className="text-muted">Sign up to get started</p>
-                </div>
+            <div className="card auth-card">
+              <div className="auth-body">
+                <h2 className="auth-title">Create Account</h2>
+                <p className="auth-subtitle">Join our jewelry community</p>
                 
                 <form onSubmit={handleRegister}>
                   {errors.general && (
@@ -120,16 +115,16 @@ const Register = () => {
                   )}
 
                   <div className="mb-3">
-                    <label htmlFor="username" className="form-label">
+                    <label htmlFor="username" className="auth-label">
                       Username
                     </label>
                     <input
                       type="text"
-                      className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+                      className={`form-control auth-input ${errors.username ? 'is-invalid' : ''}`}
                       id="username"
                       value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })}
-                      placeholder="Enter username"
+                      placeholder="Enter your username"
                       autoComplete="username"
                     />
                     {errors.username && (
@@ -138,16 +133,16 @@ const Register = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label htmlFor="email" className="form-label">
+                    <label htmlFor="email" className="auth-label">
                       Email
                     </label>
                     <input
                       type="email"
-                      className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                      className={`form-control auth-input ${errors.email ? 'is-invalid' : ''}`}
                       id="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="Enter email"
+                      placeholder="Enter your email"
                       autoComplete="email"
                     />
                     {errors.email && (
@@ -156,16 +151,16 @@ const Register = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label htmlFor="fullName" className="form-label">
+                    <label htmlFor="fullName" className="auth-label">
                       Full Name
                     </label>
                     <input
                       type="text"
-                      className={`form-control ${errors.fullName ? 'is-invalid' : ''}`}
+                      className={`form-control auth-input ${errors.fullName ? 'is-invalid' : ''}`}
                       id="fullName"
                       value={form.fullName}
                       onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                      placeholder="Enter full name"
+                      placeholder="Enter your full name"
                       autoComplete="name"
                     />
                     {errors.fullName && (
@@ -185,7 +180,7 @@ const Register = () => {
 
                   <button 
                     type="submit" 
-                    className="btn btn-primary w-100 mb-3"
+                    className="btn auth-primary"
                     disabled={loading}
                   >
                     {loading ? (
@@ -198,18 +193,15 @@ const Register = () => {
                     )}
                   </button>
 
-                  <div className="text-center">
-                    <hr className="my-4" />
-                    <p className="mb-0">
-                      Already have an account?{' '}
-                      <a 
-                        href="#" 
-                        onClick={(e) => { e.preventDefault(); navigate(ROUTES.LOGIN) }} 
-                        className="text-decoration-none fw-bold"
-                      >
-                        Sign in
-                      </a>
-                    </p>
+                  <div className="auth-footer">
+                    <span>Already have an account? </span>
+                    <a
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); navigate(ROUTES.LOGIN) }}
+                      className="auth-link"
+                    >
+                      Sign in
+                    </a>
                   </div>
                 </form>
               </div>

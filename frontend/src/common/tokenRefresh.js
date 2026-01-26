@@ -1,4 +1,4 @@
-import { cookieUtils } from './utils'
+import { cookieUtils, storageUtils } from './utils'
 import { TOKEN_EXPIRATION } from './constants'
 import axios from 'axios'
 import { API_BASE_URL } from './constants'
@@ -17,6 +17,11 @@ const refreshClient = axios.create({
 
 const refreshTokenOnScroll = async () => {
   if (isRefreshingOnScroll) {
+    return
+  }
+
+  const hasSession = cookieUtils.get('accessToken') || storageUtils.get('user')
+  if (!hasSession) {
     return
   }
 
@@ -54,6 +59,11 @@ const handleScroll = () => {
 
 export const initScrollTokenRefresh = () => {
   if (window._scrollTokenRefreshInitialized) {
+    return
+  }
+
+  const hasSession = cookieUtils.get('accessToken') || storageUtils.get('user')
+  if (!hasSession) {
     return
   }
 

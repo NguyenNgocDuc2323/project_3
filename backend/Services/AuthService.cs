@@ -121,7 +121,7 @@ namespace Backend.Services
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                     FullName = fullName,
                     CreatedAt = DateTime.UtcNow,
-                    IsActive = true,
+                    IsActive = false,
                     Role = 2
                 };
 
@@ -140,6 +140,42 @@ namespace Backend.Services
                 var innerMessage = ex.InnerException?.Message ?? "No inner exception";
                 throw new InvalidOperationException($"Registration error: {ex.Message}. Inner: {innerMessage}", ex);
             }
+        }
+
+        public async Task<string> CreateEmailVerificationTokenAsync(int userId)
+        {
+            var token = new EmailVerificationToken
+            {
+                Token = GenerateRandomToken(),
+                UserId = userId,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.EmailVerificationTokens.Add(token);
+            await _context.SaveChangesAsync();
+
+            return token.Token;
+        }
+
+        public async Task<bool> VerifyEmailAsync(string email, string token)
+        {
+            var verificationToken = await _context.EmailVerificationTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Token == token && t.User.Email == email);
+
+            if (verificationToken == null || verificationToken.IsUsed || verificationToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            verificationToken.IsUsed = true;
+            verificationToken.User.IsActive = true;
+            verificationToken.User.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         private string GenerateAccessToken(User user)

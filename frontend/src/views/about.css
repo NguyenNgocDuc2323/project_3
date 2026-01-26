@@ -9,7 +9,7 @@
   padding: 2.5rem;
   text-align: center;
   border-radius: 20px;
-  background: linear-gradient(135deg, #ffffff, #f0f4ff);
+  background: linear-gradient(135deg, #f7f7f7, #eeeeee);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 3rem;
 }
@@ -22,11 +22,11 @@
 }
 
 .about-container .highlight {
-  color: #0a58ca;
+  color: #111;
 }
 
 .about-container .about-subtitle {
-  color: #3d4351;
+  color: #2b2b2b;
   font-size: 1.2rem;
   font-style: italic;
 }
@@ -55,7 +55,7 @@
   display: block;
   width: 60px;
   height: 3px;
-  background: #0a58ca;
+  background: #111;
   margin-top: 6px;
   border-radius: 2px;
 }
@@ -67,8 +67,8 @@
 }
 
 .about-container .about-quote {
-  background: #e8f0ff;
-  border-left: 4px solid #0a58ca;
+  background: #f5f5f5;
+  border-left: 4px solid #111;
   padding: 1.2rem 1rem;
   margin: 2rem 0;
   border-radius: 6px;
@@ -87,5 +87,5 @@
   font-size: 1.3rem;
   font-weight: 600;
   text-align: center;
-  color: #0a58ca;
+  color: #111;
 }

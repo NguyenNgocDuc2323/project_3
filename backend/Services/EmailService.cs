@@ -161,5 +161,88 @@ namespace Backend.Services
                 throw;
             }
         }
+
+        public async Task SendEmailVerificationEmailAsync(string email, string username, string verificationToken)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return;
+            }
+
+            try
+            {
+                var smtpHost = _configuration["Email:SmtpHost"];
+                var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
+                var smtpUsername = _configuration["Email:SmtpUsername"];
+                var smtpPassword = _configuration["Email:SmtpPassword"];
+                var fromEmail = _configuration["Email:FromEmail"];
+                var fromName = _configuration["Email:FromName"] ?? "Project 3";
+                var verifyBaseUrl = _configuration["Email:VerifyEmailBaseUrl"];
+
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
+                {
+                    throw new InvalidOperationException("Email configuration is incomplete");
+                }
+
+                if (string.IsNullOrEmpty(verifyBaseUrl))
+                {
+                    throw new InvalidOperationException("Verify email base URL is not configured");
+                }
+
+                var verifyUrl = $"{verifyBaseUrl}?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(email)}";
+
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(fromName, fromEmail));
+                message.To.Add(new MailboxAddress("", email));
+                message.Subject = "Verify Your Email";
+
+                var bodyBuilder = new BodyBuilder
+                {
+                    HtmlBody = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                            <h2 style='color: #333;'>Verify your email</h2>
+                            <p>Hi {username},</p>
+                            <p>Thanks for registering. Please verify your email to activate your account.</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{verifyUrl}' style='background-color: #111; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block;'>Verify Email</a>
+                            </div>
+                            <p>Or copy and paste this link into your browser:</p>
+                            <p style='word-break: break-all; color: #666;'>{verifyUrl}</p>
+                            <p style='color: #999; font-size: 12px;'>This link will expire in 24 hours.</p>
+                        </div>"
+                };
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+
+                var secureSocketOptions = smtpPort == 465
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTls;
+
+                _logger.LogInformation("Connecting to SMTP server: {Host}:{Port} with {Security}", 
+                    smtpHost, smtpPort, secureSocketOptions);
+
+                await client.ConnectAsync(smtpHost, smtpPort, secureSocketOptions);
+
+                if (!string.IsNullOrEmpty(smtpUsername) && !string.IsNullOrEmpty(smtpPassword))
+                {
+                    _logger.LogInformation("Authenticating with username: {Username}", smtpUsername);
+                    await client.AuthenticateAsync(smtpUsername, smtpPassword);
+                }
+
+                _logger.LogInformation("Sending email verification to: {Email}", email);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Email verification sent successfully to: {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email verification to {Email}. Error: {Error}", 
+                    email, ex.Message);
+                throw;
+            }
+        }
     }
 }

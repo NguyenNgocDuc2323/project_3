@@ -44,9 +44,9 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
-      title: 'Manage Stories',
-      description: 'View, create, edit, and delete stories',
-      icon: 'bi bi-book',
+      title: 'Manage Gem Guides',
+      description: 'View, create, edit, and delete guides',
+      icon: 'bi bi-gem',
       link: ROUTES.ADMIN_STORIES_LIST,
       color: 'primary',
       count: stats.totalStories
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Manage Categories',
-      description: 'Organize story categories',
+      description: 'Organize jewelry categories',
       icon: 'bi bi-tags',
       link: ROUTES.ADMIN_CATEGORIES_LIST,
       color: 'info',
@@ -102,11 +102,11 @@ const AdminDashboard = () => {
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <div className="text-muted small mb-1">Total Stories</div>
+                    <div className="text-muted small mb-1">Total Guides</div>
                     <div className="h3 mb-0 fw-bold text-primary">{stats.totalStories}</div>
                   </div>
                   <div className="bg-primary bg-opacity-10 p-3 rounded">
-                    <i className="bi bi-book text-primary" style={{ fontSize: '2rem' }}></i>
+                    <i className="bi bi-gem text-primary" style={{ fontSize: '2rem' }}></i>
                   </div>
                 </div>
               </div>

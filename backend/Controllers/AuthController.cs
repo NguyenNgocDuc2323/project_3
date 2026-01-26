@@ -6,6 +6,7 @@ using Backend.Data;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Controllers
 {
@@ -44,6 +45,13 @@ namespace Backend.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            var userRecord = await _serviceProvider.GetRequiredService<ApplicationDbContext>()
+                .Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (userRecord != null && !userRecord.IsActive)
+            {
+                return Unauthorized(new { message = "Please verify your email before logging in." });
             }
 
             var response = await _authService.LoginAsync(request.Email, request.Password);
@@ -115,55 +123,24 @@ namespace Backend.Controllers
 
                 _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
 
-                var response = await _authService.LoginAsync(request.Email, request.Password);
-
-                if (response == null)
-                {
-                    _logger.LogError("Login failed after registration for user ID: {UserId}. Rolling back user creation.", user.Id);
-                    await _authService.DeleteUserAsync(user.Id);
-                    return StatusCode(500, new { message = "Registration failed. Please try again." });
-                }
-
-                _logger.LogInformation("Registration and auto-login successful for user: {Username}", request.Username);
-
                 bool emailSent = false;
                 try
                 {
-                    _logger.LogInformation("Attempting to send registration confirmation email to: {Email}", user.Email);
-                    await _emailService.SendRegistrationConfirmationEmailAsync(user.Email, user.Username);
-                    _logger.LogInformation("Registration confirmation email sent successfully to: {Email}", user.Email);
+                    var verificationToken = await _authService.CreateEmailVerificationTokenAsync(user.Id);
+                    _logger.LogInformation("Attempting to send email verification to: {Email}", user.Email);
+                    await _emailService.SendEmailVerificationEmailAsync(user.Email, user.Username, verificationToken);
+                    _logger.LogInformation("Email verification sent successfully to: {Email}", user.Email);
                     emailSent = true;
                 }
                 catch (Exception emailEx)
                 {
-                    _logger.LogError(emailEx, "Failed to send registration confirmation email to {Email}. Error: {Error}, StackTrace: {StackTrace}", 
+                    _logger.LogError(emailEx, "Failed to send email verification to {Email}. Error: {Error}, StackTrace: {StackTrace}", 
                         user.Email, emailEx.Message, emailEx.StackTrace);
                 }
 
-                var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-                
-                Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+                return Ok(new
                 {
-                    HttpOnly = true,
-                    Secure = !isDevelopment,
-                    SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
-                    Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
-                    Path = "/"
-                });
-
-                Response.Cookies.Append("accessToken", response.AccessToken, new CookieOptions
-                {
-                    HttpOnly = false,
-                    Secure = !isDevelopment,
-                    SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
-                    Path = "/"
-                });
-
-                return Ok(new { 
-                    accessToken = response.AccessToken,
-                    refreshToken = response.RefreshToken,
-                    user = response.User,
+                    message = "Registration successful. Please verify your email to activate your account.",
                     emailSent = emailSent
                 });
             }
@@ -183,6 +160,30 @@ namespace Backend.Controllers
                     innerError = innerError ?? "No inner error"
                 });
             }
+        }
+
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
+        {
+            var frontendBaseUrl = (_configuration["Email:ResetPasswordBaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
+            var loginBaseUrl = $"{frontendBaseUrl}/login";
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                var missingParamsUrl = $"{loginBaseUrl}?verified=0&reason=missing_params";
+                return Redirect(missingParamsUrl);
+            }
+
+            var verified = await _authService.VerifyEmailAsync(email, token);
+
+            if (!verified)
+            {
+                var invalidUrl = $"{loginBaseUrl}?verified=0&reason=invalid_or_expired";
+                return Redirect(invalidUrl);
+            }
+
+            var successUrl = $"{loginBaseUrl}?verified=1";
+            return Redirect(successUrl);
         }
 
         [HttpPost("refresh")]

@@ -147,6 +147,28 @@ if (app.Environment.IsDevelopment())
         await db.Database.MigrateAsync();
         app.Logger.LogInformation("Database migrations applied successfully!");
 
+        if (await db.Categories.AnyAsync())
+        {
+            app.Logger.LogInformation("Categories table already has data, skipping seed.");
+        }
+        else
+        {
+            app.Logger.LogInformation("Seeding categories data...");
+            await SeedCategoriesAsync(db);
+            app.Logger.LogInformation("Categories seeded successfully!");
+        }
+
+        if (await db.Products.AnyAsync())
+        {
+            app.Logger.LogInformation("Products table already has data, skipping seed.");
+        }
+        else
+        {
+            app.Logger.LogInformation("Seeding products data...");
+            await SeedProductsAsync(db);
+            app.Logger.LogInformation("Products seeded successfully!");
+        }
+
         if (await db.Stories.AnyAsync())
         {
             app.Logger.LogInformation("Stories table already has data, skipping seed.");
@@ -166,17 +188,239 @@ if (app.Environment.IsDevelopment())
     }
 }
 
+static async Task SeedCategoriesAsync(ApplicationDbContext db)
+{
+    var categories = new List<Category>
+    {
+        new Category { Name = "Rings", Description = "Engagement, wedding, and statement rings", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Necklaces", Description = "Gold and diamond necklaces for every occasion", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Earrings", Description = "Studs, hoops, and chandelier designs", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Bracelets", Description = "Timeless gold and diamond bracelets", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Bangles", Description = "Elegant bangles with modern craftsmanship", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Pendants", Description = "Signature pendants with precious stones", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Bridal Sets", Description = "Curated bridal jewelry collections", CreatedAt = DateTime.UtcNow.AddDays(-10) },
+        new Category { Name = "Heritage", Description = "Classic designs inspired by Indian heritage", CreatedAt = DateTime.UtcNow.AddDays(-10) }
+    };
+
+    db.Categories.AddRange(categories);
+    await db.SaveChangesAsync();
+}
+
+static async Task SeedProductsAsync(ApplicationDbContext db)
+{
+    var categoryMap = await db.Categories.ToDictionaryAsync(c => c.Name, c => c.Id);
+
+    var products = new List<Product>
+    {
+        new Product
+        {
+            Name = "Regal Solitaire Ring",
+            Designer = "Aanya Mehta",
+            StyleCode = "RG-ASM-102",
+            ProductType = "Ring",
+            Brand = "Asmi",
+            GoldCarat = "18K",
+            GoldWeight = 6.250m,
+            DiamondCarat = 0.75m,
+            DiamondQuality = "VVS",
+            StoneType = "Ruby",
+            StoneCarat = 0.20m,
+            Quantity = 12,
+            MakingCharges = 8500m,
+            MRP = 185000m,
+            Description = "A regal solitaire ring with diamond brilliance and ruby accents.",
+            ImageUrl = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Rings"),
+            Views = 15200,
+            Likes = 1200,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-20)
+        },
+        new Product
+        {
+            Name = "Imperial Halo Necklace",
+            Designer = "Rohan Kapoor",
+            StyleCode = "NK-DDM-415",
+            ProductType = "Necklace",
+            Brand = "Ddamas",
+            GoldCarat = "22K",
+            GoldWeight = 18.500m,
+            DiamondCarat = 1.25m,
+            DiamondQuality = "VS",
+            StoneType = "Sapphire",
+            StoneCarat = 0.40m,
+            Quantity = 5,
+            MakingCharges = 14500m,
+            MRP = 425000m,
+            Description = "An opulent necklace with halo diamonds and a sapphire centerpiece.",
+            ImageUrl = "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Necklaces"),
+            Views = 9800,
+            Likes = 756,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-18)
+        },
+        new Product
+        {
+            Name = "Celestial Drop Earrings",
+            Designer = "Meera Shah",
+            StyleCode = "ER-CT-308",
+            ProductType = "Earrings",
+            Brand = "Caratlane",
+            GoldCarat = "18K",
+            GoldWeight = 4.200m,
+            DiamondCarat = 0.60m,
+            DiamondQuality = "VVS",
+            StoneType = "Emerald",
+            StoneCarat = 0.15m,
+            Quantity = 20,
+            MakingCharges = 6200m,
+            MRP = 118000m,
+            Description = "Celestial drop earrings with emerald sparkle and fine diamonds.",
+            ImageUrl = "https://images.unsplash.com/photo-1514820720301-4c4790309f46?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Earrings"),
+            Views = 11200,
+            Likes = 890,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-16)
+        },
+        new Product
+        {
+            Name = "Royal Charm Bracelet",
+            Designer = "Kabir Rao",
+            StyleCode = "BR-ASM-220",
+            ProductType = "Bracelet",
+            Brand = "Asmi",
+            GoldCarat = "18K",
+            GoldWeight = 10.800m,
+            DiamondCarat = 0.50m,
+            DiamondQuality = "VS",
+            StoneType = "Topaz",
+            StoneCarat = 0.25m,
+            Quantity = 9,
+            MakingCharges = 7200m,
+            MRP = 165000m,
+            Description = "A royal charm bracelet crafted for grand celebrations.",
+            ImageUrl = "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Bracelets"),
+            Views = 8500,
+            Likes = 634,
+            IsFeatured = false,
+            CreatedAt = DateTime.UtcNow.AddDays(-15)
+        },
+        new Product
+        {
+            Name = "Majestic Heritage Bangle",
+            Designer = "Nisha Verma",
+            StyleCode = "BG-HR-519",
+            ProductType = "Bangle",
+            Brand = "Heritage",
+            GoldCarat = "22K",
+            GoldWeight = 22.750m,
+            DiamondCarat = 0.40m,
+            DiamondQuality = "VS",
+            StoneType = null,
+            StoneCarat = 0.00m,
+            Quantity = 6,
+            MakingCharges = 9800m,
+            MRP = 355000m,
+            Description = "Classic heritage bangle with detailed gold artistry.",
+            ImageUrl = "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Bangles"),
+            Views = 13800,
+            Likes = 1023,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-14)
+        },
+        new Product
+        {
+            Name = "Crown Pendant Set",
+            Designer = "Dev Patel",
+            StyleCode = "PD-DDM-314",
+            ProductType = "Pendant",
+            Brand = "Ddamas",
+            GoldCarat = "18K",
+            GoldWeight = 8.300m,
+            DiamondCarat = 0.85m,
+            DiamondQuality = "VVS",
+            StoneType = "Pearl",
+            StoneCarat = 0.30m,
+            Quantity = 14,
+            MakingCharges = 5400m,
+            MRP = 142000m,
+            Description = "Crown-inspired pendant set with pearl luster.",
+            ImageUrl = "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Pendants"),
+            Views = 12400,
+            Likes = 912,
+            IsFeatured = false,
+            CreatedAt = DateTime.UtcNow.AddDays(-12)
+        },
+        new Product
+        {
+            Name = "Bridal Radiance Set",
+            Designer = "Riya Nair",
+            StyleCode = "BRD-ASM-777",
+            ProductType = "Bridal Set",
+            Brand = "Asmi",
+            GoldCarat = "22K",
+            GoldWeight = 35.500m,
+            DiamondCarat = 2.20m,
+            DiamondQuality = "VVS",
+            StoneType = "Ruby",
+            StoneCarat = 0.60m,
+            Quantity = 3,
+            MakingCharges = 26000m,
+            MRP = 925000m,
+            Description = "A grand bridal set with masterful goldwork and ruby accents.",
+            ImageUrl = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Bridal Sets"),
+            Views = 9800,
+            Likes = 756,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-10)
+        },
+        new Product
+        {
+            Name = "Heritage Kundan Necklace",
+            Designer = "Isha Gupta",
+            StyleCode = "HN-HR-642",
+            ProductType = "Necklace",
+            Brand = "Heritage",
+            GoldCarat = "22K",
+            GoldWeight = 28.200m,
+            DiamondCarat = 0.30m,
+            DiamondQuality = "VS",
+            StoneType = "Ruby",
+            StoneCarat = 0.50m,
+            Quantity = 4,
+            MakingCharges = 15200m,
+            MRP = 585000m,
+            Description = "Traditional kundan necklace with royal aura.",
+            ImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=600&fit=crop&q=80",
+            CategoryId = categoryMap.GetValueOrDefault("Heritage"),
+            Views = 11500,
+            Likes = 801,
+            IsFeatured = false,
+            CreatedAt = DateTime.UtcNow.AddDays(-8)
+        }
+    };
+
+    db.Products.AddRange(products);
+    await db.SaveChangesAsync();
+}
+
 static async Task SeedStoriesAsync(ApplicationDbContext db)
 {
     var stories = new List<Story>
     {
         new Story
         {
-            Title = "The Great Journey",
-            Author = "John Smith",
-            Description = "A story about a magical adventure through strange lands where wonders await. A journey that will change life forever.",
-            ImageUrl = "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&h=1200&fit=crop&q=80",
-            Category = "Adventure",
+            Title = "How to Read a Diamond Certificate",
+            Author = "Yash Gem Lab",
+            Description = "Learn how to read certification details like cut, clarity, and carat to choose diamonds with confidence.",
+            ImageUrl = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&h=1200&fit=crop&q=80",
+            Category = "Diamond Education",
             Views = 12500,
             Likes = 890,
             IsFeatured = true,
@@ -184,11 +428,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "The Hidden Kingdom",
-            Author = "Sarah Johnson",
-            Description = "Explore an ancient kingdom with secrets hidden for thousands of years. Do you have the courage to discover them?",
-            ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Mystery",
+            Title = "Gold Purity Guide: 18K vs 22K",
+            Author = "Yash Design Studio",
+            Description = "Understand how gold purity affects durability, color, and craftsmanship in fine jewelry.",
+            ImageUrl = "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&h=1200&fit=crop&q=80",
+            Category = "Gold Knowledge",
             Views = 10200,
             Likes = 756,
             IsFeatured = true,
@@ -196,11 +440,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "The Silent Hero",
-            Author = "Michael Brown",
-            Description = "A touching story about a nameless hero who sacrificed everything for others. A lesson in courage and sacrifice.",
-            ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
-            Category = "Drama",
+            Title = "Gemstone Colors and Their Meaning",
+            Author = "Heritage Curator",
+            Description = "Discover the symbolism behind ruby, emerald, sapphire, and other precious stones.",
+            ImageUrl = "https://images.unsplash.com/photo-1514820720301-4c4790309f46?w=800&h=1200&fit=crop&q=80",
+            Category = "Gemstone Insights",
             Views = 9800,
             Likes = 634,
             IsFeatured = true,
@@ -208,11 +452,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Distant Dream",
-            Author = "Emily Davis",
-            Description = "A dream takes us to distant places where anything can happen. Where is the boundary between dream and reality?",
-            ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
-            Category = "Romance",
+            Title = "Bridal Jewelry Checklist",
+            Author = "Yash Bridal Atelier",
+            Description = "Plan your bridal set with perfect balance of tradition, comfort, and timeless sparkle.",
+            ImageUrl = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1200&fit=crop&q=80",
+            Category = "Bridal",
             Views = 8500,
             Likes = 521,
             IsFeatured = false,
@@ -220,11 +464,11 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "Eternal Love",
-            Author = "David Wilson",
-            Description = "A love story that transcends all challenges of time and space. True love will last forever.",
-            ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
-            Category = "Romance",
+            Title = "Caring for Diamond Jewelry",
+            Author = "Yash Care Team",
+            Description = "Simple, effective steps to preserve brilliance and protect your jewelry for years to come.",
+            ImageUrl = "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1200&fit=crop&q=80",
+            Category = "Care Guide",
             Views = 7200,
             Likes = 489,
             IsFeatured = false,
@@ -232,279 +476,15 @@ static async Task SeedStoriesAsync(ApplicationDbContext db)
         },
         new Story
         {
-            Title = "The Magical World",
-            Author = "Jessica Martinez",
-            Description = "Step into a world full of magic, where wizards and sorcerers rule. A world where the impossible becomes possible.",
-            ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
-            Category = "Fantasy",
+            Title = "Heritage Craftsmanship: The Yash Signature",
+            Author = "Master Craftsmen",
+            Description = "A closer look at the artistry, setting techniques, and finishing that define Yash creations.",
+            ImageUrl = "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1200&fit=crop&q=80",
+            Category = "Craftsmanship",
             Views = 11200,
             Likes = 823,
             IsFeatured = true,
             CreatedAt = DateTime.UtcNow.AddDays(-23)
-        },
-        new Story
-        {
-            Title = "New Life",
-            Author = "Robert Taylor",
-            Description = "Start over from the beginning, searching for the true meaning of life. Sometimes we need to go back to move forward.",
-            ImageUrl = "https://images.unsplash.com/photo-1521542464131-cb30f7a44e91?w=800&h=1200&fit=crop&q=80",
-            Category = "Life",
-            Views = 6500,
-            Likes = 412,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-22)
-        },
-        new Story
-        {
-            Title = "Ancient Secrets",
-            Author = "Lisa Anderson",
-            Description = "Discover secrets buried since ancient times. Each secret holds unimaginable power.",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "History",
-            Views = 9300,
-            Likes = 678,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-21)
-        },
-        new Story
-        {
-            Title = "The Blue Planet",
-            Author = "James White",
-            Description = "A space adventure takes us to a distant planet with strange creatures and amazing discoveries.",
-            ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "Science Fiction",
-            Views = 15800,
-            Likes = 1200,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-20)
-        },
-        new Story
-        {
-            Title = "Gateway to the Past",
-            Author = "Patricia Harris",
-            Description = "A mysterious time portal appears, allowing people to travel to the past. But every change has unforeseen consequences.",
-            ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Science Fiction",
-            Views = 14200,
-            Likes = 956,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-19)
-        },
-        new Story
-        {
-            Title = "Glass Heart",
-            Author = "Christopher Lee",
-            Description = "A love story as transparent as glass, fragile but incredibly beautiful. Pure love will last forever.",
-            ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Romance",
-            Views = 8800,
-            Likes = 645,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-18)
-        },
-        new Story
-        {
-            Title = "The Forgotten Land",
-            Author = "Amanda Green",
-            Description = "Explore an ancient land forgotten for centuries. Secrets await discovery.",
-            ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Adventure",
-            Views = 11200,
-            Likes = 789,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-17)
-        },
-        new Story
-        {
-            Title = "Ghost in the Mirror",
-            Author = "Daniel King",
-            Description = "An ancient mirror with a terrifying secret. Those who look into it will see their future, but what is the price?",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Mystery",
-            Views = 13400,
-            Likes = 912,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-16)
-        },
-        new Story
-        {
-            Title = "Twinkling Stars",
-            Author = "Michelle Scott",
-            Description = "A story about dreams and hopes under a starry sky. Each star carries a wish.",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Life",
-            Views = 7600,
-            Likes = 534,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-15)
-        },
-        new Story
-        {
-            Title = "Warrior of the Night",
-            Author = "Kevin Adams",
-            Description = "A warrior with dark powers must face the greatest challenges of life. Will light prevail?",
-            ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
-            Category = "Fantasy",
-            Views = 16200,
-            Likes = 1156,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-14)
-        },
-        new Story
-        {
-            Title = "Flower in the Snow",
-            Author = "Rachel Moore",
-            Description = "A beautiful love story like a flower blooming in the cold winter. True love will overcome all difficulties.",
-            ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
-            Category = "Romance",
-            Views = 6900,
-            Likes = 478,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-13)
-        },
-        new Story
-        {
-            Title = "War Between Worlds",
-            Author = "Thomas Wright",
-            Description = "A great war between parallel worlds is beginning. The fate of many worlds lies in the hands of heroes.",
-            ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "Science Fiction",
-            Views = 14500,
-            Likes = 1023,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-12)
-        },
-        new Story
-        {
-            Title = "Queen of the Green Forest",
-            Author = "Jennifer Lewis",
-            Description = "A story about a queen protecting the fairy forest. The power of nature and love for Mother Earth.",
-            ImageUrl = "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=800&h=1200&fit=crop&q=80",
-            Category = "Fantasy",
-            Views = 10800,
-            Likes = 745,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-11)
-        },
-        new Story
-        {
-            Title = "The Missing Diary",
-            Author = "Brian Clark",
-            Description = "An ancient diary with missing pages. Each page found will reveal a new secret.",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Mystery",
-            Views = 9200,
-            Likes = 623,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-10)
-        },
-        new Story
-        {
-            Title = "The Aliens",
-            Author = "Nicole Young",
-            Description = "An alien race arrives on Earth with mysterious intentions. Are they friend or foe?",
-            ImageUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80",
-            Category = "Science Fiction",
-            Views = 12800,
-            Likes = 887,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-9)
-        },
-        new Story
-        {
-            Title = "Castle in the Clouds",
-            Author = "Ryan Mitchell",
-            Description = "A beautiful castle sits on the clouds. Only those with pure hearts can reach it.",
-            ImageUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&h=1200&fit=crop&q=80",
-            Category = "Fantasy",
-            Views = 8400,
-            Likes = 567,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-8)
-        },
-        new Story
-        {
-            Title = "Heart of the Ocean",
-            Author = "Stephanie Hall",
-            Description = "Deep in the ocean lies a mysterious treasure. What will adventurers find there?",
-            ImageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&h=1200&fit=crop&q=80",
-            Category = "Adventure",
-            Views = 11500,
-            Likes = 801,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-7)
-        },
-        new Story
-        {
-            Title = "Symphony of Time",
-            Author = "Andrew Baker",
-            Description = "An ancient melody that can control the flow of time. Whoever possesses it will have unmatched power.",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Mystery",
-            Views = 13100,
-            Likes = 934,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-6)
-        },
-        new Story
-        {
-            Title = "The Eternal Flame",
-            Author = "Laura Garcia",
-            Description = "A flame that never dies, containing the power of the sun. It will grant power to whoever can touch it.",
-            ImageUrl = "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop&q=80",
-            Category = "Fantasy",
-            Views = 9900,
-            Likes = 712,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-5)
-        },
-        new Story
-        {
-            Title = "Letter from the Past",
-            Author = "Mark Thompson",
-            Description = "A letter sent from the distant past, containing important warnings for the future. Will anyone believe it?",
-            ImageUrl = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80",
-            Category = "History",
-            Views = 8700,
-            Likes = 589,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-4)
-        },
-        new Story
-        {
-            Title = "Planet of the Future",
-            Author = "Sandra Walker",
-            Description = "Travel to a planet in the distant future, where technology and humanity have merged into one.",
-            ImageUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=1200&fit=crop&q=80",
-            Category = "Science Fiction",
-            Views = 13800,
-            Likes = 967,
-            IsFeatured = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-3)
-        },
-        new Story
-        {
-            Title = "Eternal Friendship",
-            Author = "Paul Rodriguez",
-            Description = "A story about friendship that transcends all boundaries and challenges. A friendship that will last forever.",
-            ImageUrl = "https://images.unsplash.com/photo-1521542464131-cb30f7a44e91?w=800&h=1200&fit=crop&q=80",
-            Category = "Life",
-            Views = 7100,
-            Likes = 445,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-2)
-        },
-        new Story
-        {
-            Title = "Ghost City",
-            Author = "Karen Foster",
-            Description = "A haunted city where wandering souls seek liberation. Who dares to enter?",
-            ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop&q=80",
-            Category = "Mystery",
-            Views = 12400,
-            Likes = 856,
-            IsFeatured = false,
-            CreatedAt = DateTime.UtcNow.AddDays(-1)
         }
     };
 

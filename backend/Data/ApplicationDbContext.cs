@@ -16,6 +16,7 @@ namespace Backend.Data
         public DbSet<Story> Stories { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +64,21 @@ namespace Backend.Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<EmailVerificationToken>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.Property(e => e.Token).IsRequired();
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.ExpiresAt).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.EmailVerificationTokens)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Story>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -87,12 +103,24 @@ namespace Backend.Data
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Author).HasMaxLength(100);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Designer).HasMaxLength(100);
+                entity.Property(e => e.StyleCode).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.ProductType).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Brand).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.GoldCarat).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.GoldWeight).HasColumnType("decimal(10,3)");
+                entity.Property(e => e.DiamondCarat).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.DiamondQuality).HasMaxLength(50);
+                entity.Property(e => e.StoneType).HasMaxLength(50);
+                entity.Property(e => e.StoneCarat).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.MakingCharges).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.MRP).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsFeatured);
+                entity.HasIndex(e => e.StyleCode);
                 entity.HasIndex(e => e.CategoryId);
 
                 entity.HasOne(e => e.Category)
