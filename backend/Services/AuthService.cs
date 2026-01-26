@@ -148,7 +148,7 @@ namespace Backend.Services
             {
                 Token = GenerateRandomToken(),
                 UserId = userId,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -281,7 +281,7 @@ namespace Backend.Services
             {
                 Token = GenerateRandomToken(),
                 UserId = user.Id,
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
                 CreatedAt = DateTime.UtcNow
             };
 

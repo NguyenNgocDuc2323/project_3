@@ -3,17 +3,21 @@ import { cookieUtils, storageUtils } from "./utils";
 import { TOKEN_EXPIRATION } from "./constants";
 
 export const authService = {
-  async login(email, password) {
+  async login(email, password, rememberMe = false) {
     const response = await apiClient.post("/auth/login", {
       email,
       password,
+      rememberMe,
     });
 
     const accessToken = response.data?.accessToken || response.data?.AccessToken;
     const user = response.data?.user || response.data?.User;
 
     if (accessToken) {
-      cookieUtils.set("accessToken", accessToken, TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES);
+      const tokenExpirationMinutes = rememberMe 
+        ? TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES * 2 
+        : TOKEN_EXPIRATION.ACCESS_TOKEN_MINUTES;
+      cookieUtils.set("accessToken", accessToken, tokenExpirationMinutes);
     } else {
       cookieUtils.remove("accessToken");
     }

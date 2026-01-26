@@ -63,12 +63,15 @@ namespace Backend.Controllers
 
             var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
             
+            var refreshTokenExpirationDays = request.RememberMe ? GetRefreshTokenExpirationDays() * 2 : GetRefreshTokenExpirationDays();
+            var accessTokenExpirationMinutes = request.RememberMe ? GetAccessTokenExpirationMinutes() * 2 : GetAccessTokenExpirationMinutes();
+            
             Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = !isDevelopment,
                 SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(GetRefreshTokenExpirationDays()),
+                Expires = DateTimeOffset.UtcNow.AddDays(refreshTokenExpirationDays),
                 Path = "/"
             });
 
@@ -77,7 +80,7 @@ namespace Backend.Controllers
                 HttpOnly = false,
                 Secure = !isDevelopment,
                 SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpirationMinutes),
                 Path = "/"
             });
 

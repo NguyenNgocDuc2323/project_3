@@ -49,7 +49,7 @@ namespace Backend.Services
                             </div>
                             <p>Or copy and paste this link into your browser:</p>
                             <p style='word-break: break-all; color: #666;'>{resetUrl}</p>
-                            <p style='color: #999; font-size: 12px;'>This link will expire in 1 hour.</p>
+                            <p style='color: #999; font-size: 12px;'>This link will expire in 1 minute. Please click immediately.</p>
                             <p style='color: #999; font-size: 12px;'>If you didn't request this, please ignore this email.</p>
                         </div>"
                 };
@@ -208,7 +208,7 @@ namespace Backend.Services
                             </div>
                             <p>Or copy and paste this link into your browser:</p>
                             <p style='word-break: break-all; color: #666;'>{verifyUrl}</p>
-                            <p style='color: #999; font-size: 12px;'>This link will expire in 24 hours.</p>
+                            <p style='color: #999; font-size: 12px;'>This link will expire in 1 minute. Please click immediately.</p>
                         </div>"
                 };
 

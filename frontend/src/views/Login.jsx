@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import RadioCheckbox from '../components/RadioCheckbox'
 import { authService } from '../common/services'
 import { ROUTES } from '../common/constants'
-import { isAdmin } from '../common/utils'
+import { isAdmin, storageUtils } from '../common/utils'
 import './Login.css'
 
 const Login = () => {
@@ -16,6 +16,17 @@ const Login = () => {
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    const rememberedEmail = storageUtils.get('rememberedEmail')
+    if (rememberedEmail) {
+      setForm(prev => ({
+        ...prev,
+        email: rememberedEmail,
+        remember_me: true
+      }))
+    }
+  }, [])
 
   const validateForm = () => {
     const newErrors = {}
@@ -47,7 +58,13 @@ const Login = () => {
     setErrors({})
     
     try {
-      const response = await authService.login(form.email, form.password)
+      const response = await authService.login(form.email, form.password, form.remember_me)
+      
+      if (form.remember_me) {
+        storageUtils.set('rememberedEmail', form.email)
+      } else {
+        storageUtils.remove('rememberedEmail')
+      }
       
       if (window.showToast) {
         window.showToast({
