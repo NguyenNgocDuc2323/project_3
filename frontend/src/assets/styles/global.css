@@ -216,6 +216,7 @@ textarea:focus-visible {
 
 .dropdown-menu {
   border-color: rgba(139, 69, 19, 0.2);
+  min-width: max-content;
 }
 
 .dropdown-item:hover,

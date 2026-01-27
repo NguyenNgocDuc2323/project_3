@@ -117,6 +117,114 @@ CREATE TABLE IF NOT EXISTS Products (
     FOREIGN KEY (CategoryId) REFERENCES Categories(Id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS CartItems (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    ProductId INT NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME(6) NOT NULL,
+    UpdatedAt DATETIME(6) NULL,
+    UNIQUE INDEX IX_CartItems_UserId_ProductId (UserId, ProductId),
+    INDEX IX_CartItems_UserId (UserId),
+    INDEX IX_CartItems_ProductId (ProductId),
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProductId) REFERENCES Products(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Favorites (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    ProductId INT NOT NULL,
+    CreatedAt DATETIME(6) NOT NULL,
+    UNIQUE INDEX IX_Favorites_UserId_ProductId (UserId, ProductId),
+    INDEX IX_Favorites_UserId (UserId),
+    INDEX IX_Favorites_ProductId (ProductId),
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProductId) REFERENCES Products(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Sizes (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    Description VARCHAR(255) NULL,
+    UNIQUE INDEX IX_Sizes_Name (Name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ProductSizes (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    ProductId INT NOT NULL,
+    SizeId INT NOT NULL,
+    UNIQUE INDEX IX_ProductSizes_ProductId_SizeId (ProductId, SizeId),
+    INDEX IX_ProductSizes_ProductId (ProductId),
+    INDEX IX_ProductSizes_SizeId (SizeId),
+    FOREIGN KEY (ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
+    FOREIGN KEY (SizeId) REFERENCES Sizes(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Reviews (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    ProductId INT NOT NULL,
+    Rating INT NOT NULL,
+    Comment VARCHAR(1000) NULL,
+    CreatedAt DATETIME(6) NOT NULL,
+    UNIQUE INDEX IX_Reviews_UserId_ProductId (UserId, ProductId),
+    INDEX IX_Reviews_ProductId (ProductId),
+    INDEX IX_Reviews_UserId (UserId),
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProductId) REFERENCES Products(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Orders (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    Status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    Subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+    Total DECIMAL(10,2) NOT NULL DEFAULT 0,
+    ShippingAddress VARCHAR(255) NULL,
+    PaymentMethod VARCHAR(100) NULL,
+    CreatedAt DATETIME(6) NOT NULL,
+    UpdatedAt DATETIME(6) NULL,
+    INDEX IX_Orders_UserId (UserId),
+    INDEX IX_Orders_Status (Status),
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS OrderItems (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    OrderId INT NOT NULL,
+    ProductId INT NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1,
+    UnitPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
+    TotalPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
+    UNIQUE INDEX IX_OrderItems_OrderId_ProductId (OrderId, ProductId),
+    INDEX IX_OrderItems_OrderId (OrderId),
+    INDEX IX_OrderItems_ProductId (ProductId),
+    FOREIGN KEY (OrderId) REFERENCES Orders(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProductId) REFERENCES Products(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Payments (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    OrderId INT NOT NULL,
+    UserId INT NOT NULL,
+    Amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    Currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+    Status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    Provider VARCHAR(100) NULL,
+    Method VARCHAR(100) NULL,
+    Reference VARCHAR(255) NULL,
+    PaidAt DATETIME(6) NULL,
+    CreatedAt DATETIME(6) NOT NULL,
+    UpdatedAt DATETIME(6) NULL,
+    INDEX IX_Payments_OrderId (OrderId),
+    INDEX IX_Payments_UserId (UserId),
+    INDEX IX_Payments_Status (Status),
+    INDEX IX_Payments_Reference (Reference),
+    FOREIGN KEY (OrderId) REFERENCES Orders(Id) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt) VALUES
 ('Rings', 'Engagement, wedding, and statement rings', NULL, NOW()),
 ('Necklaces', 'Gold and diamond necklaces for every occasion', NULL, NOW()),
@@ -305,4 +413,20 @@ SELECT 'Stories Table: ', COUNT(*) FROM Stories
 UNION ALL
 SELECT 'Categories Table: ', COUNT(*) FROM Categories
 UNION ALL
-SELECT 'Products Table: ', COUNT(*) FROM Products;
+SELECT 'Products Table: ', COUNT(*) FROM Products
+UNION ALL
+SELECT 'CartItems Table: ', COUNT(*) FROM CartItems
+UNION ALL
+SELECT 'Favorites Table: ', COUNT(*) FROM Favorites
+UNION ALL
+SELECT 'Sizes Table: ', COUNT(*) FROM Sizes
+UNION ALL
+SELECT 'ProductSizes Table: ', COUNT(*) FROM ProductSizes
+UNION ALL
+SELECT 'Reviews Table: ', COUNT(*) FROM Reviews
+UNION ALL
+SELECT 'Orders Table: ', COUNT(*) FROM Orders
+UNION ALL
+SELECT 'OrderItems Table: ', COUNT(*) FROM OrderItems
+UNION ALL
+SELECT 'Payments Table: ', COUNT(*) FROM Payments;

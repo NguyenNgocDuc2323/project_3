@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
-import { categoryService } from '../../common/services'
+import { cartService, categoryService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './AppHeader.css'
 
@@ -11,6 +11,7 @@ const AppHeader = () => {
   const location = useLocation()
   const [isScrolled, setIsScrolled] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
+  const [cartCount, setCartCount] = useState(0)
 
   const [categoryTree, setCategoryTree] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
@@ -50,6 +51,38 @@ const AppHeader = () => {
     setUserInfo(getCurrentUser())
   }, [location])
 
+  useEffect(() => {
+    const updateCartCount = async () => {
+      if (!isAuthenticated()) {
+        setCartCount(0)
+        return
+      }
+
+      const user = getCurrentUser()
+      if (!user?.id) {
+        setCartCount(0)
+        return
+      }
+
+      try {
+        const response = await cartService.getCount()
+        setCartCount(response.data?.count || 0)
+      } catch (error) {
+        console.error('Failed to load cart count:', error)
+        setCartCount(0)
+      }
+    }
+
+    updateCartCount()
+    window.addEventListener('cart:updated', updateCartCount)
+    window.addEventListener('storage', updateCartCount)
+
+    return () => {
+      window.removeEventListener('cart:updated', updateCartCount)
+      window.removeEventListener('storage', updateCartCount)
+    }
+  }, [])
+
   const handleLogout = () => {
     logout()
     navigate(ROUTES.LOGIN)
@@ -58,37 +91,42 @@ const AppHeader = () => {
   const renderMenuItem = (item) => {
     if (typeof item === 'string') {
       return (
-        <button type="button" className="mega-link" key={item}>
+        <span className="mega-link" key={item}>
           {item}
-        </button>
+        </span>
       )
     }
 
     return (
-      <button type="button" className="mega-link" key={item.label}>
-        {item.swatch && <span className="mega-swatch" style={{ background: item.swatch }}></span>}
+      <Link className="mega-link" key={item.label} to={item.to}>
         {item.label}
-      </button>
+      </Link>
     )
   }
 
   const menuItems = categoryTree.map((category) => {
     const hasChildren = Array.isArray(category.children) && category.children.length > 0
-    const sections = hasChildren
+    const childItems = hasChildren
       ? category.children.map((child) => ({
-          title: child.name,
-          items: (child.products || []).map((product) => product.name)
+          label: child.name,
+          to: `${ROUTES.SHOP}?category=${child.id}`
         }))
       : [
           {
-            title: category.name,
-            items: (category.products || []).map((product) => product.name)
+            label: category.name,
+            to: `${ROUTES.SHOP}?category=${category.id}`
           }
         ]
 
     return {
       label: category.name,
-      sections
+      to: ROUTES.SHOP,
+      sections: [
+        {
+          title: 'Categories',
+          items: childItems
+        }
+      ]
     }
   })
 
@@ -106,9 +144,12 @@ const AppHeader = () => {
 
         <Navbar.Collapse id="yash-navbar" className="yash-collapse">
           <Nav className="yash-nav">
+            <Nav.Link as={Link} to={ROUTES.SHOP} className="yash-nav-link">
+              Shop
+            </Nav.Link>
             {menuItems.map((item) => (
               <div key={item.label} className="yash-nav-item">
-                <Nav.Link as={Link} to={ROUTES.DASHBOARD} className="yash-nav-link">
+                <Nav.Link as={Link} to={item.to} className="yash-nav-link">
                   {item.label}
                 </Nav.Link>
                 <div className="yash-mega">
@@ -185,7 +226,7 @@ const AppHeader = () => {
             )}
             <button type="button" className="yash-icon-btn yash-bag" aria-label="Bag">
               <i className="bi bi-bag"></i>
-              <span className="yash-bag-count">0</span>
+              <span className="yash-bag-count">{cartCount}</span>
             </button>
           </div>
         </Navbar.Collapse>

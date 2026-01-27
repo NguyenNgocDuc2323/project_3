@@ -33,5 +33,15 @@ namespace Backend.Models
         public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 
         public ICollection<EmailVerificationToken> EmailVerificationTokens { get; set; } = new List<EmailVerificationToken>();
+
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

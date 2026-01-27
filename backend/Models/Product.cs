@@ -67,6 +67,10 @@ namespace Backend.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+        public ICollection<ProductSize> ProductSizes { get; set; } = new List<ProductSize>();
+
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
 

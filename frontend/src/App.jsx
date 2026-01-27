@@ -16,6 +16,7 @@ import ForgotPassword from './views/ForgotPassword'
 import ResetPassword from './views/ResetPassword'
 import About from './views/About'
 import Dashboard from './views/user/Dashboard'
+import Shop from './views/user/Shop'
 import AdminDashboard from './views/admin/Dashboard'
 import StoriesList from './views/admin/stories/List'
 import StoriesCreate from './views/admin/stories/Create'
@@ -97,6 +98,12 @@ function App() {
         <Route path={ROUTES.DASHBOARD} element={
           <DefaultLayout>
             <Dashboard />
+          </DefaultLayout>
+        } />
+
+        <Route path={ROUTES.SHOP} element={
+          <DefaultLayout>
+            <Shop />
           </DefaultLayout>
         } />
         

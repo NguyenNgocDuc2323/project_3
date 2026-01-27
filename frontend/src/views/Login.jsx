@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import RadioCheckbox from '../components/RadioCheckbox'
-import { authService } from '../common/services'
+import { authService, cartService, favoriteService } from '../common/services'
 import { ROUTES } from '../common/constants'
 import { isAdmin, storageUtils } from '../common/utils'
+import {
+  clearPostLoginAction,
+  clearPostLoginRedirect,
+  getPostLoginAction,
+  getPostLoginRedirect
+} from '../common/shopActions'
 import './Login.css'
 
 const Login = () => {
@@ -74,8 +80,32 @@ const Login = () => {
           life: 3000
         })
       }
-      
-      // Redirect admin đến /admin, user thường đến /dashboard
+
+      const user = response.user || response.User || storageUtils.get('user')
+      const postLoginAction = getPostLoginAction()
+      if (user?.id && postLoginAction?.type && postLoginAction?.productId) {
+        try {
+          if (postLoginAction.type === 'favorite') {
+            await favoriteService.add(postLoginAction.productId)
+          }
+          if (postLoginAction.type === 'cart') {
+            await cartService.add(postLoginAction.productId, 1)
+            window.dispatchEvent(new Event('cart:updated'))
+          }
+        } finally {
+          clearPostLoginAction()
+        }
+      } else {
+        clearPostLoginAction()
+      }
+
+      const redirectTo = getPostLoginRedirect()
+      if (redirectTo) {
+        clearPostLoginRedirect()
+        navigate(redirectTo)
+        return
+      }
+
       if (isAdmin()) {
         navigate(ROUTES.ADMIN)
       } else {

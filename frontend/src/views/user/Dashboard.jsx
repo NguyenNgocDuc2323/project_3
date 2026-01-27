@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, Row, Col, Container, Badge, Button } from 'react-bootstrap'
 import { productService } from '../../common/services'
 import ChatBox from '../../components/ChatBox/ChatBox'
+import ProductCard from '../../components/common/ProductCard'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -95,16 +96,6 @@ const Dashboard = () => {
     }
   }
 
-  const formatNumber = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num?.toString() || '0'
-  }
-
-  const getPlaceholderImage = () => {
-    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect width='200' height='300' fill='%23f6efe4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%238a6d3b'%3E%F0%9F%92%8E Jewelry%3C/text%3E%3C/svg%3E"
-  }
-
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
     return new Intl.NumberFormat('en-IN', {
@@ -113,65 +104,6 @@ const Dashboard = () => {
       maximumFractionDigits: 0
     }).format(amount)
   }
-
-  const ProductCard = ({ product }) => (
-    <Col xs={6} sm={4} md={3} lg={3} className="mb-4">
-      <Card className="product-card h-100 shadow-sm">
-        <div className="product-image-container">
-          <Card.Img 
-            variant="top" 
-            src={product.imageUrl || getPlaceholderImage()}
-            className="product-image"
-            onError={(e) => {
-              e.target.src = getPlaceholderImage()
-            }}
-          />
-          {(product.isFeatured || product.IsFeatured) && (
-            <Badge bg="warning" className="position-absolute top-0 end-0 m-2">
-              <i className="bi bi-star-fill me-1"></i>Featured
-            </Badge>
-          )}
-          {product.category && (
-            <Badge bg="secondary" className="position-absolute top-0 start-0 m-2">
-              {product.category.name || 'Uncategorized'}
-            </Badge>
-          )}
-        </div>
-        <Card.Body className="d-flex flex-column p-3">
-          <Card.Title className="product-title mb-2" title={product.name}>
-            {product.name?.length > 30 
-              ? `${product.name.substring(0, 30)}...` 
-              : product.name}
-          </Card.Title>
-          <Card.Text className="product-author text-muted small mb-2">
-            <i className="bi bi-gem me-1"></i>
-            {product.brand || 'Yash Signature'} • {product.productType || 'Jewelry'}
-          </Card.Text>
-          <div className="product-meta text-muted small mb-2">
-            <span>{product.goldCarat || '18K'} Gold</span>
-            <span className="meta-divider">•</span>
-            <span>{product.diamondCarat || 0} ct</span>
-          </div>
-          <div className="product-price fw-bold text-dark mb-2">
-            {formatCurrency(product.mrp)}
-          </div>
-          <div className="product-stats d-flex justify-content-between align-items-center mb-2 small text-muted">
-            <span>
-              <i className="bi bi-eye me-1"></i>
-              {formatNumber(product.views || 0)}
-            </span>
-            <span>
-              <i className="bi bi-heart me-1"></i>
-              {formatNumber(product.likes || 0)}
-            </span>
-          </div>
-          <Button variant="primary" size="sm" className="mt-auto">
-            <i className="bi bi-eye me-1"></i>View Details
-          </Button>
-        </Card.Body>
-      </Card>
-    </Col>
-  )
 
   return (
     <Container fluid className="dashboard-page py-4">
@@ -298,7 +230,9 @@ const Dashboard = () => {
           ) : (
             <Row>
               {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <Col key={product.id} xs={6} sm={4} md={3} lg={3} className="mb-4">
+                  <ProductCard product={product} showStats={true} />
+                </Col>
               ))}
             </Row>
           )}
@@ -318,7 +252,9 @@ const Dashboard = () => {
           </div>
           <Row>
             {popularProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <Col key={product.id} xs={6} sm={4} md={3} lg={3} className="mb-4">
+                <ProductCard product={product} showStats={true} />
+              </Col>
             ))}
           </Row>
         </section>
@@ -351,7 +287,9 @@ const Dashboard = () => {
         ) : (
           <Row>
             {allProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <Col key={product.id} xs={6} sm={4} md={3} lg={3} className="mb-4">
+                <ProductCard product={product} showStats={true} />
+              </Col>
             ))}
           </Row>
         )}

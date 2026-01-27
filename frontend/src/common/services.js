@@ -184,3 +184,42 @@ export const chatService = {
     return apiClient.post("/chat", { message });
   },
 };
+
+export const cartService = {
+  getAll() {
+    return apiClient.get("/cart");
+  },
+  getCount() {
+    return apiClient.get("/cart/count");
+  },
+  contains(productId) {
+    return apiClient.get(`/cart/contains/${productId}`);
+  },
+  add(productId, quantity = 1) {
+    return apiClient.post("/cart/add", { productId, quantity });
+  },
+  update(productId, quantity) {
+    return apiClient.put(`/cart/${productId}`, { quantity });
+  },
+  remove(productId) {
+    return apiClient.delete(`/cart/${productId}`);
+  },
+};
+
+export const favoriteService = {
+  getAll() {
+    return apiClient.get("/favorites");
+  },
+  contains(productId) {
+    return apiClient.get(`/favorites/contains/${productId}`);
+  },
+  getCount(productId) {
+    return apiClient.get(`/favorites/count/${productId}`);
+  },
+  add(productId) {
+    return apiClient.post("/favorites", { productId });
+  },
+  remove(productId) {
+    return apiClient.delete(`/favorites/${productId}`);
+  },
+};
