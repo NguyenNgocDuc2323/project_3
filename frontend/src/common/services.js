@@ -133,6 +133,9 @@ export const categoryService = {
   getAll() {
     return apiClient.get("/categories");
   },
+  getTree() {
+    return apiClient.get("/categories/tree");
+  },
 
   create(data) {
     return apiClient.post("/categories", data);

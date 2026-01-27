@@ -98,7 +98,13 @@ namespace Backend.Data
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.Name);
+
+                entity.HasOne(e => e.ParentCategory)
+                      .WithMany(e => e.Children)
+                      .HasForeignKey(e => e.ParentCategoryId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
+
 
             modelBuilder.Entity<Product>(entity =>
             {
@@ -122,7 +128,6 @@ namespace Backend.Data
                 entity.HasIndex(e => e.IsFeatured);
                 entity.HasIndex(e => e.StyleCode);
                 entity.HasIndex(e => e.CategoryId);
-
                 entity.HasOne(e => e.Category)
                       .WithMany(c => c.Products)
                       .HasForeignKey(e => e.CategoryId)

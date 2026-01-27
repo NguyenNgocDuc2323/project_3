@@ -12,12 +12,7 @@ const AppHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
 
-  const navItems = [
-    { to: ROUTES.DASHBOARD, label: 'Shop', icon: 'bi bi-gem', hasCategories: true },
-    { to: ROUTES.ABOUT, label: 'About', icon: 'bi bi-info-circle' }
-  ]
-
-  const [productCategories, setProductCategories] = useState([])
+  const [categoryTree, setCategoryTree] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
   const handleScroll = () => {
@@ -38,9 +33,9 @@ const AppHeader = () => {
     const loadCategories = async () => {
       try {
         setIsLoadingCategories(true)
-        const response = await categoryService.getAll()
+        const response = await categoryService.getTree()
         const categories = response.data || []
-        setProductCategories(categories)
+        setCategoryTree(categories)
       } catch (error) {
         console.error('Failed to load categories:', error)
       } finally {
@@ -60,91 +55,99 @@ const AppHeader = () => {
     navigate(ROUTES.LOGIN)
   }
 
+  const renderMenuItem = (item) => {
+    if (typeof item === 'string') {
+      return (
+        <button type="button" className="mega-link" key={item}>
+          {item}
+        </button>
+      )
+    }
+
+    return (
+      <button type="button" className="mega-link" key={item.label}>
+        {item.swatch && <span className="mega-swatch" style={{ background: item.swatch }}></span>}
+        {item.label}
+      </button>
+    )
+  }
+
+  const menuItems = categoryTree.map((category) => {
+    const hasChildren = Array.isArray(category.children) && category.children.length > 0
+    const sections = hasChildren
+      ? category.children.map((child) => ({
+          title: child.name,
+          items: (child.products || []).map((product) => product.name)
+        }))
+      : [
+          {
+            title: category.name,
+            items: (category.products || []).map((product) => product.name)
+          }
+        ]
+
+    return {
+      label: category.name,
+      sections
+    }
+  })
+
   return (
-    <Navbar 
-      expand="lg" 
-      className={`custom-navbar p-0 fixed-top ${isScrolled ? 'navbar-scrolled' : ''}`}
+    <Navbar
+      expand="lg"
+      className={`yash-header ${isScrolled ? 'navbar-scrolled' : ''}`}
       variant="light"
     >
-      <Container>
-        <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="d-flex align-items-center">
-          <span className="me-2" style={{ fontSize: '1.1rem' }}>💎</span>
-          <div>
-            <div className="fw-bold" style={{ fontSize: '1rem', lineHeight: '1.2' }}>Yash Gems & Jewelleries</div>
-          </div>
+      <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="yash-logo">
+          Yash Gems & Jewelleries
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Toggle aria-controls="yash-navbar" />
 
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            {navItems.map(item => (
-              item.hasCategories ? (
-                <div key={item.to} className="nav-category-trigger">
-                  <Nav.Link
-                    as={Link}
-                    to={item.to}
-                    active={location.pathname === item.to}
-                  >
-                    <i className={`${item.icon} me-1`}></i>
-                    {item.label}
-                  </Nav.Link>
-                  <div className="nav-category-menu">
-                    <div className="menu-inner">
-                      <h6>Categories</h6>
-                      <div className="menu-grid">
-                        {isLoadingCategories ? (
-                          <span className="category-item">Loading...</span>
-                        ) : productCategories.length === 0 ? (
-                          <span className="category-item">No categories</span>
-                        ) : (
-                          productCategories.map((category) => (
-                            <button
-                              key={category.id || category.name}
-                              type="button"
-                              className="category-item"
-                            >
-                              {category.name || category.title}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <Nav.Link
-                  key={item.to}
-                  as={Link}
-                  to={item.to}
-                  active={location.pathname === item.to}
-                >
-                  <i className={`${item.icon} me-1`}></i>
+        <Navbar.Collapse id="yash-navbar" className="yash-collapse">
+          <Nav className="yash-nav">
+            {menuItems.map((item) => (
+              <div key={item.label} className="yash-nav-item">
+                <Nav.Link as={Link} to={ROUTES.DASHBOARD} className="yash-nav-link">
                   {item.label}
                 </Nav.Link>
-              )
+                <div className="yash-mega">
+                  <div className="yash-mega-inner">
+                    <div className="yash-mega-grid">
+                      {item.sections.map((section) => (
+                        <div key={section.title} className="yash-mega-col">
+                          <h6>{section.title}</h6>
+                          <div className="yash-mega-list">
+                            {section.items.map((menuItem) => renderMenuItem(menuItem))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {isLoadingCategories && (
+                      <div className="yash-mega-note">Loading categories...</div>
+                    )}
+                  </div>
+                </div>
+              </div>
             ))}
+            {!isLoadingCategories && menuItems.length === 0 && (
+              <div className="yash-mega-note">No categories yet</div>
+            )}
             {isAdmin() && (
-              <Nav.Link as={Link} to={ROUTES.ADMIN}>
-                <i className="bi bi-gear me-1"></i>
+              <Nav.Link as={Link} to={ROUTES.ADMIN} className="yash-nav-link">
                 Admin
               </Nav.Link>
             )}
           </Nav>
 
-          <Nav className="nav-actions">
-            <button
-              type="button"
-              className="nav-icon-btn"
-              aria-label="Search"
-              onClick={() => navigate(ROUTES.DASHBOARD)}
-            >
-              <i className="bi bi-search"></i>
+          <div className="yash-actions">
+            <button type="button" className="yash-icon-btn" aria-label="Location">
+              <i className="bi bi-geo-alt"></i>
             </button>
             {!isAuthenticated() ? (
               <button
                 type="button"
-                className="nav-icon-btn"
+                className="yash-icon-btn"
                 aria-label="Sign in"
                 onClick={() => navigate(ROUTES.LOGIN)}
               >
@@ -180,17 +183,12 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
-            <button
-              type="button"
-              className="nav-icon-btn"
-              aria-label="Cart"
-            >
+            <button type="button" className="yash-icon-btn yash-bag" aria-label="Bag">
               <i className="bi bi-bag"></i>
-              <span className="cart-count">0</span>
+              <span className="yash-bag-count">0</span>
             </button>
-          </Nav>
+          </div>
         </Navbar.Collapse>
-      </Container>
     </Navbar>
   )
 }

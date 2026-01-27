@@ -3,15 +3,9 @@
   position: relative;
   margin-bottom: 0;
   overflow: hidden;
-  padding-top: 99px;
   height: 100vh;
 }
 
-@media (max-width: 991px) {
-  .hero-banner {
-    padding-top: 117px;
-  }
-}
 
 .hero-banner .carousel {
   height: 100%;
@@ -24,16 +18,15 @@
 }
 
 .hero-banner .carousel-item {
-  min-height: calc(100vh - 99px);
-  height: calc(100vh - 99px);
+  min-height: 100vh;
+  height: 100vh;
 }
 
 .banner-slide {
   position: relative;
   width: 100%;
   overflow: hidden;
-  min-height: calc(100vh - 115px);
-  height: calc(100vh - 115px);
+  height: 100vh;
 }
 
 .banner-cta {
@@ -52,13 +45,12 @@
   }
   
   .hero-banner .carousel-item {
-    min-height: calc(100vh - 99px);
-    height: calc(100vh - 99px);
+    min-height: 100vh;
+    height: 100vh;
   }
   
   .banner-slide {
-    min-height: calc(100vh - 44px);
-    height: calc(100vh - 44px);
+    height: 100vh;
   }
 }
 

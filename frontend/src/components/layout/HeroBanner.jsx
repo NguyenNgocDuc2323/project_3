@@ -90,20 +90,13 @@ const HeroBanner = () => {
               style={{
                 backgroundImage: `url(${banner.imageUrl})`,
                 backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
                 backgroundPosition: 'center',
                 minHeight: 'calc(100vh - 115px)',
                 height: 'calc(100vh - 115px)'
               }}
             >
-              <div className="banner-cta">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={() => handleBannerClick(banner)}
-                >
-                  {banner.buttonText || 'Go to Shop'}
-                  <i className="bi bi-arrow-right ms-2"></i>
-                </button>
-              </div>
             </div>
           </Carousel.Item>
         ))}
