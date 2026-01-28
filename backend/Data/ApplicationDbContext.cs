@@ -25,6 +25,9 @@ namespace Backend.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Material> Materials { get; set; }
+        public DbSet<MetalColor> MetalColors { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -130,6 +133,7 @@ namespace Backend.Data
                 entity.Property(e => e.StoneCarat).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.MakingCharges).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.MRP).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.OriginalPrice).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -290,6 +294,47 @@ namespace Backend.Data
                 entity.HasOne(e => e.User)
                       .WithMany(u => u.Payments)
                       .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Material>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            modelBuilder.Entity<MetalColor>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.HexCode).HasMaxLength(20);
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Material)
+                .WithMany(m => m.Products)
+                .HasForeignKey(p => p.MaterialId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.MetalColor)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.MetalColorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ProductImage>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.SortOrder).HasDefaultValue(0);
+                entity.HasIndex(e => e.ProductId);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.ProductImages)
+                      .HasForeignKey(e => e.ProductId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }

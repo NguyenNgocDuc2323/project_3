@@ -1,40 +1,34 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Card, Col, Container, Form, Row, Button } from 'react-bootstrap'
+import { Col, Container, Row } from 'react-bootstrap'
 import { useSearchParams } from 'react-router-dom'
-import { categoryService, productService } from '../../common/services'
+import { productService } from '../../common/services'
 import ProductCard from '../../components/common/ProductCard'
 import './Shop.css'
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
-
   const [searchTerm, setSearchTerm] = useState('')
-  const [minPrice, setMinPrice] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [priceMin, setPriceMin] = useState(0)
+  const [priceMax, setPriceMax] = useState(0)
   const [selectedType, setSelectedType] = useState('')
-  const [sortBy, setSortBy] = useState('newest')
-
-  useEffect(() => {
-    const categoryId = searchParams.get('category')
-    if (categoryId) {
-      setSelectedCategory(categoryId)
-    }
-  }, [searchParams])
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [sortBy, setSortBy] = useState('popular')
+  const [showFilter, setShowFilter] = useState(false)
+  const [showSort, setShowSort] = useState(false)
+  const [openSections, setOpenSections] = useState({
+    price: true,
+    type: false,
+    category: false
+  })
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true)
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          productService.getAll(),
-          categoryService.getAll()
-        ])
-        setProducts(productsResponse.data || [])
-        setCategories(categoriesResponse.data || [])
+        const response = await productService.getAll()
+        setProducts(response.data || [])
       } catch (error) {
         console.error('Failed to load shop data:', error)
       } finally {
@@ -45,210 +39,428 @@ const Shop = () => {
     loadData()
   }, [])
 
-  const productTypes = useMemo(() => {
-    const types = products
-      .map((product) => product.productType)
-      .filter(Boolean)
-    return Array.from(new Set(types)).sort()
+  const priceBounds = useMemo(() => {
+    const prices = products.map((product) => Number(product.mrp || 0)).filter((value) => value > 0)
+    if (prices.length === 0) {
+      return { min: 0, max: 0 }
+    }
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices)
+    }
+  }, [products])
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get('q') || '')
+    setSelectedType(searchParams.get('type') || '')
+    setSelectedCategory(searchParams.get('category') || '')
+    setSortBy(searchParams.get('sort') || 'popular')
+
+    const minParam = searchParams.get('min')
+    const maxParam = searchParams.get('max')
+    const nextMin = minParam !== null ? Number(minParam) : priceBounds.min
+    const nextMax = maxParam !== null ? Number(maxParam) : priceBounds.max
+    if (!Number.isNaN(nextMin)) {
+      setPriceMin(Math.min(nextMin, nextMax || nextMin))
+    }
+    if (!Number.isNaN(nextMax)) {
+      setPriceMax(Math.max(nextMax, nextMin || nextMax))
+    }
+  }, [searchParams, priceBounds.min, priceBounds.max])
+
+  const updateParams = (updates) => {
+    const params = new URLSearchParams(searchParams)
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        params.delete(key)
+      } else {
+        params.set(key, value)
+      }
+    })
+    setSearchParams(params, { replace: true })
+  }
+
+  const typeOptions = useMemo(() => {
+    const types = new Set()
+    products.forEach((product) => {
+      if (product.productType) {
+        types.add(product.productType)
+      }
+    })
+    return Array.from(types).sort((a, b) => a.localeCompare(b))
+  }, [products])
+
+  const categoryOptions = useMemo(() => {
+    const map = new Map()
+    products.forEach((product) => {
+      if (product.categoryId) {
+        const label = product.category?.name || `Category ${product.categoryId}`
+        map.set(product.categoryId.toString(), label)
+      }
+    })
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   }, [products])
 
   const filteredProducts = useMemo(() => {
-    let result = [...products]
+    const searchValue = searchTerm.trim().toLowerCase()
+    const minValue = Number(priceMin)
+    const maxValue = Number(priceMax)
 
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase()
-      result = result.filter((product) => product.name?.toLowerCase().includes(term))
-    }
+    const list = products.filter((product) => {
+      const name = (product.name || '').toLowerCase()
+      const type = (product.productType || '').toLowerCase()
+      const price = Number(product.mrp || 0)
+      const categoryMatch = selectedCategory
+        ? product.categoryId?.toString() === selectedCategory
+        : true
+      const searchMatch = searchValue ? name.includes(searchValue) : true
+      const typeMatch = selectedType ? type === selectedType.toLowerCase() : true
+      const minMatch = Number.isFinite(minValue) ? price >= minValue : true
+      const maxMatch = Number.isFinite(maxValue) && maxValue > 0 ? price <= maxValue : true
 
-    if (selectedCategory) {
-      result = result.filter((product) => {
-        const categoryId = product.category?.id || product.categoryId
-        return String(categoryId) === String(selectedCategory)
-      })
-    }
+      return categoryMatch && searchMatch && typeMatch && minMatch && maxMatch
+    })
 
-    if (selectedType) {
-      result = result.filter((product) => product.productType === selectedType)
-    }
-
-    const min = Number(minPrice)
-    const max = Number(maxPrice)
-    if (!Number.isNaN(min) && minPrice !== '') {
-      result = result.filter((product) => Number(product.mrp || 0) >= min)
-    }
-    if (!Number.isNaN(max) && maxPrice !== '') {
-      result = result.filter((product) => Number(product.mrp || 0) <= max)
-    }
-
+    const sorted = [...list]
     switch (sortBy) {
       case 'price-asc':
-        result.sort((a, b) => Number(a.mrp || 0) - Number(b.mrp || 0))
+        sorted.sort((a, b) => Number(a.mrp || 0) - Number(b.mrp || 0))
         break
       case 'price-desc':
-        result.sort((a, b) => Number(b.mrp || 0) - Number(a.mrp || 0))
+        sorted.sort((a, b) => Number(b.mrp || 0) - Number(a.mrp || 0))
         break
-      case 'views':
-        result.sort((a, b) => (b.views || 0) - (a.views || 0))
-        break
-      case 'name':
-        result.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
         break
       default:
-        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        sorted.sort((a, b) => (b.views || 0) - (a.views || 0) || (b.likes || 0) - (a.likes || 0))
         break
     }
 
-    return result
-  }, [products, searchTerm, selectedCategory, selectedType, minPrice, maxPrice, sortBy])
+    return sorted
+  }, [products, searchTerm, priceMin, priceMax, selectedType, selectedCategory, sortBy])
 
-  const handleCategoryChange = (value) => {
-    setSelectedCategory(value)
-    if (value) {
-      setSearchParams({ category: value })
-    } else {
-      setSearchParams({})
-    }
+  const handleResetFilters = () => {
+    setSearchTerm('')
+    setPriceMin(priceBounds.min)
+    setPriceMax(priceBounds.max)
+    setSelectedType('')
+    setSelectedCategory('')
+    setSortBy('popular')
+    updateParams({
+      q: '',
+      min: '',
+      max: '',
+      type: '',
+      category: '',
+      sort: ''
+    })
   }
 
-  const clearFilters = () => {
-    setSearchTerm('')
-    setMinPrice('')
-    setMaxPrice('')
-    setSelectedCategory('')
-    setSelectedType('')
-    setSortBy('newest')
-    setSearchParams({})
+  const formatCurrency = (value) => {
+    const amount = Number(value || 0)
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
+
+  const handleToggleSection = (key) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const getPercent = (value) => {
+    if (!priceBounds.max || priceBounds.max === priceBounds.min) return 0
+    return ((value - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100
   }
 
   return (
-    <Container className="shop-page py-4">
-      <div className="shop-hero">
-        <div className="shop-breadcrumb">Home / Shop</div>
-        <h1>Shop</h1>
-        <p className="shop-description">
-          Discover our curated selection of diamond and gold jewellery. Use the filters
-          to find the perfect piece.
-        </p>
+    <Container className="shop-list-page py-4">
+      <div className="shop-list-title">
+        <h1>Nhẫn cầu hôn</h1>
       </div>
 
-      <div className="shop-layout">
-        <aside className="shop-sidebar">
-          <Card className="shop-filter-card">
-            <Card.Body>
-              <h5 className="mb-3">Filters</h5>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Search by name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Search products"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                />
-              </Form.Group>
-
-              <div className="filter-section">
-                <h6>Category</h6>
-                <Form.Select
-                  value={selectedCategory}
-                  onChange={(event) => handleCategoryChange(event.target.value)}
-                >
-                  <option value="">All categories</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Form.Select>
-              </div>
-
-              <div className="filter-section">
-                <h6>Product type</h6>
-                <Form.Select
-                  value={selectedType}
-                  onChange={(event) => setSelectedType(event.target.value)}
-                >
-                  <option value="">All types</option>
-                  {productTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </Form.Select>
-              </div>
-
-              <div className="filter-section">
-                <h6>Price range</h6>
-                <Row className="g-2">
-                  <Col>
-                    <Form.Control
-                      type="number"
-                      min="0"
-                      placeholder="Min"
-                      value={minPrice}
-                      onChange={(event) => setMinPrice(event.target.value)}
-                    />
-                  </Col>
-                  <Col>
-                    <Form.Control
-                      type="number"
-                      min="0"
-                      placeholder="Max"
-                      value={maxPrice}
-                      onChange={(event) => setMaxPrice(event.target.value)}
-                    />
-                  </Col>
-                </Row>
-              </div>
-
-              <Button variant="outline-dark" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            </Card.Body>
-          </Card>
-        </aside>
-
-        <section className="shop-content">
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : (
+        <>
           <div className="shop-toolbar">
-            <div className="shop-count text-muted">
-              {loading ? 'Loading products...' : `Showing ${filteredProducts.length} products`}
+            <div className="toolbar-left">
+              <button
+                type="button"
+                className={`toolbar-button ${showFilter ? 'active' : ''}`}
+                onClick={() => {
+                  setShowFilter((prev) => !prev)
+                  setShowSort(false)
+                }}
+              >
+                <i className="bi bi-sliders"></i>
+                Bộ lọc
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${showSort ? 'active' : ''}`}
+                onClick={() => {
+                  setShowSort((prev) => !prev)
+                  setShowFilter(false)
+                }}
+              >
+                <i className="bi bi-arrow-down-up"></i>
+                Sắp xếp
+              </button>
             </div>
-            <Form.Select
-              className="shop-sort"
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-            >
-              <option value="newest">Newest</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="views">Most Viewed</option>
-              <option value="name">Name A-Z</option>
-            </Form.Select>
+            <div className="toolbar-right">
+              <span className="results-count">
+                {filteredProducts.length} sản phẩm
+              </span>
+            </div>
           </div>
 
-          {loading ? (
-            <div className="text-center py-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+          {showFilter && (
+            <div className="shop-dropdown">
+              <div className="shop-dropdown-panel">
+                <div className="dropdown-header">
+                  <span>Bộ lọc</span>
+                  <button type="button" onClick={() => setShowFilter(false)}>
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+
+                <div className="filter-block">
+                  <label htmlFor="shop-search">Tìm kiếm theo tên</label>
+                  <input
+                    id="shop-search"
+                    type="text"
+                    value={searchTerm}
+                    placeholder="Nhập tên sản phẩm"
+                    onChange={(event) => {
+                      const value = event.target.value
+                      setSearchTerm(value)
+                      updateParams({ q: value })
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="filter-section-toggle"
+                  onClick={() => handleToggleSection('price')}
+                >
+                  Theo giá
+                  <span>{openSections.price ? '−' : '+'}</span>
+                </button>
+                {openSections.price && (
+                  <div className="filter-section">
+                    <div className="price-values">
+                      <span>{formatCurrency(priceMin)}</span>
+                      <span>{formatCurrency(priceMax)}</span>
+                    </div>
+                    <div className="price-slider">
+                      <div className="range-track" />
+                      <div
+                        className="range-fill"
+                        style={{
+                          left: `${getPercent(priceMin)}%`,
+                          width: `${getPercent(priceMax) - getPercent(priceMin)}%`
+                        }}
+                      />
+                      <input
+                        type="range"
+                        min={priceBounds.min}
+                        max={priceBounds.max}
+                        step={1000}
+                        value={priceMin}
+                        className="range-input"
+                        onChange={(event) => {
+                          const value = Number(event.target.value)
+                          const next = Math.min(value, priceMax)
+                          setPriceMin(next)
+                          updateParams({ min: next })
+                        }}
+                      />
+                      <input
+                        type="range"
+                        min={priceBounds.min}
+                        max={priceBounds.max}
+                        step={1000}
+                        value={priceMax}
+                        className="range-input"
+                        onChange={(event) => {
+                          const value = Number(event.target.value)
+                          const next = Math.max(value, priceMin)
+                          setPriceMax(next)
+                          updateParams({ max: next })
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="filter-section-toggle"
+                  onClick={() => handleToggleSection('type')}
+                >
+                  Loại sản phẩm
+                  <span>{openSections.type ? '−' : '+'}</span>
+                </button>
+                {openSections.type && (
+                  <div className="filter-section">
+                    <div className="filter-options">
+                      <button
+                        type="button"
+                        className={`filter-option ${selectedType === '' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedType('')
+                          updateParams({ type: '' })
+                        }}
+                      >
+                        Tất cả
+                      </button>
+                      {typeOptions.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          className={`filter-option ${selectedType === type ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedType(type)
+                            updateParams({ type })
+                          }}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="filter-section-toggle"
+                  onClick={() => handleToggleSection('category')}
+                >
+                  Danh mục
+                  <span>{openSections.category ? '−' : '+'}</span>
+                </button>
+                {openSections.category && (
+                  <div className="filter-section">
+                    <div className="filter-options">
+                      <button
+                        type="button"
+                        className={`filter-option ${selectedCategory === '' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory('')
+                          updateParams({ category: '' })
+                        }}
+                      >
+                        Tất cả
+                      </button>
+                      {categoryOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          className={`filter-option ${selectedCategory === option.id ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedCategory(option.id)
+                            updateParams({ category: option.id })
+                          }}
+                        >
+                          {option.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="filter-actions">
+                  <button type="button" className="filter-reset" onClick={handleResetFilters}>
+                    Reset
+                  </button>
+                  <button type="button" className="filter-close" onClick={() => setShowFilter(false)}>
+                    Xem sản phẩm
+                  </button>
+                </div>
               </div>
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <Card className="text-center py-5">
-              <Card.Body>
-                <p className="text-muted mb-0">No products match your filters.</p>
-              </Card.Body>
-            </Card>
-          ) : (
-            <Row className="g-4">
-              {filteredProducts.map((product) => (
-                <Col key={product.id} xs={6} md={4} lg={3}>
-                  <ProductCard product={product} />
-                </Col>
-              ))}
-            </Row>
           )}
-        </section>
-      </div>
+
+          {showSort && (
+            <div className="shop-dropdown">
+              <div className="shop-dropdown-panel">
+                <div className="dropdown-header">
+                  <span>Đang lọc theo</span>
+                  <button type="button" onClick={() => setShowSort(false)}>
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+                <div className="sort-options">
+                  <button
+                    type="button"
+                    className={`sort-option ${sortBy === 'price-asc' ? 'active' : ''}`}
+                    onClick={() => {
+                      setSortBy('price-asc')
+                      updateParams({ sort: 'price-asc' })
+                    }}
+                  >
+                    Giá thấp đến cao
+                  </button>
+                  <button
+                    type="button"
+                    className={`sort-option ${sortBy === 'price-desc' ? 'active' : ''}`}
+                    onClick={() => {
+                      setSortBy('price-desc')
+                      updateParams({ sort: 'price-desc' })
+                    }}
+                  >
+                    Giá cao đến thấp
+                  </button>
+                  <button
+                    type="button"
+                    className={`sort-option ${sortBy === 'newest' ? 'active' : ''}`}
+                    onClick={() => {
+                      setSortBy('newest')
+                      updateParams({ sort: 'newest' })
+                    }}
+                  >
+                    Mới nhất
+                  </button>
+                  <button
+                    type="button"
+                    className={`sort-option ${sortBy === 'popular' ? 'active' : ''}`}
+                    onClick={() => {
+                      setSortBy('popular')
+                      updateParams({ sort: 'popular' })
+                    }}
+                  >
+                    Phổ biến
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <section className="shop-results">
+            {filteredProducts.length === 0 ? (
+              <div className="shop-empty">Không tìm thấy sản phẩm phù hợp.</div>
+            ) : (
+              <Row className="g-4">
+                {filteredProducts.map((product) => (
+                  <Col key={product.id} xs={6} md={4} lg={3}>
+                    <ProductCard product={product} />
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </section>
+        </>
+      )}
     </Container>
   )
 }

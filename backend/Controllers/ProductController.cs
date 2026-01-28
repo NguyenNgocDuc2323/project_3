@@ -65,6 +65,11 @@ namespace Backend.Controllers
         {
             return _context.Products
                 .Include(p => p.Category)
+                .Include(p => p.Material)
+                .Include(p => p.MetalColor)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductSizes)
+                .ThenInclude(ps => ps.Size)
                 .AsNoTracking()
                 .Select(p => new ProductWithFavoriteCountDto
                 {
@@ -80,9 +85,18 @@ namespace Backend.Controllers
                     DiamondQuality = p.DiamondQuality,
                     StoneType = p.StoneType,
                     StoneCarat = p.StoneCarat,
+                    MaterialName = p.Material != null ? p.Material.Name : null,
+                    MetalColorName = p.MetalColor != null ? p.MetalColor.Name : null,
+                    MetalColorHex = p.MetalColor != null ? p.MetalColor.HexCode : null,
+                    Sizes = p.ProductSizes
+                        .Select(ps => ps.Size != null ? ps.Size.Name : null)
+                        .Where(name => name != null)
+                        .Select(name => name!)
+                        .ToList(),
                     Quantity = p.Quantity,
                     MakingCharges = p.MakingCharges,
                     MRP = p.MRP,
+                    OriginalPrice = p.OriginalPrice,
                     Description = p.Description,
                     ImageUrl = p.ImageUrl,
                     Views = p.Views,
@@ -92,7 +106,11 @@ namespace Backend.Controllers
                     IsFeatured = p.IsFeatured,
                     CreatedAt = p.CreatedAt,
                     UpdatedAt = p.UpdatedAt,
-                    FavoriteCount = _context.Favorites.Count(f => f.ProductId == p.Id)
+                    FavoriteCount = _context.Favorites.Count(f => f.ProductId == p.Id),
+                    Images = p.ProductImages
+                        .OrderBy(img => img.SortOrder)
+                        .Select(img => img.ImageUrl)
+                        .ToList()
                 });
         }
 
@@ -110,9 +128,14 @@ namespace Backend.Controllers
             public string? DiamondQuality { get; set; }
             public string? StoneType { get; set; }
             public decimal StoneCarat { get; set; }
+            public string? MaterialName { get; set; }
+            public string? MetalColorName { get; set; }
+            public string? MetalColorHex { get; set; }
+            public List<string> Sizes { get; set; } = new List<string>();
             public int Quantity { get; set; }
             public decimal MakingCharges { get; set; }
             public decimal MRP { get; set; }
+            public decimal OriginalPrice { get; set; }
             public string? Description { get; set; }
             public string ImageUrl { get; set; } = string.Empty;
             public int Views { get; set; }
@@ -123,6 +146,7 @@ namespace Backend.Controllers
             public DateTime CreatedAt { get; set; }
             public DateTime? UpdatedAt { get; set; }
             public int FavoriteCount { get; set; }
+            public List<string> Images { get; set; } = new List<string>();
         }
 
         [HttpPost]
@@ -170,6 +194,7 @@ namespace Backend.Controllers
             existingProduct.Quantity = product.Quantity;
             existingProduct.MakingCharges = product.MakingCharges;
             existingProduct.MRP = product.MRP;
+            existingProduct.OriginalPrice = product.OriginalPrice;
             existingProduct.Description = product.Description;
             existingProduct.ImageUrl = product.ImageUrl;
             existingProduct.CategoryId = product.CategoryId;

@@ -10,6 +10,7 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   DASHBOARD: '/dashboard',
   SHOP: '/shop',
+  PRODUCT_DETAIL: '/products/:id',
   ABOUT: '/about',
   ADMIN: '/admin',
   ADMIN_STORIES_LIST: '/admin/stories/list',

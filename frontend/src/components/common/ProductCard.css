@@ -1,14 +1,15 @@
 .product-card {
-  border: 1px solid #dee2e6;
+  border: none;
   border-radius: 0.5rem;
+  background: transparent;
   transition: all 0.3s ease;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-  border-color: #111;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
 }
 
 .product-image-container {
@@ -16,6 +17,7 @@
   overflow: hidden;
   background: #f8f9fa;
   aspect-ratio: 2 / 3;
+  cursor: pointer;
 }
 
 .product-image {
@@ -33,25 +35,34 @@
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.4;
-  height: 2.8rem;
-  overflow: hidden;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   color: #212529;
-}
-
-.product-author {
-  font-size: 0.85rem;
+  cursor: pointer;
 }
 
 .product-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   color: #1f1f1f;
 }
 
-.product-stats {
-  font-size: 0.8rem;
+.product-price-current {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.product-price-original {
+  font-size: 0.85rem;
+  color: #9a9a9a;
+  text-decoration: line-through;
+}
+
+.product-sale-note {
+  font-size: 0.75rem;
+  color: #b87c74;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
 }
 
 .product-actions {
@@ -99,6 +110,5 @@
 @media (max-width: 576px) {
   .product-title {
     font-size: 0.9rem;
-    height: 2.5rem;
   }
 }

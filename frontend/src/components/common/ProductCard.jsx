@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Badge, Button, Card } from 'react-bootstrap'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../common/constants'
 import { getCurrentUser, isAuthenticated } from '../../common/utils'
@@ -12,15 +11,6 @@ const ProductCard = ({ product, showStats = false, onView }) => {
   const location = useLocation()
   const [isFavorite, setIsFavorite] = useState(false)
   const [inCart, setInCart] = useState(false)
-  const [favoriteCount, setFavoriteCount] = useState(
-    Number(product.favoriteCount ?? product.likes ?? 0)
-  )
-
-  const formatNumber = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num?.toString() || '0'
-  }
 
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
@@ -31,41 +21,9 @@ const ProductCard = ({ product, showStats = false, onView }) => {
     }).format(amount)
   }
 
-  const getRatingValue = () => {
-    const rating =
-      product.rating ??
-      product.averageRating ??
-      product.ratingValue ??
-      4.8
-    return Math.min(Math.max(Number(rating) || 0, 0), 5)
-  }
-
-  const renderStars = (value) => {
-    const fullStars = Math.floor(value)
-    const hasHalf = value - fullStars >= 0.5
-    const totalStars = 5
-    const emptyStars = totalStars - fullStars - (hasHalf ? 1 : 0)
-
-    return (
-      <>
-        {Array.from({ length: fullStars }).map((_, index) => (
-          <i key={`star-full-${index}`} className="bi bi-star-fill"></i>
-        ))}
-        {hasHalf && <i className="bi bi-star-half"></i>}
-        {Array.from({ length: emptyStars }).map((_, index) => (
-          <i key={`star-empty-${index}`} className="bi bi-star"></i>
-        ))}
-      </>
-    )
-  }
-
   const getPlaceholderImage = () => {
     return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect width='200' height='300' fill='%23f6efe4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%238a6d3b'%3E%F0%9F%92%8E Jewelry%3C/text%3E%3C/svg%3E"
   }
-
-  useEffect(() => {
-    setFavoriteCount(Number(product.favoriteCount ?? product.likes ?? 0))
-  }, [product.id, product.favoriteCount, product.likes])
 
   useEffect(() => {
     let isMounted = true
@@ -134,11 +92,9 @@ const ProductCard = ({ product, showStats = false, onView }) => {
       if (isFavorite) {
         await favoriteService.remove(product.id)
         setIsFavorite(false)
-        setFavoriteCount((prev) => Math.max(prev - 1, 0))
       } else {
         await favoriteService.add(product.id)
         setIsFavorite(true)
-        setFavoriteCount((prev) => prev + 1)
       }
     } catch (error) {
       console.error('Failed to update favorite:', error)
@@ -187,27 +143,41 @@ const ProductCard = ({ product, showStats = false, onView }) => {
     }
   }
 
+  const originalPrice = Number(product.originalPrice || 0)
+  const currentPrice = Number(product.mrp || 0)
+  const showOriginal = originalPrice > currentPrice && originalPrice > 0
+
   return (
-    <Card className="product-card h-100 shadow-sm">
-      <div className="product-image-container">
-        <Card.Img
-          variant="top"
+    <div className="product-card h-100">
+      <div
+        className="product-image-container"
+        role="button"
+        tabIndex={0}
+        onClick={() => {
+          if (onView) {
+            onView(product)
+          } else {
+            navigate(`/products/${product.id}`)
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            if (onView) {
+              onView(product)
+            } else {
+              navigate(`/products/${product.id}`)
+            }
+          }
+        }}
+      >
+        <img
           src={product.imageUrl || getPlaceholderImage()}
           className="product-image"
+          alt={product.name}
           onError={(event) => {
             event.target.src = getPlaceholderImage()
           }}
         />
-        {(product.isFeatured || product.IsFeatured) && (
-          <Badge bg="warning" className="position-absolute top-0 end-0 m-2">
-            <i className="bi bi-star-fill me-1"></i>Featured
-          </Badge>
-        )}
-        {product.category && (
-          <Badge bg="secondary" className="position-absolute top-0 start-0 m-2">
-            {product.category.name || 'Uncategorized'}
-          </Badge>
-        )}
         <div className="product-actions">
           <button
             type="button"
@@ -227,39 +197,29 @@ const ProductCard = ({ product, showStats = false, onView }) => {
           </button>
         </div>
       </div>
-      <Card.Body className="d-flex flex-column p-3">
-        <Card.Title className="product-title mb-2" title={product.name}>
-          {product.name?.length > 30 ? `${product.name.substring(0, 30)}...` : product.name}
-        </Card.Title>
-        <Card.Text className="product-author text-muted small mb-2">
-          <i className="bi bi-gem me-1"></i>
-          {product.brand || 'Yash Signature'} • {product.productType || 'Jewelry'}
-        </Card.Text>
-        {showStats && (
-          <div className="product-stats d-flex justify-content-between align-items-center mb-2 small text-muted">
-            <span>
-              <span className="me-1 text-warning">{renderStars(getRatingValue())}</span>
-              {getRatingValue().toFixed(1)}
-            </span>
-            <span>
-              <i className="bi bi-heart me-1"></i>
-              {formatNumber(favoriteCount)}
-            </span>
-          </div>
-        )}
-        <div className="product-price fw-bold text-dark mb-2">
-          {formatCurrency(product.mrp)}
-        </div>
-        <Button
-          variant="outline-dark"
-          size="sm"
-          className="mt-auto"
-          onClick={() => onView?.(product)}
+      <div className="product-body d-flex flex-column p-3">
+        <h3
+          className="product-title mb-2"
+          title={product.name}
+          onClick={() => {
+            if (onView) {
+              onView(product)
+            } else {
+              navigate(`/products/${product.id}`)
+            }
+          }}
         >
-          View Details
-        </Button>
-      </Card.Body>
-    </Card>
+          {product.name}
+        </h3>
+        <div className="product-price">
+          <span className="product-price-current">{formatCurrency(product.mrp)}</span>
+          {showOriginal && (
+            <span className="product-price-original">{formatCurrency(originalPrice)}</span>
+          )}
+        </div>
+        <div className="product-sale-note">Giảm giá</div>
+      </div>
+    </div>
   )
 }
 

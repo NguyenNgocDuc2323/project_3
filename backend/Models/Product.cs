@@ -47,6 +47,8 @@ namespace Backend.Models
 
         public decimal MRP { get; set; }
 
+        public decimal OriginalPrice { get; set; }
+
         [StringLength(1000)]
         public string? Description { get; set; }
 
@@ -67,6 +69,16 @@ namespace Backend.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+        public int? MaterialId { get; set; }
+
+        public Material? Material { get; set; }
+
+        public int? MetalColorId { get; set; }
+
+        public MetalColor? MetalColor { get; set; }
+
+        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
 
         public ICollection<ProductSize> ProductSizes { get; set; } = new List<ProductSize>();
 
