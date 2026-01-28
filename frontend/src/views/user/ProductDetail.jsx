@@ -46,28 +46,6 @@ const ProductDetail = () => {
     return options
   }, [product])
 
-  const stoneOptions = useMemo(() => {
-    const base = [
-      { value: 'diamond', label: 'Diamond' },
-      { value: 'cz', label: 'CZ' }
-    ]
-    const stone = (product?.stoneType || '').toLowerCase()
-    const available = new Set()
-    if (stone) {
-      if (stone.includes('cz')) {
-        available.add('cz')
-      }
-      if (stone.includes('diamond')) {
-        available.add('diamond')
-      }
-    }
-
-    return base.map((option) => ({
-      ...option,
-      enabled: available.size > 0 ? available.has(option.value) : false
-    }))
-  }, [product])
-
   const colorOptions = useMemo(() => {
     const base = [
       { value: 'yellow', label: 'Yellow Gold', swatch: '#d9b37a' },
@@ -103,16 +81,29 @@ const ProductDetail = () => {
 
   const sizeOptions = useMemo(() => {
     const base = ['5', '6', '7', '8', '9', '10', '11']
-    const available = new Set((product?.sizes || []).map((size) => size.toString()))
+    const available = new Map()
+    const apiSizes = product?.sizeOptions || []
+    apiSizes.forEach((option) => {
+      if (option?.name) {
+        available.set(option.name.toString(), Number(option.priceMultiplier || 1))
+      }
+    })
+    if (available.size === 0) {
+      ;(product?.sizes || []).forEach((size) => {
+        if (size !== null && size !== undefined) {
+          available.set(size.toString(), 1)
+        }
+      })
+    }
     return base.map((value) => ({
       value,
       label: value,
-      enabled: available.size > 0 ? available.has(value) : false
+      enabled: available.size > 0 ? available.has(value) : false,
+      multiplier: available.get(value) ?? 1
     }))
   }, [product])
 
   const [selectedMaterial, setSelectedMaterial] = useState('')
-  const [selectedStone, setSelectedStone] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const [selectedSize, setSelectedSize] = useState('')
   const [activeImage, setActiveImage] = useState(0)
@@ -159,15 +150,13 @@ const ProductDetail = () => {
     if (!product) return
 
     const materialQuery = (searchParams.get('material') || '').toUpperCase()
-    const stoneQuery = (searchParams.get('stone') || '').toLowerCase()
     const colorQuery = (searchParams.get('color') || '').toLowerCase()
 
     setSelectedMaterial(pickDefault(materialOptions, materialQuery))
-    setSelectedStone(pickDefault(stoneOptions, stoneQuery))
     setSelectedColor(pickDefault(colorOptions, colorQuery))
     setSelectedSize(pickDefault(sizeOptions, selectedSize))
     setActiveImage(0)
-  }, [product, searchParams, materialOptions, stoneOptions, colorOptions, sizeOptions])
+  }, [product, searchParams, materialOptions, colorOptions, sizeOptions])
 
   const images = useMemo(() => {
     const list = product?.images || product?.productImages || []
@@ -241,6 +230,15 @@ const ProductDetail = () => {
     )
   }
 
+  const materialMultiplier = selectedMaterial ? Number(product?.materialPriceMultiplier || 1) : 1
+  const colorMultiplier = selectedColor ? Number(product?.metalColorPriceMultiplier || 1) : 1
+  const sizeMultiplier = selectedSize
+    ? Number(sizeOptions.find((option) => option.value === selectedSize)?.multiplier || 1)
+    : 1
+  const adjustedPrice = Number(product.mrp || 0) * materialMultiplier * colorMultiplier * sizeMultiplier
+  const adjustedOriginal = Number(product.originalPrice || 0) * materialMultiplier * colorMultiplier * sizeMultiplier
+  const showOriginal = adjustedOriginal > adjustedPrice && adjustedOriginal > 0
+
   return (
     <div className="product-detail-page">
       <div className="product-detail-breadcrumb">
@@ -270,7 +268,12 @@ const ProductDetail = () => {
 
         <div className="product-detail-info">
           <h1>{product.name}</h1>
-          <div className="product-detail-price">{formatCurrency(product.mrp)}</div>
+          <div className="product-detail-price">
+            <span className="product-detail-price-current">{formatCurrency(adjustedPrice)}</span>
+            {showOriginal && (
+              <span className="product-detail-price-original">{formatCurrency(adjustedOriginal)}</span>
+            )}
+          </div>
 
           <div className="product-detail-meta">
             <div>
@@ -338,31 +341,6 @@ const ProductDetail = () => {
             <small>
               {selectedColor
                 ? `Selected: ${colorOptions.find(o => o.value === selectedColor)?.label || selectedColor}`
-                : 'Not available'}
-            </small>
-          </div>
-
-          <div className="product-detail-section">
-            <p>Accent Stone</p>
-            <div className="option-group">
-              {stoneOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`option-pill ${selectedStone === option.value ? 'active' : ''} ${option.enabled ? '' : 'disabled'}`}
-                  disabled={!option.enabled}
-                  onClick={() => {
-                    setSelectedStone(option.value)
-                    updateQuery('stone', option.value)
-                  }}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <small>
-              {selectedStone
-                ? `Selected: ${stoneOptions.find(o => o.value === selectedStone)?.label || selectedStone}`
                 : 'Not available'}
             </small>
           </div>

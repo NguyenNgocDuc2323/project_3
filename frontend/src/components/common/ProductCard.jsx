@@ -78,7 +78,10 @@ const ProductCard = ({ product, showStats = false, onView }) => {
     navigate(ROUTES.LOGIN)
   }
 
-  const handleToggleFavorite = async () => {
+  const handleToggleFavorite = async (event) => {
+    if (event) {
+      event.stopPropagation()
+    }
     if (!isAuthenticated()) {
       requireLogin('favorite')
       return
@@ -101,7 +104,10 @@ const ProductCard = ({ product, showStats = false, onView }) => {
     }
   }
 
-  const handleCartAction = async () => {
+  const handleCartAction = async (event) => {
+    if (event) {
+      event.stopPropagation()
+    }
     if (!isAuthenticated()) {
       requireLogin('cart')
       return
@@ -217,7 +223,6 @@ const ProductCard = ({ product, showStats = false, onView }) => {
             <span className="product-price-original">{formatCurrency(originalPrice)}</span>
           )}
         </div>
-        <div className="product-sale-note">Giảm giá</div>
       </div>
     </div>
   )

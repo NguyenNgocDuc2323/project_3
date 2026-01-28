@@ -98,9 +98,9 @@ const Dashboard = () => {
 
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
       maximumFractionDigits: 0
     }).format(amount)
   }

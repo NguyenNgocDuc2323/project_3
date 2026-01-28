@@ -36,8 +36,106 @@
   border-radius: 0.5rem;
 }
 
+.admin-revenue-card {
+  background: #fff;
+}
+
+.admin-range-tabs .btn {
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+}
+
+.admin-revenue-chart {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.admin-revenue-item {
+  background: #f8f9fb;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  text-align: center;
+  border: 1px solid #eef1f4;
+}
+
+.admin-revenue-bar {
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.admin-revenue-fill {
+  width: 100%;
+  border-radius: 12px;
+  transition: height 0.3s ease;
+}
+
+.admin-revenue-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.admin-revenue-value {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.admin-chart {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-chart-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 80px;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-chart-label {
+  font-weight: 600;
+  color: #343a40;
+}
+
+.admin-chart-bar {
+  height: 10px;
+  background: #eef1f4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.admin-chart-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.admin-chart-value {
+  text-align: right;
+  font-weight: 600;
+  color: #6c757d;
+}
+
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 1rem 0;
+  }
+
+  .admin-chart-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .admin-chart-value {
+    text-align: left;
+  }
+
+  .admin-revenue-chart {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
 }

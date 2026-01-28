@@ -75,29 +75,30 @@ namespace Backend.Controllers
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Designer = p.Designer,
                     StyleCode = p.StyleCode,
                     ProductType = p.ProductType,
                     Brand = p.Brand,
                     GoldCarat = p.GoldCarat,
-                    GoldWeight = p.GoldWeight,
-                    DiamondCarat = p.DiamondCarat,
-                    DiamondQuality = p.DiamondQuality,
-                    StoneType = p.StoneType,
-                    StoneCarat = p.StoneCarat,
                     MaterialName = p.Material != null ? p.Material.Name : null,
+                    MaterialPriceMultiplier = p.Material != null ? p.Material.PriceMultiplier : 1m,
                     MetalColorName = p.MetalColor != null ? p.MetalColor.Name : null,
                     MetalColorHex = p.MetalColor != null ? p.MetalColor.HexCode : null,
+                    MetalColorPriceMultiplier = p.MetalColor != null ? p.MetalColor.PriceMultiplier : 1m,
                     Sizes = p.ProductSizes
                         .Select(ps => ps.Size != null ? ps.Size.Name : null)
                         .Where(name => name != null)
                         .Select(name => name!)
                         .ToList(),
-                    Quantity = p.Quantity,
-                    MakingCharges = p.MakingCharges,
+                    SizeOptions = p.ProductSizes
+                        .Where(ps => ps.Size != null)
+                        .Select(ps => new SizeOptionDto
+                        {
+                            Name = ps.Size!.Name,
+                            PriceMultiplier = ps.Size!.PriceMultiplier
+                        })
+                        .ToList(),
                     MRP = p.MRP,
                     OriginalPrice = p.OriginalPrice,
-                    Description = p.Description,
                     ImageUrl = p.ImageUrl,
                     Views = p.Views,
                     Likes = p.Likes,
@@ -105,7 +106,6 @@ namespace Backend.Controllers
                     Category = p.Category,
                     IsFeatured = p.IsFeatured,
                     CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt,
                     FavoriteCount = _context.Favorites.Count(f => f.ProductId == p.Id),
                     Images = p.ProductImages
                         .OrderBy(img => img.SortOrder)
@@ -118,25 +118,19 @@ namespace Backend.Controllers
         {
             public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
-            public string Designer { get; set; } = string.Empty;
             public string StyleCode { get; set; } = string.Empty;
             public string ProductType { get; set; } = string.Empty;
             public string Brand { get; set; } = string.Empty;
             public string GoldCarat { get; set; } = string.Empty;
-            public decimal GoldWeight { get; set; }
-            public decimal DiamondCarat { get; set; }
-            public string? DiamondQuality { get; set; }
-            public string? StoneType { get; set; }
-            public decimal StoneCarat { get; set; }
             public string? MaterialName { get; set; }
+            public decimal MaterialPriceMultiplier { get; set; }
             public string? MetalColorName { get; set; }
             public string? MetalColorHex { get; set; }
+            public decimal MetalColorPriceMultiplier { get; set; }
             public List<string> Sizes { get; set; } = new List<string>();
-            public int Quantity { get; set; }
-            public decimal MakingCharges { get; set; }
+            public List<SizeOptionDto> SizeOptions { get; set; } = new List<SizeOptionDto>();
             public decimal MRP { get; set; }
             public decimal OriginalPrice { get; set; }
-            public string? Description { get; set; }
             public string ImageUrl { get; set; } = string.Empty;
             public int Views { get; set; }
             public int Likes { get; set; }
@@ -144,9 +138,14 @@ namespace Backend.Controllers
             public Category? Category { get; set; }
             public bool IsFeatured { get; set; }
             public DateTime CreatedAt { get; set; }
-            public DateTime? UpdatedAt { get; set; }
             public int FavoriteCount { get; set; }
             public List<string> Images { get; set; } = new List<string>();
+        }
+
+        public class SizeOptionDto
+        {
+            public string Name { get; set; } = string.Empty;
+            public decimal PriceMultiplier { get; set; }
         }
 
         [HttpPost]
@@ -181,25 +180,15 @@ namespace Backend.Controllers
             }
 
             existingProduct.Name = product.Name;
-            existingProduct.Designer = product.Designer;
             existingProduct.StyleCode = product.StyleCode;
             existingProduct.ProductType = product.ProductType;
             existingProduct.Brand = product.Brand;
             existingProduct.GoldCarat = product.GoldCarat;
-            existingProduct.GoldWeight = product.GoldWeight;
-            existingProduct.DiamondCarat = product.DiamondCarat;
-            existingProduct.DiamondQuality = product.DiamondQuality;
-            existingProduct.StoneType = product.StoneType;
-            existingProduct.StoneCarat = product.StoneCarat;
-            existingProduct.Quantity = product.Quantity;
-            existingProduct.MakingCharges = product.MakingCharges;
             existingProduct.MRP = product.MRP;
             existingProduct.OriginalPrice = product.OriginalPrice;
-            existingProduct.Description = product.Description;
             existingProduct.ImageUrl = product.ImageUrl;
             existingProduct.CategoryId = product.CategoryId;
             existingProduct.IsFeatured = product.IsFeatured;
-            existingProduct.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 

@@ -13,6 +13,8 @@ namespace Backend.Models
         [StringLength(20)]
         public string? HexCode { get; set; }
 
+        public decimal PriceMultiplier { get; set; } = 1m;
+
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

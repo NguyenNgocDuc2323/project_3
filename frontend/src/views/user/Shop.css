@@ -55,15 +55,11 @@
 }
 
 .shop-dropdown {
-  position: relative;
   margin-bottom: 18px;
 }
 
 .shop-dropdown-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 5;
+  position: relative;
   background: #fff;
   border: 1px solid #eee;
   border-radius: 14px;
@@ -206,6 +202,7 @@
   padding: 6px 12px;
   font-size: 0.85rem;
   cursor: pointer;
+  color: #e3e3e3;
 }
 
 .filter-option.active {
@@ -255,6 +252,7 @@
   text-align: left;
   cursor: pointer;
   font-weight: 500;
+  color: #e3e3e3;
 }
 
 .sort-option.active {

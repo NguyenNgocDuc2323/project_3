@@ -10,8 +10,7 @@ namespace Backend.Models
         [StringLength(50)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(255)]
-        public string? Description { get; set; }
+        public decimal PriceMultiplier { get; set; } = 1m;
 
         public ICollection<ProductSize> ProductSizes { get; set; } = new List<ProductSize>();
     }

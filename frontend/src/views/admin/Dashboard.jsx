@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getCurrentUser } from '../../common/utils'
-import { storyService, userService, categoryService } from '../../common/services'
+import { storyService, userService, categoryService, analyticsService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './Dashboard.css'
 
@@ -14,10 +14,17 @@ const AdminDashboard = () => {
     totalViews: 0
   })
   const [loading, setLoading] = useState(true)
+  const [revenuePeriod, setRevenuePeriod] = useState('month')
+  const [revenueData, setRevenueData] = useState({ total: 0, points: [] })
+  const [revenueLoading, setRevenueLoading] = useState(true)
 
   useEffect(() => {
     loadStats()
   }, [])
+
+  useEffect(() => {
+    loadRevenue(revenuePeriod)
+  }, [revenuePeriod])
 
   const loadStats = async () => {
     try {
@@ -40,6 +47,31 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadRevenue = async (period) => {
+    try {
+      setRevenueLoading(true)
+      const response = await analyticsService.getRevenue(period)
+      setRevenueData({
+        total: response.data?.total || 0,
+        points: response.data?.points || []
+      })
+    } catch (error) {
+      console.error('Error loading revenue data:', error)
+      setRevenueData({ total: 0, points: [] })
+    } finally {
+      setRevenueLoading(false)
+    }
+  }
+
+  const formatCurrency = (value) => {
+    const amount = Number(value || 0)
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(amount)
   }
 
   const quickActions = [
@@ -68,6 +100,30 @@ const AdminDashboard = () => {
       count: stats.totalCategories
     }
   ]
+
+  const chartItems = [
+    {
+      label: 'Guides',
+      value: stats.totalStories,
+      color: 'primary'
+    },
+    {
+      label: 'Users',
+      value: stats.totalUsers,
+      color: 'success'
+    },
+    {
+      label: 'Categories',
+      value: stats.totalCategories,
+      color: 'info'
+    },
+    {
+      label: 'Views',
+      value: stats.totalViews,
+      color: 'warning'
+    }
+  ]
+  const chartMax = Math.max(1, ...chartItems.map((item) => item.value))
 
   if (loading) {
     return (
@@ -154,6 +210,90 @@ const AdminDashboard = () => {
                     <i className="bi bi-eye text-warning" style={{ fontSize: '2rem' }}></i>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row g-4 mb-5">
+          <div className="col-12">
+            <div className="card border-0 shadow-sm admin-revenue-card">
+              <div className="card-body">
+                <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                  <div>
+                    <h3 className="fw-bold mb-1">
+                      <i className="bi bi-bar-chart-line me-2"></i>
+                      Revenue Overview
+                    </h3>
+                    <div className="text-muted small">Total: {formatCurrency(revenueData.total)}</div>
+                  </div>
+                  <div className="btn-group admin-range-tabs" role="group">
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${revenuePeriod === 'day' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                      onClick={() => setRevenuePeriod('day')}
+                    >
+                      Daily
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${revenuePeriod === 'week' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                      onClick={() => setRevenuePeriod('week')}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${revenuePeriod === 'month' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                      onClick={() => setRevenuePeriod('month')}
+                    >
+                      Monthly
+                    </button>
+                  </div>
+                </div>
+
+                {revenueLoading ? (
+                  <div className="text-center py-4 text-muted">Loading chart...</div>
+                ) : revenueData.points.length === 0 ? (
+                  <div className="text-center py-4 text-muted">No revenue data yet.</div>
+                ) : (
+                  <div className="admin-revenue-chart">
+                    {revenueData.points.map((point, index) => {
+                      const max = Math.max(...revenueData.points.map((p) => p.total), 1)
+                      const height = (point.total / max) * 100
+                      const colors = [
+                        'linear-gradient(180deg, #ff9a9e 0%, #fad0c4 100%)',
+                        'linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%)',
+                        'linear-gradient(180deg, #fbc2eb 0%, #a6c1ee 100%)',
+                        'linear-gradient(180deg, #fddb92 0%, #d1fdff 100%)',
+                        'linear-gradient(180deg, #84fab0 0%, #8fd3f4 100%)',
+                        'linear-gradient(180deg, #fccb90 0%, #d57eeb 100%)',
+                        'linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%)',
+                        'linear-gradient(180deg, #f093fb 0%, #f5576c 100%)',
+                        'linear-gradient(180deg, #4facfe 0%, #00f2fe 100%)',
+                        'linear-gradient(180deg, #fa709a 0%, #fee140 100%)',
+                        'linear-gradient(180deg, #30cfd0 0%, #330867 100%)',
+                        'linear-gradient(180deg, #5ee7df 0%, #b490ca 100%)'
+                      ]
+                      return (
+                        <div key={point.label} className="admin-revenue-item">
+                          <div className="admin-revenue-bar">
+                            <div
+                              className="admin-revenue-fill"
+                              style={{
+                                height: `${height}%`,
+                                background: colors[index % colors.length]
+                              }}
+                              title={`${point.label}: ${formatCurrency(point.total)}`}
+                            ></div>
+                          </div>
+                          <div className="admin-revenue-label">{point.label}</div>
+                          <div className="admin-revenue-value">{formatCurrency(point.total)}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>

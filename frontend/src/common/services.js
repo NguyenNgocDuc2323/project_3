@@ -179,6 +179,12 @@ export const productService = {
   },
 };
 
+export const analyticsService = {
+  getRevenue(period = "month") {
+    return apiClient.get("/admin/analytics/revenue", { params: { period } });
+  },
+};
+
 export const chatService = {
   sendMessage(message) {
     return apiClient.post("/chat", { message });

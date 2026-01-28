@@ -121,20 +121,12 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Designer).HasMaxLength(100);
                 entity.Property(e => e.StyleCode).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.ProductType).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Brand).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.GoldCarat).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.GoldWeight).HasColumnType("decimal(10,3)");
-                entity.Property(e => e.DiamondCarat).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.DiamondQuality).HasMaxLength(50);
-                entity.Property(e => e.StoneType).HasMaxLength(50);
-                entity.Property(e => e.StoneCarat).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.MakingCharges).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.MRP).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.OriginalPrice).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsFeatured);
@@ -150,7 +142,7 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.PriceMultiplier).HasColumnType("decimal(5,2)").HasDefaultValue(1m);
                 entity.HasIndex(e => e.Name).IsUnique();
             });
 
@@ -301,7 +293,7 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.PriceMultiplier).HasColumnType("decimal(5,2)").HasDefaultValue(1m);
                 entity.HasIndex(e => e.Name).IsUnique();
             });
 
@@ -310,6 +302,7 @@ namespace Backend.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.HexCode).HasMaxLength(20);
+                entity.Property(e => e.PriceMultiplier).HasColumnType("decimal(5,2)").HasDefaultValue(1m);
                 entity.HasIndex(e => e.Name).IsUnique();
             });
 

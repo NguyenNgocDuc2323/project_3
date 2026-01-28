@@ -10,9 +10,6 @@ namespace Backend.Models
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string Designer { get; set; } = string.Empty;
-
         [Required]
         [StringLength(50)]
         public string StyleCode { get; set; } = string.Empty;
@@ -29,28 +26,9 @@ namespace Backend.Models
         [StringLength(20)]
         public string GoldCarat { get; set; } = string.Empty;
 
-        public decimal GoldWeight { get; set; }
-
-        public decimal DiamondCarat { get; set; }
-
-        [StringLength(50)]
-        public string? DiamondQuality { get; set; }
-
-        [StringLength(50)]
-        public string? StoneType { get; set; }
-
-        public decimal StoneCarat { get; set; }
-
-        public int Quantity { get; set; } = 0;
-
-        public decimal MakingCharges { get; set; }
-
         public decimal MRP { get; set; }
 
         public decimal OriginalPrice { get; set; }
-
-        [StringLength(1000)]
-        public string? Description { get; set; }
 
         [Required]
         [StringLength(500)]
@@ -68,7 +46,6 @@ namespace Backend.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime? UpdatedAt { get; set; }
 
         public int? MaterialId { get; set; }
 

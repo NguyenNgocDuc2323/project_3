@@ -161,9 +161,9 @@ const Shop = () => {
 
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND',
+      currency: 'USD',
       maximumFractionDigits: 0
     }).format(amount)
   }
@@ -179,10 +179,6 @@ const Shop = () => {
 
   return (
     <Container className="shop-list-page py-4">
-      <div className="shop-list-title">
-        <h1>Nhẫn cầu hôn</h1>
-      </div>
-
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
@@ -202,7 +198,7 @@ const Shop = () => {
                 }}
               >
                 <i className="bi bi-sliders"></i>
-                Bộ lọc
+                Filters
               </button>
               <button
                 type="button"
@@ -213,12 +209,12 @@ const Shop = () => {
                 }}
               >
                 <i className="bi bi-arrow-down-up"></i>
-                Sắp xếp
+                Sort
               </button>
             </div>
             <div className="toolbar-right">
               <span className="results-count">
-                {filteredProducts.length} sản phẩm
+                {filteredProducts.length} products
               </span>
             </div>
           </div>
@@ -227,19 +223,19 @@ const Shop = () => {
             <div className="shop-dropdown">
               <div className="shop-dropdown-panel">
                 <div className="dropdown-header">
-                  <span>Bộ lọc</span>
+                  <span>Filters</span>
                   <button type="button" onClick={() => setShowFilter(false)}>
                     <i className="bi bi-x-lg"></i>
                   </button>
                 </div>
 
                 <div className="filter-block">
-                  <label htmlFor="shop-search">Tìm kiếm theo tên</label>
+                  <label htmlFor="shop-search">Search by name</label>
                   <input
                     id="shop-search"
                     type="text"
                     value={searchTerm}
-                    placeholder="Nhập tên sản phẩm"
+                    placeholder="Enter product name"
                     onChange={(event) => {
                       const value = event.target.value
                       setSearchTerm(value)
@@ -253,7 +249,7 @@ const Shop = () => {
                   className="filter-section-toggle"
                   onClick={() => handleToggleSection('price')}
                 >
-                  Theo giá
+                  Price
                   <span>{openSections.price ? '−' : '+'}</span>
                 </button>
                 {openSections.price && (
@@ -308,7 +304,7 @@ const Shop = () => {
                   className="filter-section-toggle"
                   onClick={() => handleToggleSection('type')}
                 >
-                  Loại sản phẩm
+                  Product type
                   <span>{openSections.type ? '−' : '+'}</span>
                 </button>
                 {openSections.type && (
@@ -322,7 +318,7 @@ const Shop = () => {
                           updateParams({ type: '' })
                         }}
                       >
-                        Tất cả
+                        All
                       </button>
                       {typeOptions.map((type) => (
                         <button
@@ -346,7 +342,7 @@ const Shop = () => {
                   className="filter-section-toggle"
                   onClick={() => handleToggleSection('category')}
                 >
-                  Danh mục
+                  Category
                   <span>{openSections.category ? '−' : '+'}</span>
                 </button>
                 {openSections.category && (
@@ -360,7 +356,7 @@ const Shop = () => {
                           updateParams({ category: '' })
                         }}
                       >
-                        Tất cả
+                        All
                       </button>
                       {categoryOptions.map((option) => (
                         <button
@@ -384,7 +380,7 @@ const Shop = () => {
                     Reset
                   </button>
                   <button type="button" className="filter-close" onClick={() => setShowFilter(false)}>
-                    Xem sản phẩm
+                    View products
                   </button>
                 </div>
               </div>
@@ -395,7 +391,7 @@ const Shop = () => {
             <div className="shop-dropdown">
               <div className="shop-dropdown-panel">
                 <div className="dropdown-header">
-                  <span>Đang lọc theo</span>
+                  <span>Sort by</span>
                   <button type="button" onClick={() => setShowSort(false)}>
                     <i className="bi bi-x-lg"></i>
                   </button>
@@ -409,7 +405,7 @@ const Shop = () => {
                       updateParams({ sort: 'price-asc' })
                     }}
                   >
-                    Giá thấp đến cao
+                    Price: low to high
                   </button>
                   <button
                     type="button"
@@ -419,7 +415,7 @@ const Shop = () => {
                       updateParams({ sort: 'price-desc' })
                     }}
                   >
-                    Giá cao đến thấp
+                    Price: high to low
                   </button>
                   <button
                     type="button"
@@ -429,7 +425,7 @@ const Shop = () => {
                       updateParams({ sort: 'newest' })
                     }}
                   >
-                    Mới nhất
+                    Newest
                   </button>
                   <button
                     type="button"
@@ -439,7 +435,7 @@ const Shop = () => {
                       updateParams({ sort: 'popular' })
                     }}
                   >
-                    Phổ biến
+                    Most popular
                   </button>
                 </div>
               </div>
@@ -448,7 +444,7 @@ const Shop = () => {
 
           <section className="shop-results">
             {filteredProducts.length === 0 ? (
-              <div className="shop-empty">Không tìm thấy sản phẩm phù hợp.</div>
+              <div className="shop-empty">No matching products found.</div>
             ) : (
               <Row className="g-4">
                 {filteredProducts.map((product) => (

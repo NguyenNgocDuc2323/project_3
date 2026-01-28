@@ -44,7 +44,7 @@ const AppFooter = () => {
           <div className="footer-section middle">
             <h3 className="section-title">Quick Links</h3>
             <div className="links">
-              <Link to="/dashboard" className="link">
+              <Link to="/shop" className="link">
                 <i className="bi bi-gem"></i>
                 <span>Shop</span>
               </Link>

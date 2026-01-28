@@ -73,9 +73,23 @@
 }
 
 .product-detail-price {
-  font-size: 2rem;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   color: var(--color-primary-light);
   margin-bottom: 18px;
+}
+
+.product-detail-price-current {
+  font-size: 2rem;
+  color: #c25b57;
+  font-weight: 700;
+}
+
+.product-detail-price-original {
+  font-size: 1rem;
+  color: #b3b3b3;
+  text-decoration: line-through;
 }
 
 .product-detail-meta {
