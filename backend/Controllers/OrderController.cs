@@ -30,9 +30,17 @@ namespace Backend.Controllers
             }
 
             // Get cart items
+            var cart = await _context.Carts
+                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
+            
+            if (cart == null)
+            {
+                return BadRequest(new { message = "Cart is empty" });
+            }
+
             var cartItems = await _context.CartItems
                 .Include(ci => ci.Product)
-                .Where(ci => ci.UserId == userId.Value)
+                .Where(ci => ci.CartId == cart.Id)
                 .ToListAsync();
 
             if (cartItems == null || cartItems.Count == 0)

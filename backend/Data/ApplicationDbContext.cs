@@ -19,6 +19,11 @@ namespace Backend.Data
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -106,19 +111,12 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Designer).HasMaxLength(100);
                 entity.Property(e => e.StyleCode).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.ProductType).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Brand).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.GoldCarat).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.GoldWeight).HasColumnType("decimal(10,3)");
-                entity.Property(e => e.DiamondCarat).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.DiamondQuality).HasMaxLength(50);
-                entity.Property(e => e.StoneType).HasMaxLength(50);
-                entity.Property(e => e.StoneCarat).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.MakingCharges).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.MRP).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.OriginalPrice).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsFeatured);
@@ -164,6 +162,118 @@ namespace Backend.Data
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => new { e.CartId, e.ProductId }).IsUnique();
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Pending");
+                entity.Property(e => e.Subtotal).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Total).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.ShippingAddress).HasMaxLength(255);
+                entity.Property(e => e.PaymentMethod).HasMaxLength(100);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.Status);
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.OrderId).IsRequired();
+                entity.Property(e => e.ProductId).IsRequired();
+                entity.Property(e => e.Quantity).IsRequired();
+                entity.Property(e => e.UnitPrice).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.TotalPrice).HasColumnType("decimal(10,2)");
+                entity.HasIndex(e => new { e.OrderId, e.ProductId }).IsUnique();
+
+                entity.HasOne(e => e.Order)
+                      .WithMany(o => o.Items)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.ProductId).IsRequired();
+                entity.Property(e => e.Rating).IsRequired();
+                entity.Property(e => e.Comment).HasMaxLength(1000);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
+                entity.HasIndex(e => e.ProductId);
+                entity.HasIndex(e => e.UserId);
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.Reviews)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Favorite>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.ProductId).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.ProductId);
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.OrderId).IsRequired();
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Currency).IsRequired().HasMaxLength(10).HasDefaultValue("USD");
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Pending");
+                entity.Property(e => e.Provider).HasMaxLength(100);
+                entity.Property(e => e.Method).HasMaxLength(100);
+                entity.Property(e => e.Reference).HasMaxLength(255);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.OrderId);
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Reference);
+
+                entity.HasOne(e => e.Order)
+                      .WithMany(o => o.Payments)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
