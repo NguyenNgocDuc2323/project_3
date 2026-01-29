@@ -26,7 +26,11 @@ export const ROUTES = {
   ADMIN_USERS_EDIT: '/admin/users/edit',
   ADMIN_CATEGORIES_LIST: '/admin/categories/list',
   ADMIN_CATEGORIES_CREATE: '/admin/categories/create',
-  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit'
+  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit',
+  PROFILE: '/profile',
+  PROFILE_EDIT: '/profile/edit',
+  CART: '/cart',
+  THANK_YOU: '/thank-you'
 }
 
 export const STORAGE_KEYS = {

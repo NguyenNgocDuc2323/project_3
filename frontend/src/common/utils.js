@@ -70,3 +70,24 @@ export const logout = () => {
   cookieUtils.remove("accessToken");
   storageUtils.remove("user");
 };
+
+export const showToast = (message, type = 'info') => {
+  if (window.showToast) {
+    const severityMap = {
+      success: 'success',
+      error: 'error',
+      warning: 'warn',
+      info: 'info'
+    };
+    
+    window.showToast({
+      severity: severityMap[type] || 'info',
+      summary: type === 'error' ? 'Lỗi' : type === 'success' ? 'Thành công' : type === 'warning' ? 'Cảnh báo' : 'Thông báo',
+      detail: message,
+      life: 3000
+    });
+  } else {
+    // Fallback to console if toast is not available
+    console.log(`[${type.toUpperCase()}] ${message}`);
+  }
+};

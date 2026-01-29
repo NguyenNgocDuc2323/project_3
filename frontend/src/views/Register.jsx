@@ -87,9 +87,9 @@ const Register = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Error',
+          summary: 'Registration Failed',
           detail: errorMessage,
-          life: 4000
+          life: 5000
         })
       }
     } finally {

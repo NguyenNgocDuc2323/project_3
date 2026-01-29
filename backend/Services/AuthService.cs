@@ -47,6 +47,12 @@ namespace Backend.Services
                     Username = user.Username,
                     Email = user.Email,
                     FullName = user.FullName,
+                    AvatarUrl = user.AvatarUrl,
+                    Address = user.Address,
+                    City = user.City,
+                    State = user.State,
+                    MobileNumber = user.MobileNumber,
+                    DateOfBirth = user.DateOfBirth,
                     Role = user.Role
                 }
             };
