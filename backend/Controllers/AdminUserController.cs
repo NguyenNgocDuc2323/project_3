@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace Backend.Controllers
 {
@@ -63,6 +64,53 @@ namespace Backend.Controllers
             }
 
             return Ok(user);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Username, Email, and Password are required" });
+            }
+
+            var usernameExists = await _context.Users.AnyAsync(u => u.Username == request.Username);
+            if (usernameExists)
+            {
+                return BadRequest(new { message = "Username already exists" });
+            }
+
+            var emailExists = await _context.Users.AnyAsync(u => u.Email == request.Email);
+            if (emailExists)
+            {
+                return BadRequest(new { message = "Email already exists" });
+            }
+
+            var user = new User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                FullName = request.FullName,
+                Role = request.Role ?? 2,
+                IsActive = request.IsActive ?? true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
+            {
+                user.Id,
+                user.Username,
+                user.Email,
+                user.FullName,
+                user.Role,
+                user.IsActive,
+                user.CreatedAt,
+                user.UpdatedAt
+            });
         }
 
         [HttpPut("{id}")]
@@ -141,6 +189,16 @@ namespace Backend.Controllers
                 regularUsers
             });
         }
+    }
+
+    public class CreateUserRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string? FullName { get; set; }
+        public int? Role { get; set; }
+        public bool? IsActive { get; set; }
     }
 
     public class UserUpdateRequest

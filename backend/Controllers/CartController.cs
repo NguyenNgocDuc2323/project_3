@@ -31,7 +31,7 @@ namespace Backend.Controllers
             var items = await _context.CartItems
                 .Where(item => item.UserId == userId.Value)
                 .Include(item => item.Product)
-                .ThenInclude(product => product.Category)
+                .ThenInclude(product => product!.Category)
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new CartItemDto
                 {
@@ -124,7 +124,7 @@ namespace Backend.Controllers
 
             var itemWithProduct = await _context.CartItems
                 .Include(item => item.Product)
-                .ThenInclude(product => product.Category)
+                .ThenInclude(product => product!.Category)
                 .FirstAsync(item => item.Id == existingItem.Id);
 
             return Ok(new CartItemDto
@@ -186,6 +186,25 @@ namespace Backend.Controllers
             }
 
             _context.CartItems.Remove(existingItem);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearCart()
+        {
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var cartItems = await _context.CartItems
+                .Where(item => item.UserId == userId.Value)
+                .ToListAsync();
+
+            _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
             return NoContent();

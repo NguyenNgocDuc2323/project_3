@@ -20,6 +20,26 @@ namespace Backend.Models
         [StringLength(100)]
         public string? FullName { get; set; }
 
+        [StringLength(500)]
+        public string? AvatarUrl { get; set; }
+
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        [StringLength(50)]
+        public string? City { get; set; }
+
+        [StringLength(50)]
+        public string? State { get; set; }
+
+        [StringLength(20)]
+        public string? MobileNumber { get; set; }
+
+        public DateTime? DateOfBirth { get; set; }
+
+        [StringLength(10)]
+        public string? Gender { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

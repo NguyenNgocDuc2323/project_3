@@ -95,6 +95,13 @@ const UsersList = () => {
             </h1>
             <p className="text-muted">View and manage user accounts</p>
           </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/users/create')}
+          >
+            <i className="bi bi-plus-circle me-2"></i>
+            Create User
+          </button>
         </div>
 
         <div className="row mb-4">
