@@ -133,9 +133,6 @@ export const categoryService = {
   getAll() {
     return apiClient.get("/categories");
   },
-  getTree() {
-    return apiClient.get("/categories/tree");
-  },
 
   create(data) {
     return apiClient.post("/categories", data);
@@ -179,53 +176,55 @@ export const productService = {
   },
 };
 
-export const analyticsService = {
-  getRevenue(period = "month") {
-    return apiClient.get("/admin/analytics/revenue", { params: { period } });
-  },
-};
-
 export const chatService = {
   sendMessage(message) {
     return apiClient.post("/chat", { message });
   },
 };
 
-export const cartService = {
-  getAll() {
-    return apiClient.get("/cart");
+export const profileService = {
+  getProfile() {
+    return apiClient.get("/profile");
   },
-  getCount() {
-    return apiClient.get("/cart/count");
+
+  updateProfile(data) {
+    return apiClient.put("/profile", data);
   },
-  contains(productId) {
-    return apiClient.get(`/cart/contains/${productId}`);
-  },
-  add(productId, quantity = 1) {
-    return apiClient.post("/cart/add", { productId, quantity });
-  },
-  update(productId, quantity) {
-    return apiClient.put(`/cart/${productId}`, { quantity });
-  },
-  remove(productId) {
-    return apiClient.delete(`/cart/${productId}`);
+
+  uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 };
 
-export const favoriteService = {
-  getAll() {
-    return apiClient.get("/favorites");
+export const cartService = {
+  getCart() {
+    return apiClient.get("/cart");
   },
-  contains(productId) {
-    return apiClient.get(`/favorites/contains/${productId}`);
+
+  addItem(productId, quantity = 1) {
+    return apiClient.post("/cart/items", {
+      productId,
+      quantity,
+    });
   },
-  getCount(productId) {
-    return apiClient.get(`/favorites/count/${productId}`);
+
+  updateItemQuantity(itemId, quantity) {
+    return apiClient.put(`/cart/items/${itemId}`, {
+      quantity,
+    });
   },
-  add(productId) {
-    return apiClient.post("/favorites", { productId });
+
+  removeItem(itemId) {
+    return apiClient.delete(`/cart/items/${itemId}`);
   },
-  remove(productId) {
-    return apiClient.delete(`/favorites/${productId}`);
+
+  clearCart() {
+    return apiClient.delete("/cart/clear");
   },
 };

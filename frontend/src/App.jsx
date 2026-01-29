@@ -16,8 +16,10 @@ import ForgotPassword from './views/ForgotPassword'
 import ResetPassword from './views/ResetPassword'
 import About from './views/About'
 import Dashboard from './views/user/Dashboard'
-import Shop from './views/user/Shop'
-import ProductDetail from './views/user/ProductDetail'
+import Profile from './views/user/Profile'
+import EditProfile from './views/user/Edit_Profile'
+import Cart from './views/user/Cart'
+import ThankYou from './views/user/ThankYou'
 import AdminDashboard from './views/admin/Dashboard'
 import StoriesList from './views/admin/stories/List'
 import StoriesCreate from './views/admin/stories/Create'
@@ -101,16 +103,34 @@ function App() {
             <Dashboard />
           </DefaultLayout>
         } />
-
-        <Route path={ROUTES.SHOP} element={
-          <DefaultLayout>
-            <Shop />
-          </DefaultLayout>
+        
+        <Route path={ROUTES.PROFILE} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Profile />
+            </DefaultLayout>
+          </ProtectedRoute>
         } />
-
-        <Route path={ROUTES.PRODUCT_DETAIL} element={
+        
+        <Route path={ROUTES.PROFILE_EDIT} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <EditProfile />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path={ROUTES.CART} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Cart />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path={ROUTES.THANK_YOU} element={
           <DefaultLayout>
-            <ProductDetail />
+            <ThankYou />
           </DefaultLayout>
         } />
         

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
-import { cartService, categoryService } from '../../common/services'
+import { categoryService, cartService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './AppHeader.css'
 
@@ -11,10 +11,15 @@ const AppHeader = () => {
   const location = useLocation()
   const [isScrolled, setIsScrolled] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
-  const [cartCount, setCartCount] = useState(0)
 
-  const [categoryTree, setCategoryTree] = useState([])
+  const navItems = [
+    { to: ROUTES.DASHBOARD, label: 'Shop', icon: 'bi bi-gem', hasCategories: true },
+    { to: ROUTES.ABOUT, label: 'About', icon: 'bi bi-info-circle' }
+  ]
+
+  const [productCategories, setProductCategories] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
+  const [cartItemCount, setCartItemCount] = useState(0)
 
   const handleScroll = () => {
     setIsScrolled(window.scrollY > 20)
@@ -34,9 +39,9 @@ const AppHeader = () => {
     const loadCategories = async () => {
       try {
         setIsLoadingCategories(true)
-        const response = await categoryService.getTree()
+        const response = await categoryService.getAll()
         const categories = response.data || []
-        setCategoryTree(categories)
+        setProductCategories(categories)
       } catch (error) {
         console.error('Failed to load categories:', error)
       } finally {
@@ -52,143 +57,127 @@ const AppHeader = () => {
   }, [location])
 
   useEffect(() => {
-    const updateCartCount = async () => {
-      if (!isAuthenticated()) {
-        setCartCount(0)
-        return
-      }
-
-      const user = getCurrentUser()
-      if (!user?.id) {
-        setCartCount(0)
-        return
-      }
-
-      try {
-        const response = await cartService.getCount()
-        setCartCount(response.data?.count || 0)
-      } catch (error) {
-        console.error('Failed to load cart count:', error)
-        setCartCount(0)
+    const loadCartCount = async () => {
+      if (isAuthenticated()) {
+        try {
+          const response = await cartService.getCart()
+          const cart = response.data
+          setCartItemCount(cart?.totalItems || 0)
+        } catch (error) {
+          // Silently fail if cart doesn't exist yet
+          setCartItemCount(0)
+        }
+      } else {
+        setCartItemCount(0)
       }
     }
 
-    updateCartCount()
-    window.addEventListener('cart:updated', updateCartCount)
-    window.addEventListener('storage', updateCartCount)
+    loadCartCount()
+    // Refresh cart count every 30 seconds
+    const interval = setInterval(loadCartCount, 30000)
+    
+    // Listen for cart update events (e.g., after checkout)
+    const handleCartUpdate = () => {
+      loadCartCount()
+    }
+    window.addEventListener('cartUpdated', handleCartUpdate)
 
     return () => {
-      window.removeEventListener('cart:updated', updateCartCount)
-      window.removeEventListener('storage', updateCartCount)
+      clearInterval(interval)
+      window.removeEventListener('cartUpdated', handleCartUpdate)
     }
-  }, [])
+  }, [location, isAuthenticated()])
 
   const handleLogout = () => {
     logout()
     navigate(ROUTES.LOGIN)
   }
 
-  const renderMenuItem = (item) => {
-    if (typeof item === 'string') {
-      return (
-        <span className="mega-link" key={item}>
-          {item}
-        </span>
-      )
-    }
-
-    return (
-      <Link className="mega-link" key={item.label} to={item.to}>
-        {item.label}
-      </Link>
-    )
-  }
-
-  const menuItems = categoryTree.map((category) => {
-    const hasChildren = Array.isArray(category.children) && category.children.length > 0
-    const childItems = hasChildren
-      ? category.children.map((child) => ({
-          label: child.name,
-          to: `${ROUTES.SHOP}?category=${child.id}`
-        }))
-      : [
-          {
-            label: category.name,
-            to: `${ROUTES.SHOP}?category=${category.id}`
-          }
-        ]
-
-    return {
-      label: category.name,
-      to: ROUTES.SHOP,
-      sections: [
-        {
-          title: 'Categories',
-          items: childItems
-        }
-      ]
-    }
-  })
-
   return (
-    <Navbar
-      expand="lg"
-      className={`yash-header ${isScrolled ? 'navbar-scrolled' : ''}`}
+    <Navbar 
+      expand="lg" 
+      className={`custom-navbar p-0 fixed-top ${isScrolled ? 'navbar-scrolled' : ''}`}
       variant="light"
     >
-      <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="yash-logo">
-          Yash Gems & Jewelleries
+      <Container>
+        <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="d-flex align-items-center">
+          <span className="me-2" style={{ fontSize: '1.1rem' }}>💎</span>
+          <div>
+            <div className="fw-bold" style={{ fontSize: '1rem', lineHeight: '1.2' }}>Yash Gems & Jewelleries</div>
+          </div>
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="yash-navbar" />
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-        <Navbar.Collapse id="yash-navbar" className="yash-collapse">
-          <Nav className="yash-nav">
-            <Nav.Link as={Link} to={ROUTES.SHOP} className="yash-nav-link">
-              Shop
-            </Nav.Link>
-            {menuItems.map((item) => (
-              <div key={item.label} className="yash-nav-item">
-                <Nav.Link as={Link} to={item.to} className="yash-nav-link">
-                  {item.label}
-                </Nav.Link>
-                <div className="yash-mega">
-                  <div className="yash-mega-inner">
-                    <div className="yash-mega-grid">
-                      {item.sections.map((section) => (
-                        <div key={section.title} className="yash-mega-col">
-                          <h6>{section.title}</h6>
-                          <div className="yash-mega-list">
-                            {section.items.map((menuItem) => renderMenuItem(menuItem))}
-                          </div>
-                        </div>
-                      ))}
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            {navItems.map(item => (
+              item.hasCategories ? (
+                <div key={item.to} className="nav-category-trigger">
+                  <Nav.Link
+                    as={Link}
+                    to={item.to}
+                    active={location.pathname === item.to}
+                  >
+                    <i className={`${item.icon} me-1`}></i>
+                    {item.label}
+                  </Nav.Link>
+                  <div className="nav-category-menu">
+                    <div className="menu-inner">
+                      <h6>Categories</h6>
+                      <div className="menu-grid">
+                        {isLoadingCategories ? (
+                          <span className="category-item">Loading...</span>
+                        ) : productCategories.length === 0 ? (
+                          <span className="category-item">No categories</span>
+                        ) : (
+                          productCategories.map((category) => (
+                            <button
+                              key={category.id || category.name}
+                              type="button"
+                              className="category-item"
+                            >
+                              {category.name || category.title}
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    {isLoadingCategories && (
-                      <div className="yash-mega-note">Loading categories...</div>
-                    )}
                   </div>
                 </div>
-              </div>
+              ) : (
+                <Nav.Link
+                  key={item.to}
+                  as={Link}
+                  to={item.to}
+                  active={location.pathname === item.to}
+                >
+                  <i className={`${item.icon} me-1`}></i>
+                  {item.label}
+                </Nav.Link>
+              )
             ))}
-            {!isLoadingCategories && menuItems.length === 0 && (
-              <div className="yash-mega-note">No categories yet</div>
-            )}
             {isAdmin() && (
-              <Nav.Link as={Link} to={ROUTES.ADMIN} className="yash-nav-link">
+              <Nav.Link as={Link} to={ROUTES.ADMIN}>
+                <i className="bi bi-gear me-1"></i>
                 Admin
               </Nav.Link>
             )}
           </Nav>
 
-          <div className="yash-actions">
-            <button type="button" className="yash-icon-btn" aria-label="Location">
-              <i className="bi bi-geo-alt"></i>
+          <Nav className="nav-actions">
+            <button
+              type="button"
+              className="nav-icon-btn"
+              aria-label="Search"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+            >
+              <i className="bi bi-search"></i>
             </button>
             {!isAuthenticated() ? (
               <button
                 type="button"
-                className="yash-icon-btn"
+                className="nav-icon-btn"
                 aria-label="Sign in"
                 onClick={() => navigate(ROUTES.LOGIN)}
               >
@@ -213,9 +202,9 @@ const AppHeader = () => {
                   </div>
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => {}}>
+                <NavDropdown.Item as={Link} to={ROUTES.PROFILE}>
                   <i className="bi bi-person-gear me-2"></i>
-                  Update Profile
+                  Thông tin cá nhân
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -224,12 +213,22 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
-            <button type="button" className="yash-icon-btn yash-bag" aria-label="Bag">
-              <i className="bi bi-bag"></i>
-              <span className="yash-bag-count">{cartCount}</span>
-            </button>
-          </div>
+            {isAuthenticated() && (
+              <button
+                type="button"
+                className="nav-icon-btn"
+                aria-label="Cart"
+                onClick={() => navigate(ROUTES.CART)}
+              >
+                <i className="bi bi-bag"></i>
+                {cartItemCount > 0 && (
+                  <span className="cart-count">{cartItemCount}</span>
+                )}
+              </button>
+            )}
+          </Nav>
         </Navbar.Collapse>
+      </Container>
     </Navbar>
   )
 }

@@ -6,6 +6,7 @@ using Backend.Data;
 using Backend.Services;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
+using Microsoft.Extensions.FileProviders;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 if (File.Exists(envPath))
@@ -116,6 +117,23 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseCors("AllowReactApp");
+
+// Enable static files for uploads
+// Default static files from wwwroot
+app.UseStaticFiles();
+
+// Enable static files for uploads directory (outside wwwroot)
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
