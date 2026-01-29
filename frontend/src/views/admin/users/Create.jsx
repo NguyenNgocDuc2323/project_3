@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userService } from '../../../common/services'
+import provincesData from '../../../data/provinces.json'
+import wardsData from '../../../data/wards.json'
 import './Create.css'
 
 const UsersCreate = () => {
@@ -11,11 +13,26 @@ const UsersCreate = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
+    gender: '',
+    address: '',
+    city: '',
+    state: '',
+    mobileNumber: '',
+    dateOfBirth: '',
     role: 2,
     isActive: true
   })
+  const [selectedProvinceId, setSelectedProvinceId] = useState('')
+  const [selectedWardId, setSelectedWardId] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+
+  // Filter wards based on selected province
+  const filteredWards = useMemo(() => {
+    if (!selectedProvinceId || !wardsData || !Array.isArray(wardsData)) return []
+    const filtered = wardsData.filter(ward => ward.province_id === selectedProvinceId)
+    return filtered
+  }, [selectedProvinceId])
 
   const validateForm = () => {
     const newErrors = {}
@@ -58,6 +75,17 @@ const UsersCreate = () => {
 
     try {
       const { confirmPassword, ...submitData } = form
+      // Format dateOfBirth if provided
+      if (submitData.dateOfBirth) {
+        submitData.dateOfBirth = new Date(submitData.dateOfBirth).toISOString()
+      }
+      // Convert empty strings to null for optional fields
+      if (!submitData.gender) submitData.gender = null
+      if (!submitData.address) submitData.address = null
+      if (!submitData.city) submitData.city = null
+      if (!submitData.state) submitData.state = null
+      if (!submitData.mobileNumber) submitData.mobileNumber = null
+      if (!submitData.dateOfBirth) submitData.dateOfBirth = null
       await userService.create(submitData)
       if (window.showToast) {
         window.showToast({
@@ -89,6 +117,29 @@ const UsersCreate = () => {
     setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : (type === 'number' ? parseInt(value) : value)
+    }))
+  }
+
+  const handleProvinceChange = (e) => {
+    const provinceId = e.target.value
+    const province = provincesData.find(p => p.id === provinceId)
+    setSelectedProvinceId(provinceId)
+    setSelectedWardId('') // Reset ward when province changes
+    setForm(prev => ({
+      ...prev,
+      city: province?.name || '',
+      state: '' // Reset state when province changes
+    }))
+  }
+
+  const handleWardChange = (e) => {
+    const wardId = e.target.value
+    // Find ward from all wardsData (more reliable, similar to handleProvinceChange)
+    const ward = wardsData.find(w => w.id === wardId)
+    setSelectedWardId(wardId)
+    setForm(prev => ({
+      ...prev,
+      state: ward?.name || ''
     }))
   }
 
@@ -212,6 +263,117 @@ const UsersCreate = () => {
                       placeholder="Enter full name"
                     />
                   </div>
+
+                  <div className="mb-3">
+                    <label htmlFor="gender" className="form-label">
+                      Gender
+                    </label>
+                    <select
+                      className="form-select"
+                      id="gender"
+                      name="gender"
+                      value={form.gender}
+                      onChange={handleChange}
+                    >
+                      <option value="">-- Chọn giới tính --</option>
+                      <option value="Nam">Nam</option>
+                      <option value="Nữ">Nữ</option>
+                      <option value="Khác">Khác</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-3">
+                    <label htmlFor="address" className="form-label">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="address"
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                      placeholder="Enter address"
+                    />
+                  </div>
+
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="city" className="form-label">
+                        City/Province
+                      </label>
+                      <select
+                        className="form-select"
+                        id="city"
+                        name="city"
+                        value={selectedProvinceId}
+                        onChange={handleProvinceChange}
+                      >
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                        {provincesData.map(province => (
+                          <option key={province.id} value={province.id}>
+                            {province.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="state" className="form-label">
+                        Wards
+                      </label>
+                      <select
+                        className="form-select"
+                        id="state"
+                        name="state"
+                        value={selectedWardId || ''}
+                        onChange={handleWardChange}
+                        disabled={!selectedProvinceId}
+                      >
+                        <option value="">-- Chọn Phường/Xã --</option>
+                        {filteredWards && filteredWards.length > 0 ? (
+                          filteredWards.map(ward => (
+                            <option key={ward.id} value={ward.id}>
+                              {ward.name}
+                            </option>
+                          ))
+                        ) : selectedProvinceId ? (
+                          <option value="" disabled>Không có dữ liệu</option>
+                        ) : null}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="mobileNumber" className="form-label">
+                        Mobile Number
+                      </label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        id="mobileNumber"
+                        name="mobileNumber"
+                        value={form.mobileNumber}
+                        onChange={handleChange}
+                        placeholder="Enter mobile number"
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="dateOfBirth" className="form-label">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        id="dateOfBirth"
+                        name="dateOfBirth"
+                        value={form.dateOfBirth}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <hr className="my-4" />
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
