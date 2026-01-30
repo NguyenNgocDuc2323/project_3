@@ -19,11 +19,6 @@ export default defineConfig({
         target: apiUrl,
         changeOrigin: true,
         secure: false
-      },
-      '/uploads': {
-        target: apiUrl,
-        changeOrigin: true,
-        secure: false
       }
     }
   }

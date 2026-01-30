@@ -6,7 +6,6 @@ using Backend.Data;
 using Backend.Services;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
-using Microsoft.Extensions.FileProviders;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 if (File.Exists(envPath))
@@ -117,22 +116,6 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseCors("AllowReactApp");
-
-// Serve static files for avatars from uploads folder
-var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath = "/uploads"
-});
-
-// Also serve from wwwroot if it exists
-app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
