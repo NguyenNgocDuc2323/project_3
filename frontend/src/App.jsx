@@ -18,17 +18,11 @@ import About from './views/About'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
-import Profile from './views/user/Profile'
-import UpdateProfile from './views/user/UpdateProfile'
-import Cart from './views/user/Cart'
-import Checkout from './views/user/Checkout'
-import ThankYou from './views/user/ThankYou'
 import AdminDashboard from './views/admin/Dashboard'
 import StoriesList from './views/admin/stories/List'
 import StoriesCreate from './views/admin/stories/Create'
 import StoriesEdit from './views/admin/stories/Edit'
 import UsersList from './views/admin/users/List'
-import UsersCreate from './views/admin/users/Create'
 import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
@@ -119,46 +113,6 @@ function App() {
             <ProductDetail />
           </DefaultLayout>
         } />
-
-        <Route path={ROUTES.PROFILE} element={
-          <ProtectedRoute>
-            <DefaultLayout>
-              <Profile />
-            </DefaultLayout>
-          </ProtectedRoute>
-        } />
-
-        <Route path={ROUTES.UPDATE_PROFILE} element={
-          <ProtectedRoute>
-            <DefaultLayout>
-              <UpdateProfile />
-            </DefaultLayout>
-          </ProtectedRoute>
-        } />
-
-        <Route path={ROUTES.CART} element={
-          <ProtectedRoute>
-            <DefaultLayout>
-              <Cart />
-            </DefaultLayout>
-          </ProtectedRoute>
-        } />
-
-        <Route path={ROUTES.CHECKOUT} element={
-          <ProtectedRoute>
-            <DefaultLayout>
-              <Checkout />
-            </DefaultLayout>
-          </ProtectedRoute>
-        } />
-
-        <Route path={ROUTES.THANK_YOU} element={
-          <ProtectedRoute>
-            <DefaultLayout>
-              <ThankYou />
-            </DefaultLayout>
-          </ProtectedRoute>
-        } />
         
         <Route path={ROUTES.ADMIN} element={
           <ProtectedRoute requireAdmin={true}>
@@ -192,13 +146,6 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <UsersList />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/users/create" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <UsersCreate />
             </AdminLayout>
           </ProtectedRoute>
         } />

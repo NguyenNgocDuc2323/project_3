@@ -213,9 +213,9 @@ const AppHeader = () => {
                   </div>
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => navigate('/profile')}>
-                  <i className="bi bi-person me-2"></i>
-                  My Profile
+                <NavDropdown.Item onClick={() => {}}>
+                  <i className="bi bi-person-gear me-2"></i>
+                  Update Profile
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -224,12 +224,7 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
-            <button 
-              type="button" 
-              className="yash-icon-btn yash-bag" 
-              aria-label="Bag"
-              onClick={() => navigate('/cart')}
-            >
+            <button type="button" className="yash-icon-btn yash-bag" aria-label="Bag">
               <i className="bi bi-bag"></i>
               <span className="yash-bag-count">{cartCount}</span>
             </button>
