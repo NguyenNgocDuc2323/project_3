@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
 import { cartService, categoryService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
+import logo from '../../assets/images/logo.png'
 import './AppHeader.css'
 
 const AppHeader = () => {
@@ -137,40 +138,60 @@ const AppHeader = () => {
       variant="light"
     >
       <Navbar.Brand as={Link} to={ROUTES.DASHBOARD} className="yash-logo">
-          Yash Gems & Jewelleries
+          <img src={logo} alt="Yash Gems & Jewelleries" />
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="yash-navbar" />
+        <Navbar.Toggle aria-controls="yash-navbar" className="yash-toggle" />
 
         <Navbar.Collapse id="yash-navbar" className="yash-collapse">
           <Nav className="yash-nav">
-            <Nav.Link as={Link} to={ROUTES.SHOP} className="yash-nav-link">
+            <Nav.Link 
+              as={Link} 
+              to={ROUTES.SHOP} 
+              className="yash-nav-link"
+              active={location.pathname === ROUTES.SHOP && !location.search}
+            >
               Shop
             </Nav.Link>
-            {menuItems.map((item) => (
-              <div key={item.label} className="yash-nav-item">
-                <Nav.Link as={Link} to={item.to} className="yash-nav-link">
-                  {item.label}
-                </Nav.Link>
-                <div className="yash-mega">
-                  <div className="yash-mega-inner">
-                    <div className="yash-mega-grid">
-                      {item.sections.map((section) => (
-                        <div key={section.title} className="yash-mega-col">
-                          <h6>{section.title}</h6>
-                          <div className="yash-mega-list">
-                            {section.items.map((menuItem) => renderMenuItem(menuItem))}
+            {menuItems.map((item) => {
+              const currentCategoryId = new URLSearchParams(location.search).get('category');
+              
+              const isItemActive = categoryTree.some(cat => 
+                cat.name === item.label && 
+                (currentCategoryId === String(cat.id) || 
+                 cat.children?.some(child => currentCategoryId === String(child.id)))
+              );
+
+              return (
+                <div key={item.label} className="yash-nav-item">
+                  <Nav.Link 
+                    as={Link} 
+                    to={item.to} 
+                    className="yash-nav-link"
+                    active={isItemActive}
+                  >
+                    {item.label}
+                  </Nav.Link>
+                  <div className="yash-mega">
+                    <div className="yash-mega-inner">
+                      <div className="yash-mega-grid">
+                        {item.sections.map((section) => (
+                          <div key={section.title} className="yash-mega-col">
+                            <h6>{section.title}</h6>
+                            <div className="yash-mega-list">
+                              {section.items.map((menuItem) => renderMenuItem(menuItem))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      {isLoadingCategories && (
+                        <div className="yash-mega-note">Loading categories...</div>
+                      )}
                     </div>
-                    {isLoadingCategories && (
-                      <div className="yash-mega-note">Loading categories...</div>
-                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {!isLoadingCategories && menuItems.length === 0 && (
               <div className="yash-mega-note">No categories yet</div>
             )}
@@ -188,6 +209,7 @@ const AppHeader = () => {
             {!isAuthenticated() ? (
               <button
                 type="button"
+                style={{fontSize: '1.5rem'}}
                 className="yash-icon-btn"
                 aria-label="Sign in"
                 onClick={() => navigate(ROUTES.LOGIN)}

@@ -43,6 +43,7 @@ namespace Backend.Models
         public Category? Category { get; set; }
 
         public bool IsFeatured { get; set; } = false;
+        public bool IsBestSeller { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

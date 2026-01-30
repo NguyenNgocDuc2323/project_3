@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS Products (
     MaterialId INT NULL,
     MetalColorId INT NULL,
     IsFeatured TINYINT(1) NOT NULL DEFAULT 0,
+    IsBestSeller TINYINT(1) NOT NULL DEFAULT 0,
     CreatedAt DATETIME(6) NOT NULL,
     INDEX IX_Products_IsFeatured (IsFeatured),
     INDEX IX_Products_IsFeatured_CreatedAt (IsFeatured, CreatedAt),
@@ -248,158 +249,35 @@ CREATE TABLE IF NOT EXISTS Payments (
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt) VALUES
 ('Rings', 'Engagement, wedding, and statement rings', NULL, NOW()),
-('Necklaces', 'Gold and diamond necklaces for every occasion', NULL, NOW()),
 ('Earrings', 'Studs, hoops, and chandelier designs', NULL, NOW()),
+('Necklaces', 'Gold and diamond necklaces for every occasion', NULL, NOW()),
 ('Bracelets', 'Timeless gold and diamond bracelets', NULL, NOW()),
-('Bangles', 'Elegant bangles with modern craftsmanship', NULL, NOW()),
-('Pendants', 'Signature pendants with precious stones', NULL, NOW()),
-('Bridal Sets', 'Curated bridal jewelry collections', NULL, NOW()),
-('Heritage', 'Classic designs inspired by Indian heritage', NULL, NOW())
+('Bangles', 'Elegant bangles with modern craftsmanship', NULL, NOW())
 ON DUPLICATE KEY UPDATE Name=Name;
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
 SELECT 'Gold Rings', 'Gold ring designs and collections', c.Id, NOW()
 FROM Categories c
 WHERE c.Name = 'Rings'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
+ON DUPLICATE KEY UPDATE Name=VALUES(Name);
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
 SELECT 'Diamond Rings', 'Diamond ring designs and collections', c.Id, NOW()
 FROM Categories c
 WHERE c.Name = 'Rings'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Necklaces', 'Gold necklace designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Necklaces'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Necklaces', 'Diamond necklace designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Necklaces'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
+ON DUPLICATE KEY UPDATE Name=VALUES(Name);
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
 SELECT 'Gold Earrings', 'Gold earring designs and collections', c.Id, NOW()
 FROM Categories c
 WHERE c.Name = 'Earrings'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
+ON DUPLICATE KEY UPDATE Name=VALUES(Name);
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
 SELECT 'Diamond Earrings', 'Diamond earring designs and collections', c.Id, NOW()
 FROM Categories c
 WHERE c.Name = 'Earrings'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Bracelets', 'Gold bracelet designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bracelets'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Bracelets', 'Diamond bracelet designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bracelets'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Bangles', 'Gold bangle designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bangles'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Bangles', 'Diamond bangle designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bangles'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Pendants', 'Gold pendant designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Pendants'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Pendants', 'Diamond pendant designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Pendants'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Bridal Sets', 'Gold bridal set designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bridal Sets'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Bridal Sets', 'Diamond bridal set designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Bridal Sets'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Gold Heritage', 'Gold heritage designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Heritage'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
-
-INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt)
-SELECT 'Diamond Heritage', 'Diamond heritage designs and collections', c.Id, NOW()
-FROM Categories c
-WHERE c.Name = 'Heritage'
-ON DUPLICATE KEY UPDATE
-  Categories.Name = VALUES(Name),
-  Categories.Description = VALUES(Description),
-  Categories.ParentCategoryId = VALUES(ParentCategoryId);
+ON DUPLICATE KEY UPDATE Name=VALUES(Name);
 
 INSERT INTO Materials (Name, PriceMultiplier) VALUES
 ('10K', 0.90),

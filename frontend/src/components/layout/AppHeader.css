@@ -19,6 +19,10 @@
   color: #111 !important;
 }
 
+.yash-logo img {
+  width: 80px;
+}
+
 .yash-collapse {
   display: flex;
   align-items: center;
