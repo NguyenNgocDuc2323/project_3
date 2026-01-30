@@ -9,11 +9,23 @@ import './DefaultLayout.css'
 const DefaultLayout = ({ children }) => {
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')
+  
+  // Hide hero banner on these pages
+  const hideHeroBannerPaths = [
+    ROUTES.PROFILE,
+    ROUTES.UPDATE_PROFILE,
+    ROUTES.CART,
+    ROUTES.CHECKOUT,
+    ROUTES.THANK_YOU
+  ]
+  const shouldHideHeroBanner = hideHeroBannerPaths.some(path => 
+    location.pathname === path || location.pathname.startsWith(path + '/')
+  )
 
   return (
     <div className="layout">
       <AppHeader />
-      {!isAdmin && <HeroBanner />}
+      {!isAdmin && !shouldHideHeroBanner && <HeroBanner />}
       <main className="main">
         {children || <Outlet />}
       </main>

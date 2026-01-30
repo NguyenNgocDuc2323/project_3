@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { userService } from '../../../common/services'
+import provincesData from '../../../data/provinces.json'
+import wardsData from '../../../data/wards.json'
 
 const UsersEdit = () => {
   const { id } = useParams()
@@ -9,12 +11,26 @@ const UsersEdit = () => {
     username: '',
     email: '',
     fullName: '',
-    role: 0,
+    gender: '',
+    address: '',
+    city: '',
+    state: '',
+    mobileNumber: '',
+    dateOfBirth: '',
     isActive: true
   })
+  const [selectedProvinceId, setSelectedProvinceId] = useState('')
+  const [selectedWardId, setSelectedWardId] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [errors, setErrors] = useState({})
+
+  // Filter wards based on selected province
+  const filteredWards = useMemo(() => {
+    if (!selectedProvinceId || !wardsData || !Array.isArray(wardsData)) return []
+    const filtered = wardsData.filter(ward => ward.province_id === selectedProvinceId)
+    return filtered
+  }, [selectedProvinceId])
 
   useEffect(() => {
     loadUser()
@@ -25,11 +41,32 @@ const UsersEdit = () => {
       setLoadingData(true)
       const response = await userService.getById(id)
       const user = response.data
+      
+      // Find province ID from city name
+      const province = provincesData.find(p => p.name === user.city)
+      const provinceId = province?.id || ''
+      setSelectedProvinceId(provinceId)
+
+      // Find ward ID from state name - only if we have a province selected
+      let wardId = ''
+      if (user.state && provinceId) {
+        // Filter wards by province first, then find by name
+        const provinceWards = wardsData.filter(w => w.province_id === provinceId)
+        const ward = provinceWards.find(w => w.name === user.state)
+        wardId = ward?.id || ''
+      }
+      setSelectedWardId(wardId)
+
       setForm({
         username: user.username || '',
         email: user.email || '',
         fullName: user.fullName || '',
-        role: user.role || 0,
+        gender: user.gender || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        mobileNumber: user.mobileNumber || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
         isActive: user.isActive !== false
       })
     } catch (error) {
@@ -76,7 +113,26 @@ const UsersEdit = () => {
     setErrors({})
 
     try {
-      await userService.update(id, { ...form, id: parseInt(id) })
+      // Format data similar to UpdateProfile.jsx
+      const updateData = {
+        fullName: form.fullName,
+        gender: form.gender || null,
+        address: form.address || null,
+        city: form.city || null,
+        state: form.state || null,
+        mobileNumber: form.mobileNumber || null,
+        dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : null,
+        isActive: form.isActive
+      }
+
+      console.log('Sending update request:', updateData)
+      const response = await userService.update(id, updateData)
+      console.log('Update response:', response)
+      console.log('Update response data:', response.data)
+      console.log('Update response data - FullName:', response.data?.fullName)
+      console.log('Update response data - Gender:', response.data?.gender)
+      console.log('Update response data - City:', response.data?.city)
+      console.log('Update response data - State:', response.data?.state)
       if (window.showToast) {
         window.showToast({
           severity: 'success',
@@ -87,7 +143,9 @@ const UsersEdit = () => {
       }
       navigate('/admin/users/list')
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to update user'
+      console.error('Update user error:', error)
+      console.error('Error response:', error.response)
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update user'
       setErrors({ general: errorMessage })
       if (window.showToast) {
         window.showToast({
@@ -107,6 +165,29 @@ const UsersEdit = () => {
     setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : (type === 'number' ? parseInt(value) : value)
+    }))
+  }
+
+  const handleProvinceChange = (e) => {
+    const provinceId = e.target.value
+    const province = provincesData.find(p => p.id === provinceId)
+    setSelectedProvinceId(provinceId)
+    setSelectedWardId('') // Reset ward when province changes
+    setForm(prev => ({
+      ...prev,
+      city: province?.name || '',
+      state: '' // Reset state when province changes
+    }))
+  }
+
+  const handleWardChange = (e) => {
+    const wardId = e.target.value
+    // Find ward from all wardsData (more reliable, similar to handleProvinceChange)
+    const ward = wardsData.find(w => w.id === wardId)
+    setSelectedWardId(wardId)
+    setForm(prev => ({
+      ...prev,
+      state: ward?.name || ''
     }))
   }
 
@@ -201,22 +282,118 @@ const UsersEdit = () => {
                   />
                 </div>
 
+                <div className="mb-3">
+                  <label htmlFor="gender" className="form-label">
+                    Gender
+                  </label>
+                  <select
+                    className="form-select"
+                    id="gender"
+                    name="gender"
+                    value={form.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="address" className="form-label">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="address"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="Enter address"
+                  />
+                </div>
+
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="role" className="form-label">
-                      Role
+                    <label htmlFor="city" className="form-label">
+                      City/Province
                     </label>
                     <select
                       className="form-select"
-                      id="role"
-                      name="role"
-                      value={form.role}
-                      onChange={handleChange}
+                      id="city"
+                      name="city"
+                      value={selectedProvinceId}
+                      onChange={handleProvinceChange}
                     >
-                      <option value={0}>User</option>
-                      <option value={1}>Admin</option>
+                      <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                      {provincesData.map(province => (
+                        <option key={province.id} value={province.id}>
+                          {province.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="state" className="form-label">
+                      Wards
+                    </label>
+                    <select
+                      className="form-select"
+                      id="state"
+                      name="state"
+                      value={selectedWardId || ''}
+                      onChange={handleWardChange}
+                      disabled={!selectedProvinceId}
+                    >
+                      <option value="">-- Chọn Phường/Xã --</option>
+                      {filteredWards && filteredWards.length > 0 ? (
+                        filteredWards.map(ward => (
+                          <option key={ward.id} value={ward.id}>
+                            {ward.name}
+                          </option>
+                        ))
+                      ) : selectedProvinceId ? (
+                        <option value="" disabled>Không có dữ liệu</option>
+                      ) : null}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="mobileNumber" className="form-label">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      value={form.mobileNumber}
+                      onChange={handleChange}
+                      placeholder="Enter mobile number"
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="dateOfBirth" className="form-label">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      value={form.dateOfBirth}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <hr className="my-4" />
+
+                <div className="row">
                   <div className="col-md-6 mb-3">
                     <label className="form-label d-block">Status</label>
                     <div className="form-check form-switch">

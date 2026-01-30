@@ -31,7 +31,7 @@ namespace Backend.Controllers
             var favorites = await _context.Favorites
                 .Where(item => item.UserId == userId.Value)
                 .Include(item => item.Product)
-                .ThenInclude(product => product.Category)
+                .ThenInclude(product => product!.Category)
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new FavoriteDto
                 {

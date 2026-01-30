@@ -120,6 +120,10 @@ export const userService = {
     return apiClient.get(`/admin/users/${id}`);
   },
 
+  create(data) {
+    return apiClient.post("/admin/users", data);
+  },
+
   update(id, data) {
     return apiClient.put(`/admin/users/${id}`, data);
   },
@@ -210,6 +214,9 @@ export const cartService = {
   remove(productId) {
     return apiClient.delete(`/cart/${productId}`);
   },
+  clearAll() {
+    return apiClient.delete("/cart/clear");
+  },
 };
 
 export const favoriteService = {
@@ -227,5 +234,35 @@ export const favoriteService = {
   },
   remove(productId) {
     return apiClient.delete(`/favorites/${productId}`);
+  },
+};
+
+export const profileService = {
+  get() {
+    return apiClient.get("/profile");
+  },
+  update(data) {
+    return apiClient.put("/profile", data);
+  },
+  uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+};
+
+export const orderService = {
+  create(data) {
+    return apiClient.post("/orders", data);
+  },
+  getAll() {
+    return apiClient.get("/orders");
+  },
+  getById(id) {
+    return apiClient.get(`/orders/${id}`);
   },
 };
