@@ -8,9 +8,7 @@ namespace Backend.Models
         public int Id { get; set; }
 
         [Required]
-        public int CartId { get; set; }
-
-        public Cart Cart { get; set; } = null!;
+        public int UserId { get; set; }
 
         [Required]
         public int ProductId { get; set; }

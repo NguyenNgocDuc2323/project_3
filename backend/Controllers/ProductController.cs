@@ -20,11 +20,26 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductWithFavoriteCountDto>>> GetProducts([FromQuery] int? categoryId = null, [FromQuery] bool? featured = null)
         {
-            var products = await BuildProductQuery()
+            var productQuery = _context.Products
                 .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
-                .Where(p => !featured.HasValue || !featured.Value || p.IsFeatured)
+                .Where(p => !featured.HasValue || !featured.Value || p.IsFeatured);
+
+            var products = await BuildProductQuery(productQuery)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
+
+            // Calculate FavoriteCount for each product
+            var productIds = products.Select(p => p.Id).ToList();
+            var favoriteCounts = await _context.Favorites
+                .Where(f => productIds.Contains(f.ProductId))
+                .GroupBy(f => f.ProductId)
+                .Select(g => new { ProductId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.ProductId, x => x.Count);
+
+            foreach (var product in products)
+            {
+                product.FavoriteCount = favoriteCounts.GetValueOrDefault(product.Id, 0);
+            }
 
             return Ok(products);
         }
@@ -46,6 +61,13 @@ namespace Backend.Controllers
             var productDto = await BuildProductQuery()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
+            if (productDto != null)
+            {
+                // Calculate FavoriteCount
+                productDto.FavoriteCount = await _context.Favorites
+                    .CountAsync(f => f.ProductId == id);
+            }
+
             return Ok(productDto);
         }
 
@@ -58,12 +80,27 @@ namespace Backend.Controllers
                 .Take(limit)
                 .ToListAsync();
 
+            // Calculate FavoriteCount for each product
+            var productIds = products.Select(p => p.Id).ToList();
+            var favoriteCounts = await _context.Favorites
+                .Where(f => productIds.Contains(f.ProductId))
+                .GroupBy(f => f.ProductId)
+                .Select(g => new { ProductId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.ProductId, x => x.Count);
+
+            foreach (var product in products)
+            {
+                product.FavoriteCount = favoriteCounts.GetValueOrDefault(product.Id, 0);
+            }
+
             return Ok(products);
         }
 
-        private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery()
+        private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery(IQueryable<Product>? baseQuery = null)
         {
-            return _context.Products
+            var query = baseQuery ?? _context.Products;
+            
+            return query
                 .Include(p => p.Category)
                 .Include(p => p.Material)
                 .Include(p => p.MetalColor)
@@ -106,7 +143,7 @@ namespace Backend.Controllers
                     Category = p.Category,
                     IsFeatured = p.IsFeatured,
                     CreatedAt = p.CreatedAt,
-                    FavoriteCount = _context.Favorites.Count(f => f.ProductId == p.Id),
+                    FavoriteCount = 0, // Will be calculated separately
                     Images = p.ProductImages
                         .OrderBy(img => img.SortOrder)
                         .Select(img => img.ImageUrl)

@@ -29,10 +29,9 @@ namespace Backend.Controllers
             }
 
             var items = await _context.CartItems
-                .Include(item => item.Cart)
                 .Include(item => item.Product)
                 .ThenInclude(product => product!.Category)
-                .Where(item => item.Cart.UserId == userId.Value)
+                .Where(item => item.UserId == userId.Value)
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new CartItemDto
                 {
@@ -57,10 +56,8 @@ namespace Backend.Controllers
             }
 
             var count = await _context.CartItems
-                .Include(item => item.Cart)
-                .Where(item => item.Cart.UserId == userId.Value)
-                .Select(item => (int?)item.Quantity)
-                .SumAsync() ?? 0;
+                .Where(item => item.UserId == userId.Value)
+                .SumAsync(item => (int?)item.Quantity) ?? 0;
 
             return Ok(new CartCountDto { Count = count });
         }
@@ -75,8 +72,7 @@ namespace Backend.Controllers
             }
 
             var exists = await _context.CartItems
-                .Include(item => item.Cart)
-                .AnyAsync(item => item.Cart.UserId == userId.Value && item.ProductId == productId);
+                .AnyAsync(item => item.UserId == userId.Value && item.ProductId == productId);
 
             return Ok(new CartContainsDto { InCart = exists });
         }
@@ -84,75 +80,74 @@ namespace Backend.Controllers
         [HttpPost("add")]
         public async Task<ActionResult<CartItemDto>> AddToCart([FromBody] CartItemRequest request)
         {
-            if (request.ProductId <= 0)
+            try
             {
-                return BadRequest("ProductId is required.");
-            }
-
-            var userId = GetUserId();
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            var productExists = await _context.Products.AnyAsync(product => product.Id == request.ProductId);
-            if (!productExists)
-            {
-                return NotFound("Product not found.");
-            }
-
-            var quantityToAdd = request.Quantity > 0 ? request.Quantity : 1;
-
-            // Get or create cart for user
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
-            
-            if (cart == null)
-            {
-                cart = new Cart
+                if (request.ProductId <= 0)
                 {
-                    UserId = userId.Value,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.Carts.Add(cart);
+                    return BadRequest("ProductId is required.");
+                }
+
+                var userId = GetUserId();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var productExists = await _context.Products.AnyAsync(product => product.Id == request.ProductId);
+                if (!productExists)
+                {
+                    return NotFound("Product not found.");
+                }
+
+                var quantityToAdd = request.Quantity > 0 ? request.Quantity : 1;
+
+                var existingItem = await _context.CartItems
+                    .FirstOrDefaultAsync(item => item.UserId == userId.Value && item.ProductId == request.ProductId);
+
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += quantityToAdd;
+                    existingItem.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    existingItem = new CartItem
+                    {
+                        UserId = userId.Value,
+                        ProductId = request.ProductId,
+                        Quantity = quantityToAdd,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.CartItems.Add(existingItem);
+                }
+
                 await _context.SaveChangesAsync();
-            }
 
-            var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(item => item.CartId == cart.Id && item.ProductId == request.ProductId);
+                var itemWithProduct = await _context.CartItems
+                    .Include(item => item.Product)
+                    .ThenInclude(product => product!.Category)
+                    .FirstAsync(item => item.Id == existingItem.Id);
 
-            if (existingItem != null)
-            {
-                existingItem.Quantity += quantityToAdd;
-                existingItem.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                existingItem = new CartItem
+                return Ok(new CartItemDto
                 {
-                    CartId = cart.Id,
-                    ProductId = request.ProductId,
-                    Quantity = quantityToAdd,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.CartItems.Add(existingItem);
+                    Id = itemWithProduct.Id,
+                    ProductId = itemWithProduct.ProductId,
+                    Quantity = itemWithProduct.Quantity,
+                    CreatedAt = itemWithProduct.CreatedAt,
+                    Product = itemWithProduct.Product
+                });
             }
-
-            await _context.SaveChangesAsync();
-
-            var itemWithProduct = await _context.CartItems
-                .Include(item => item.Product)
-                .ThenInclude(product => product!.Category)
-                .FirstAsync(item => item.Id == existingItem.Id);
-
-            return Ok(new CartItemDto
+            catch (Exception ex)
             {
-                Id = itemWithProduct.Id,
-                ProductId = itemWithProduct.ProductId,
-                Quantity = itemWithProduct.Quantity,
-                CreatedAt = itemWithProduct.CreatedAt,
-                Product = itemWithProduct.Product
-            });
+                // Log the full exception for debugging
+                Console.WriteLine($"Error in AddToCart: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, new { message = "An error occurred while adding item to cart", error = ex.Message });
+            }
         }
 
         [HttpPut("{productId}")]
@@ -164,16 +159,8 @@ namespace Backend.Controllers
                 return Unauthorized();
             }
 
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
-            
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
             var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(item => item.CartId == cart.Id && item.ProductId == productId);
+                .FirstOrDefaultAsync(item => item.UserId == userId.Value && item.ProductId == productId);
 
             if (existingItem == null)
             {
@@ -203,16 +190,8 @@ namespace Backend.Controllers
                 return Unauthorized();
             }
 
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
-            
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
             var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(item => item.CartId == cart.Id && item.ProductId == productId);
+                .FirstOrDefaultAsync(item => item.UserId == userId.Value && item.ProductId == productId);
 
             if (existingItem == null)
             {
@@ -234,16 +213,8 @@ namespace Backend.Controllers
                 return Unauthorized();
             }
 
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
-            
-            if (cart == null)
-            {
-                return NoContent();
-            }
-
             var cartItems = await _context.CartItems
-                .Where(item => item.CartId == cart.Id)
+                .Where(item => item.UserId == userId.Value)
                 .ToListAsync();
 
             _context.CartItems.RemoveRange(cartItems);

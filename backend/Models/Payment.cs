@@ -38,7 +38,5 @@ namespace Backend.Models
         public DateTime? UpdatedAt { get; set; }
 
         public Order? Order { get; set; }
-
-        public User? User { get; set; }
     }
 }

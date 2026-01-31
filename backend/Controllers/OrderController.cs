@@ -23,30 +23,24 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderRequest request)
         {
-            var userId = GetUserId();
-            if (userId == null)
+            try
             {
-                return Unauthorized();
-            }
+                var userId = GetUserId();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
 
-            // Get cart items
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId.Value);
-            
-            if (cart == null)
-            {
-                return BadRequest(new { message = "Cart is empty" });
-            }
-
-            var cartItems = await _context.CartItems
-                .Include(ci => ci.Product)
-                .Where(ci => ci.CartId == cart.Id)
-                .ToListAsync();
-
-            if (cartItems == null || cartItems.Count == 0)
-            {
-                return BadRequest(new { message = "Cart is empty" });
-            }
+                // Get cart items
+                var cartItems = await _context.CartItems
+                    .Include(ci => ci.Product)
+                    .Where(ci => ci.UserId == userId.Value)
+                    .ToListAsync();
+                
+                if (cartItems == null || cartItems.Count == 0)
+                {
+                    return BadRequest(new { message = "Cart is empty" });
+                }
 
             // Calculate totals
             decimal subtotal = 0;
@@ -117,17 +111,29 @@ namespace Backend.Controllers
                 paymentUrl = $"/payment/vnpay/{order.Id}";
             }
 
-            return Ok(new OrderDto
+                return Ok(new OrderDto
+                {
+                    Id = order.Id,
+                    Status = order.Status,
+                    Subtotal = order.Subtotal,
+                    Total = order.Total,
+                    ShippingAddress = order.ShippingAddress,
+                    PaymentMethod = order.PaymentMethod,
+                    CreatedAt = order.CreatedAt,
+                    PaymentUrl = paymentUrl
+                });
+            }
+            catch (Exception ex)
             {
-                Id = order.Id,
-                Status = order.Status,
-                Subtotal = order.Subtotal,
-                Total = order.Total,
-                ShippingAddress = order.ShippingAddress,
-                PaymentMethod = order.PaymentMethod,
-                CreatedAt = order.CreatedAt,
-                PaymentUrl = paymentUrl
-            });
+                // Log the full exception details
+                Console.WriteLine($"Error in CreateOrder: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, new { message = "Error creating order", error = ex.Message, innerError = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet]
