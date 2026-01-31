@@ -47,13 +47,40 @@ namespace Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductWithFavoriteCountDto>> GetProduct(int id)
         {
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
+            try
             {
-                return NotFound();
+                // Check if product exists and update views without loading IsBestSeller
+                var productExists = await _context.Products
+                    .Where(p => p.Id == id)
+                    .Select(p => new { p.Id, p.Views })
+                    .FirstOrDefaultAsync();
+
+                if (productExists == null)
+                {
+                    return NotFound();
+                }
+
+                // Update views
+                await _context.Products
+                    .Where(p => p.Id == id)
+                    .ExecuteUpdateAsync(p => p.SetProperty(x => x.Views, x => x.Views + 1));
+
+                // Get product DTO
+                var productDto = await BuildProductQuery()
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (productDto == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(productDto);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while loading the product.", error = ex.Message });
+            }
+<<<<<<< Updated upstream
 
             product.Views++;
             await _context.SaveChangesAsync();
@@ -69,6 +96,8 @@ namespace Backend.Controllers
             }
 
             return Ok(productDto);
+=======
+>>>>>>> Stashed changes
         }
 
         [HttpGet("popular")]
@@ -98,6 +127,7 @@ namespace Backend.Controllers
 
         private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery(IQueryable<Product>? baseQuery = null)
         {
+<<<<<<< Updated upstream
             var query = baseQuery ?? _context.Products;
             
             return query
@@ -107,6 +137,9 @@ namespace Backend.Controllers
                 .Include(p => p.ProductImages)
                 .Include(p => p.ProductSizes)
                 .ThenInclude(ps => ps.Size)
+=======
+            return _context.Products
+>>>>>>> Stashed changes
                 .AsNoTracking()
                 .Select(p => new ProductWithFavoriteCountDto
                 {
@@ -140,7 +173,12 @@ namespace Backend.Controllers
                     Views = p.Views,
                     Likes = p.Likes,
                     CategoryId = p.CategoryId,
-                    Category = p.Category,
+                    Category = p.Category != null ? new CategoryDto
+                    {
+                        Id = p.Category.Id,
+                        Name = p.Category.Name,
+                        Description = p.Category.Description
+                    } : null,
                     IsFeatured = p.IsFeatured,
                     CreatedAt = p.CreatedAt,
                     FavoriteCount = 0, // Will be calculated separately
@@ -172,7 +210,7 @@ namespace Backend.Controllers
             public int Views { get; set; }
             public int Likes { get; set; }
             public int? CategoryId { get; set; }
-            public Category? Category { get; set; }
+            public CategoryDto? Category { get; set; }
             public bool IsFeatured { get; set; }
             public DateTime CreatedAt { get; set; }
             public int FavoriteCount { get; set; }
@@ -183,6 +221,13 @@ namespace Backend.Controllers
         {
             public string Name { get; set; } = string.Empty;
             public decimal PriceMultiplier { get; set; }
+        }
+
+        public class CategoryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string? Description { get; set; }
         }
 
         [HttpPost]

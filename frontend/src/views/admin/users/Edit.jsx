@@ -12,18 +12,38 @@ const UsersEdit = () => {
     email: '',
     fullName: '',
     gender: '',
+<<<<<<< Updated upstream
+=======
+    role: 0,
+    isActive: true,
+    avatarUrl: '',
+>>>>>>> Stashed changes
     address: '',
     city: '',
     state: '',
     mobileNumber: '',
+<<<<<<< Updated upstream
     dateOfBirth: '',
     isActive: true
+=======
+    dateOfBirth: ''
+>>>>>>> Stashed changes
   })
   const [selectedProvinceId, setSelectedProvinceId] = useState('')
   const [selectedWardId, setSelectedWardId] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [errors, setErrors] = useState({})
+  const [provinces, setProvinces] = useState([])
+  const [wards, setWards] = useState([])
+  const [filteredWards, setFilteredWards] = useState([])
+  const [selectedProvinceId, setSelectedProvinceId] = useState('')
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [passwordErrors, setPasswordErrors] = useState({})
+  const [changingPassword, setChangingPassword] = useState(false)
 
   // Filter wards based on selected province
   const filteredWards = useMemo(() => {
@@ -34,7 +54,36 @@ const UsersEdit = () => {
 
   useEffect(() => {
     loadUser()
+    loadProvincesAndWards()
   }, [id])
+
+  useEffect(() => {
+    if (selectedProvinceId && wards.length > 0) {
+      const filtered = wards.filter(ward => ward.province_id === selectedProvinceId)
+      setFilteredWards(filtered)
+      // Reset ward selection when province changes
+      if (form.state && !filtered.find(w => w.name === form.state)) {
+        setForm(prev => ({ ...prev, state: '' }))
+      }
+    } else {
+      setFilteredWards([])
+    }
+  }, [selectedProvinceId, wards])
+
+  const loadProvincesAndWards = async () => {
+    try {
+      const [provincesRes, wardsRes] = await Promise.all([
+        fetch('/provinces.json'),
+        fetch('/wards.json')
+      ])
+      const provincesData = await provincesRes.json()
+      const wardsData = await wardsRes.json()
+      setProvinces(provincesData)
+      setWards(wardsData)
+    } catch (error) {
+      console.error('Error loading provinces/wards:', error)
+    }
+  }
 
   const loadUser = async () => {
     try {
@@ -62,13 +111,31 @@ const UsersEdit = () => {
         email: user.email || '',
         fullName: user.fullName || '',
         gender: user.gender || '',
+<<<<<<< Updated upstream
+=======
+        role: user.role || 0,
+        isActive: user.isActive !== false,
+        avatarUrl: user.avatarUrl || '',
+>>>>>>> Stashed changes
         address: user.address || '',
         city: user.city || '',
         state: user.state || '',
         mobileNumber: user.mobileNumber || '',
+<<<<<<< Updated upstream
         dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
         isActive: user.isActive !== false
+=======
+        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : ''
+>>>>>>> Stashed changes
       })
+      
+      // Set selected province if city matches a province name
+      if (user.city && provinces.length > 0) {
+        const matchedProvince = provinces.find(p => p.name === user.city)
+        if (matchedProvince) {
+          setSelectedProvinceId(matchedProvince.id)
+        }
+      }
     } catch (error) {
       console.error('Error loading user:', error)
       if (window.showToast) {
@@ -84,6 +151,16 @@ const UsersEdit = () => {
       setLoadingData(false)
     }
   }
+
+  useEffect(() => {
+    // Set selected province when provinces are loaded and user has city
+    if (provinces.length > 0 && form.city) {
+      const matchedProvince = provinces.find(p => p.name === form.city)
+      if (matchedProvince && !selectedProvinceId) {
+        setSelectedProvinceId(matchedProvince.id)
+      }
+    }
+  }, [provinces, form.city])
 
   const validateForm = () => {
     const newErrors = {}
@@ -113,14 +190,24 @@ const UsersEdit = () => {
     setErrors({})
 
     try {
+<<<<<<< Updated upstream
       // Format data similar to UpdateProfile.jsx
       const updateData = {
         fullName: form.fullName,
         gender: form.gender || null,
+=======
+      // Clean up empty strings to null for optional fields
+      const cleanedData = {
+        ...form,
+        id: parseInt(id),
+        gender: form.gender || null,
+        avatarUrl: form.avatarUrl || null,
+>>>>>>> Stashed changes
         address: form.address || null,
         city: form.city || null,
         state: form.state || null,
         mobileNumber: form.mobileNumber || null,
+<<<<<<< Updated upstream
         dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : null,
         isActive: form.isActive
       }
@@ -133,6 +220,12 @@ const UsersEdit = () => {
       console.log('Update response data - Gender:', response.data?.gender)
       console.log('Update response data - City:', response.data?.city)
       console.log('Update response data - State:', response.data?.state)
+=======
+        dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth).toISOString() : null,
+        fullName: form.fullName || null
+      }
+      await userService.update(id, cleanedData)
+>>>>>>> Stashed changes
       if (window.showToast) {
         window.showToast({
           severity: 'success',
@@ -170,6 +263,7 @@ const UsersEdit = () => {
 
   const handleProvinceChange = (e) => {
     const provinceId = e.target.value
+<<<<<<< Updated upstream
     const province = provincesData.find(p => p.id === provinceId)
     setSelectedProvinceId(provinceId)
     setSelectedWardId('') // Reset ward when province changes
@@ -177,10 +271,19 @@ const UsersEdit = () => {
       ...prev,
       city: province?.name || '',
       state: '' // Reset state when province changes
+=======
+    setSelectedProvinceId(provinceId)
+    const selectedProvince = provinces.find(p => p.id === provinceId)
+    setForm(prev => ({
+      ...prev,
+      city: selectedProvince ? selectedProvince.name : '',
+      state: '' // Reset ward when province changes
+>>>>>>> Stashed changes
     }))
   }
 
   const handleWardChange = (e) => {
+<<<<<<< Updated upstream
     const wardId = e.target.value
     // Find ward from all wardsData (more reliable, similar to handleProvinceChange)
     const ward = wardsData.find(w => w.id === wardId)
@@ -191,6 +294,89 @@ const UsersEdit = () => {
     }))
   }
 
+=======
+    const wardName = e.target.value
+    setForm(prev => ({
+      ...prev,
+      state: wardName
+    }))
+  }
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    if (passwordErrors[name]) {
+      setPasswordErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
+  }
+
+  const validatePasswordForm = () => {
+    const newErrors = {}
+    
+    if (!passwordData.newPassword || !passwordData.newPassword.trim()) {
+      newErrors.newPassword = 'New password is required'
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'New password must be at least 6 characters'
+    }
+
+    if (!passwordData.confirmPassword || !passwordData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your new password'
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+
+    setPasswordErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validatePasswordForm()) {
+      return
+    }
+
+    try {
+      setChangingPassword(true)
+      await userService.changePassword(id, passwordData.newPassword)
+      
+      // Reset password form
+      setPasswordData({
+        newPassword: '',
+        confirmPassword: ''
+      })
+
+      if (window.showToast) {
+        window.showToast({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Password changed successfully',
+          life: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to change password'
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 4000
+        })
+      }
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+>>>>>>> Stashed changes
   if (loadingData) {
     return (
       <div className="container my-5">
@@ -237,16 +423,13 @@ const UsersEdit = () => {
                   </label>
                   <input
                     type="text"
-                    className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+                    className="form-control"
                     id="username"
                     name="username"
                     value={form.username}
-                    onChange={handleChange}
-                    placeholder="Enter username"
+                    disabled
                   />
-                  {errors.username && (
-                    <div className="invalid-feedback">{errors.username}</div>
-                  )}
+                  <small className="form-text text-muted">Username cannot be changed</small>
                 </div>
 
                 <div className="mb-3">
@@ -255,30 +438,149 @@ const UsersEdit = () => {
                   </label>
                   <input
                     type="email"
-                    className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                    className="form-control"
                     id="email"
                     name="email"
                     value={form.email}
-                    onChange={handleChange}
-                    placeholder="Enter email"
+                    disabled
                   />
-                  {errors.email && (
-                    <div className="invalid-feedback">{errors.email}</div>
-                  )}
+                  <small className="form-text text-muted">Email cannot be changed</small>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="fullName" className="form-label">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="fullName"
+                      name="fullName"
+                      value={form.fullName}
+                      onChange={handleChange}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="gender" className="form-label">
+                      Gender
+                    </label>
+                    <select
+                      className="form-select"
+                      id="gender"
+                      name="gender"
+                      value={form.gender}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="dateOfBirth" className="form-label">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      value={form.dateOfBirth}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="mobileNumber" className="form-label">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      value={form.mobileNumber}
+                      onChange={handleChange}
+                      placeholder="e.g., 0123456789"
+                    />
+                  </div>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="fullName" className="form-label">
-                    Full Name
+                  <label htmlFor="address" className="form-label">
+                    Address
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    id="fullName"
-                    name="fullName"
-                    value={form.fullName}
+                    id="address"
+                    name="address"
+                    value={form.address}
                     onChange={handleChange}
-                    placeholder="Enter full name"
+                    placeholder="Street address"
+                  />
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="province" className="form-label">
+                      <i className="bi bi-building me-2"></i>City/ Province
+                    </label>
+                    <select
+                      className="form-control"
+                      id="province"
+                      value={selectedProvinceId}
+                      onChange={handleProvinceChange}
+                    >
+                      <option value="">Select Province</option>
+                      {provinces.map(province => (
+                        <option key={province.id} value={province.id}>
+                          {province.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label htmlFor="ward" className="form-label">
+                      <i className="bi bi-geo me-2"></i>Ward/ Commune
+                    </label>
+                    <select
+                      className="form-control"
+                      id="ward"
+                      value={form.state}
+                      onChange={handleWardChange}
+                      disabled={!selectedProvinceId}
+                    >
+                      <option value="">Select Ward</option>
+                      {filteredWards.map(ward => (
+                        <option key={ward.id} value={ward.name}>
+                          {ward.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="avatarUrl" className="form-label">
+                    Avatar URL
+                  </label>
+                  <input
+                    type="url"
+                    className="form-control"
+                    id="avatarUrl"
+                    name="avatarUrl"
+                    value={form.avatarUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/avatar.jpg"
                   />
                 </div>
 
@@ -449,6 +751,75 @@ const UsersEdit = () => {
                   </button>
                 </div>
               </form>
+
+              {/* Change Password Section */}
+              <hr className="my-4" />
+              <div className="card border-warning">
+                <div className="card-header bg-warning text-dark">
+                  <h5 className="mb-0">
+                    <i className="bi bi-key me-2"></i>
+                    Change Password
+                  </h5>
+                </div>
+                <div className="card-body">
+                  <form onSubmit={handlePasswordSubmit}>
+                    <div className="mb-3">
+                      <label htmlFor="newPassword" className="form-label">
+                        <i className="bi bi-lock-fill me-2"></i>New Password <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        className={`form-control ${passwordErrors.newPassword ? 'is-invalid' : ''}`}
+                        id="newPassword"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        required
+                      />
+                      {passwordErrors.newPassword && (
+                        <div className="invalid-feedback">{passwordErrors.newPassword}</div>
+                      )}
+                      <small className="form-text text-muted">Password must be at least 6 characters</small>
+                    </div>
+
+                    <div className="mb-3">
+                      <label htmlFor="confirmPassword" className="form-label">
+                        <i className="bi bi-lock-fill me-2"></i>Confirm New Password <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        className={`form-control ${passwordErrors.confirmPassword ? 'is-invalid' : ''}`}
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        required
+                      />
+                      {passwordErrors.confirmPassword && (
+                        <div className="invalid-feedback">{passwordErrors.confirmPassword}</div>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn btn-warning"
+                      disabled={changingPassword}
+                    >
+                      {changingPassword ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Changing...
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-key-fill me-2"></i>
+                          Change Password
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>

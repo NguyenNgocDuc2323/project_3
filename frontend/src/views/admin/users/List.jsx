@@ -99,8 +99,13 @@ const UsersList = () => {
             className="btn btn-primary"
             onClick={() => navigate('/admin/users/create')}
           >
+<<<<<<< Updated upstream
             <i className="bi bi-plus-circle me-2"></i>
             Create User
+=======
+            <i className="bi bi-person-plus me-2"></i>
+            Create New User
+>>>>>>> Stashed changes
           </button>
         </div>
 

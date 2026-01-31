@@ -21,5 +21,10 @@
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Exclude uploads folder from being copied (files are created at runtime) -->
+    <Content Remove="wwwroot\uploads\**\*" />
+  </ItemGroup>
+
 </Project>
 

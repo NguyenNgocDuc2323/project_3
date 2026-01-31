@@ -128,6 +128,12 @@ export const userService = {
     return apiClient.put(`/admin/users/${id}`, data);
   },
 
+  changePassword(id, newPassword) {
+    return apiClient.post(`/admin/users/${id}/change-password`, {
+      newPassword
+    });
+  },
+
   delete(id) {
     return apiClient.delete(`/admin/users/${id}`);
   },
@@ -249,6 +255,7 @@ export const profileService = {
     formData.append("file", file);
     return apiClient.post("/profile/avatar", formData, {
       headers: {
+<<<<<<< Updated upstream
         "Content-Type": "multipart/form-data",
       },
     });
@@ -258,11 +265,34 @@ export const profileService = {
 export const orderService = {
   create(data) {
     return apiClient.post("/orders", data);
+=======
+        // Don't set Content-Type - let axios set it automatically with boundary
+        // "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  changePassword(oldPassword, newPassword) {
+    return apiClient.post("/profile/change-password", {
+      oldPassword,
+      newPassword
+    });
+  },
+};
+
+export const orderService = {
+  create(orderData) {
+    return apiClient.post("/orders", orderData);
+>>>>>>> Stashed changes
   },
   getAll() {
     return apiClient.get("/orders");
   },
+<<<<<<< Updated upstream
   getById(id) {
     return apiClient.get(`/orders/${id}`);
+=======
+  getById(orderId) {
+    return apiClient.get(`/orders/${orderId}`);
+>>>>>>> Stashed changes
   },
 };

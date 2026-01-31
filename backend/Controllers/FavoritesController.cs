@@ -30,15 +30,40 @@ namespace Backend.Controllers
 
             var favorites = await _context.Favorites
                 .Where(item => item.UserId == userId.Value)
+<<<<<<< Updated upstream
                 .Include(item => item.Product)
                 .ThenInclude(product => product!.Category)
+=======
+>>>>>>> Stashed changes
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new FavoriteDto
                 {
                     Id = item.Id,
                     ProductId = item.ProductId,
                     CreatedAt = item.CreatedAt,
-                    Product = item.Product
+                    Product = item.Product != null ? new ProductDto
+                    {
+                        Id = item.Product.Id,
+                        Name = item.Product.Name,
+                        StyleCode = item.Product.StyleCode,
+                        ProductType = item.Product.ProductType,
+                        Brand = item.Product.Brand,
+                        GoldCarat = item.Product.GoldCarat,
+                        MRP = item.Product.MRP,
+                        OriginalPrice = item.Product.OriginalPrice,
+                        ImageUrl = item.Product.ImageUrl,
+                        Views = item.Product.Views,
+                        Likes = item.Product.Likes,
+                        CategoryId = item.Product.CategoryId,
+                        Category = item.Product.Category != null ? new CategoryDto
+                        {
+                            Id = item.Product.Category.Id,
+                            Name = item.Product.Category.Name,
+                            Description = item.Product.Category.Description
+                        } : null,
+                        IsFeatured = item.Product.IsFeatured,
+                        CreatedAt = item.Product.CreatedAt
+                    } : null
                 })
                 .ToListAsync();
 
@@ -153,7 +178,33 @@ namespace Backend.Controllers
             public int Id { get; set; }
             public int ProductId { get; set; }
             public DateTime CreatedAt { get; set; }
-            public Product? Product { get; set; }
+            public ProductDto? Product { get; set; }
+        }
+
+        public class ProductDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string StyleCode { get; set; } = string.Empty;
+            public string ProductType { get; set; } = string.Empty;
+            public string Brand { get; set; } = string.Empty;
+            public string GoldCarat { get; set; } = string.Empty;
+            public decimal MRP { get; set; }
+            public decimal OriginalPrice { get; set; }
+            public string ImageUrl { get; set; } = string.Empty;
+            public int Views { get; set; }
+            public int Likes { get; set; }
+            public int? CategoryId { get; set; }
+            public CategoryDto? Category { get; set; }
+            public bool IsFeatured { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
+        public class CategoryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string? Description { get; set; }
         }
 
         public class FavoriteContainsDto

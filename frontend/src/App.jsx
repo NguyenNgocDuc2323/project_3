@@ -19,7 +19,11 @@ import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
 import Profile from './views/user/Profile'
+<<<<<<< Updated upstream
 import UpdateProfile from './views/user/UpdateProfile'
+=======
+import EditProfile from './views/user/EditProfile'
+>>>>>>> Stashed changes
 import Cart from './views/user/Cart'
 import Checkout from './views/user/Checkout'
 import ThankYou from './views/user/ThankYou'
@@ -128,10 +132,17 @@ function App() {
           </ProtectedRoute>
         } />
 
+<<<<<<< Updated upstream
         <Route path={ROUTES.UPDATE_PROFILE} element={
           <ProtectedRoute>
             <DefaultLayout>
               <UpdateProfile />
+=======
+        <Route path={ROUTES.PROFILE_EDIT} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <EditProfile />
+>>>>>>> Stashed changes
             </DefaultLayout>
           </ProtectedRoute>
         } />

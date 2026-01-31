@@ -20,6 +20,12 @@ namespace Backend.Models
         [StringLength(100)]
         public string? FullName { get; set; }
 
+<<<<<<< Updated upstream
+=======
+        [StringLength(10)]
+        public string? Gender { get; set; }
+
+>>>>>>> Stashed changes
         [StringLength(500)]
         public string? AvatarUrl { get; set; }
 
@@ -37,9 +43,12 @@ namespace Backend.Models
 
         public DateTime? DateOfBirth { get; set; }
 
+<<<<<<< Updated upstream
         [StringLength(10)]
         public string? Gender { get; set; }
 
+=======
+>>>>>>> Stashed changes
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

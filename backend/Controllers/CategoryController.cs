@@ -29,20 +29,61 @@ namespace Backend.Controllers
         [HttpGet("tree")]
         public async Task<ActionResult<IEnumerable<CategoryTreeDto>>> GetCategoryTree()
         {
-            var categories = await _context.Categories
-                .AsNoTracking()
-                .Include(c => c.Products)
-                .Include(c => c.Children)
-                .ThenInclude(c => c.Products)
-                .OrderBy(c => c.Name)
-                .ToListAsync();
+            try
+            {
+                // Load all categories first
+                var allCategories = await _context.Categories
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
 
-            var parentCategories = categories
-                .Where(c => c.ParentCategoryId == null)
-                .Select(ToTreeDto)
-                .ToList();
+                if (!allCategories.Any())
+                {
+                    return Ok(new List<CategoryTreeDto>());
+                }
 
-            return Ok(parentCategories);
+                // Load products separately to avoid complex joins
+                var categoryIds = allCategories.Select(c => c.Id).ToList();
+                var products = await _context.Products
+                    .AsNoTracking()
+                    .Where(p => p.CategoryId != null && categoryIds.Contains(p.CategoryId.Value))
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Name,
+                        p.ProductType,
+                        p.MRP,
+                        p.ImageUrl,
+                        p.CategoryId
+                    })
+                    .ToListAsync();
+
+                // Group products by category
+                var productsByCategory = products
+                    .GroupBy(p => p.CategoryId!.Value)
+                    .ToDictionary(g => g.Key, g => g.Select(p => new CategoryProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        ProductType = p.ProductType,
+                        MRP = p.MRP,
+                        ImageUrl = p.ImageUrl
+                    }).OrderBy(p => p.Name).ToList());
+
+                // Build tree structure
+                var parentCategories = allCategories
+                    .Where(c => c.ParentCategoryId == null)
+                    .Select(c => BuildTreeDto(c, allCategories, productsByCategory))
+                    .ToList();
+
+                return Ok(parentCategories);
+            }
+            catch (Exception)
+            {
+                // Log error and return empty tree to prevent frontend crash
+                // In production, you might want to log this to a logging service
+                return Ok(new List<CategoryTreeDto>());
+            }
         }
 
         [HttpGet("{id}")]
@@ -112,30 +153,28 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        private static CategoryTreeDto ToTreeDto(Category category)
+        private static CategoryTreeDto BuildTreeDto(
+            Category category,
+            List<Category> allCategories,
+            Dictionary<int, List<CategoryProductDto>> productsByCategory)
         {
-            return new CategoryTreeDto
+            var dto = new CategoryTreeDto
             {
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
                 ParentCategoryId = category.ParentCategoryId,
-                Products = category.Products
-                    .OrderBy(p => p.Name)
-                    .Select(p => new CategoryProductDto
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        ProductType = p.ProductType,
-                        MRP = p.MRP,
-                        ImageUrl = p.ImageUrl
-                    })
-                    .ToList(),
-                Children = category.Children
+                Products = productsByCategory.ContainsKey(category.Id)
+                    ? productsByCategory[category.Id]
+                    : new List<CategoryProductDto>(),
+                Children = allCategories
+                    .Where(c => c.ParentCategoryId == category.Id)
                     .OrderBy(c => c.Name)
-                    .Select(ToTreeDto)
+                    .Select(c => BuildTreeDto(c, allCategories, productsByCategory))
                     .ToList()
             };
+
+            return dto;
         }
 
         public class CategoryTreeDto

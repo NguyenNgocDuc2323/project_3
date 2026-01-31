@@ -22,9 +22,9 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CartItemDto>>> GetCartItems()
         {
-            var userId = GetUserId();
-            if (userId == null)
+            try
             {
+<<<<<<< Updated upstream
                 return Unauthorized();
             }
 
@@ -34,16 +34,55 @@ namespace Backend.Controllers
                 .Where(item => item.UserId == userId.Value)
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new CartItemDto
+=======
+                var userId = GetUserId();
+                if (userId == null)
+>>>>>>> Stashed changes
                 {
-                    Id = item.Id,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    CreatedAt = item.CreatedAt,
-                    Product = item.Product
-                })
-                .ToListAsync();
+                    return Unauthorized();
+                }
 
-            return Ok(items);
+                var items = await _context.CartItems
+                    .Where(item => item.UserId == userId.Value)
+                    .OrderByDescending(item => item.CreatedAt)
+                    .Select(item => new CartItemDto
+                    {
+                        Id = item.Id,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        CreatedAt = item.CreatedAt,
+                        Product = item.Product != null ? new ProductDto
+                        {
+                            Id = item.Product.Id,
+                            Name = item.Product.Name,
+                            StyleCode = item.Product.StyleCode,
+                            ProductType = item.Product.ProductType,
+                            Brand = item.Product.Brand,
+                            GoldCarat = item.Product.GoldCarat,
+                            MRP = item.Product.MRP,
+                            OriginalPrice = item.Product.OriginalPrice,
+                            ImageUrl = item.Product.ImageUrl,
+                            Views = item.Product.Views,
+                            Likes = item.Product.Likes,
+                            CategoryId = item.Product.CategoryId,
+                            Category = item.Product.Category != null ? new CategoryDto
+                            {
+                                Id = item.Product.Category.Id,
+                                Name = item.Product.Category.Name,
+                                Description = item.Product.Category.Description
+                            } : null,
+                            IsFeatured = item.Product.IsFeatured,
+                            CreatedAt = item.Product.CreatedAt
+                        } : null
+                    })
+                    .ToListAsync();
+
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while loading cart items.", error = ex.Message });
+            }
         }
 
         [HttpGet("count")]
@@ -137,6 +176,7 @@ namespace Backend.Controllers
                     Product = itemWithProduct.Product
                 });
             }
+<<<<<<< Updated upstream
             catch (Exception ex)
             {
                 // Log the full exception for debugging
@@ -148,6 +188,46 @@ namespace Backend.Controllers
                 }
                 return StatusCode(500, new { message = "An error occurred while adding item to cart", error = ex.Message });
             }
+=======
+
+            await _context.SaveChangesAsync();
+
+            var itemWithProduct = await _context.CartItems
+                .Where(item => item.Id == existingItem.Id)
+                .Select(item => new CartItemDto
+                {
+                    Id = item.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    CreatedAt = item.CreatedAt,
+                    Product = item.Product != null ? new ProductDto
+                    {
+                        Id = item.Product.Id,
+                        Name = item.Product.Name,
+                        StyleCode = item.Product.StyleCode,
+                        ProductType = item.Product.ProductType,
+                        Brand = item.Product.Brand,
+                        GoldCarat = item.Product.GoldCarat,
+                        MRP = item.Product.MRP,
+                        OriginalPrice = item.Product.OriginalPrice,
+                        ImageUrl = item.Product.ImageUrl,
+                        Views = item.Product.Views,
+                        Likes = item.Product.Likes,
+                        CategoryId = item.Product.CategoryId,
+                        Category = item.Product.Category != null ? new CategoryDto
+                        {
+                            Id = item.Product.Category.Id,
+                            Name = item.Product.Category.Name,
+                            Description = item.Product.Category.Description
+                        } : null,
+                        IsFeatured = item.Product.IsFeatured,
+                        CreatedAt = item.Product.CreatedAt
+                    } : null
+                })
+                .FirstAsync();
+
+            return Ok(itemWithProduct);
+>>>>>>> Stashed changes
         }
 
         [HttpPut("{productId}")]
@@ -251,7 +331,33 @@ namespace Backend.Controllers
             public int ProductId { get; set; }
             public int Quantity { get; set; }
             public DateTime CreatedAt { get; set; }
-            public Product? Product { get; set; }
+            public ProductDto? Product { get; set; }
+        }
+
+        public class ProductDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string StyleCode { get; set; } = string.Empty;
+            public string ProductType { get; set; } = string.Empty;
+            public string Brand { get; set; } = string.Empty;
+            public string GoldCarat { get; set; } = string.Empty;
+            public decimal MRP { get; set; }
+            public decimal OriginalPrice { get; set; }
+            public string ImageUrl { get; set; } = string.Empty;
+            public int Views { get; set; }
+            public int Likes { get; set; }
+            public int? CategoryId { get; set; }
+            public CategoryDto? Category { get; set; }
+            public bool IsFeatured { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
+        public class CategoryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string? Description { get; set; }
         }
 
         public class CartCountDto
