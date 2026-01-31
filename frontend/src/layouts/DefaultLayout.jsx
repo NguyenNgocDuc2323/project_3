@@ -13,7 +13,7 @@ const DefaultLayout = ({ children }) => {
   // Hide hero banner on these pages
   const hideHeroBannerPaths = [
     ROUTES.PROFILE,
-    ROUTES.UPDATE_PROFILE,
+    ROUTES.PROFILE_EDIT,
     ROUTES.CART,
     ROUTES.CHECKOUT,
     ROUTES.THANK_YOU

@@ -6,6 +6,7 @@ using Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Backend.Controllers
 {
@@ -15,10 +16,12 @@ namespace Backend.Controllers
     public class AdminUserController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public AdminUserController(ApplicationDbContext context)
+        public AdminUserController(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [HttpGet]
@@ -42,58 +45,6 @@ namespace Backend.Controllers
             return Ok(users);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Check if username already exists
-            var usernameExists = await _context.Users.AnyAsync(u => u.Username == request.Username);
-            if (usernameExists)
-            {
-                return BadRequest(new { message = "Username already exists" });
-            }
-
-            // Check if email already exists
-            var emailExists = await _context.Users.AnyAsync(u => u.Email == request.Email);
-            if (emailExists)
-            {
-                return BadRequest(new { message = "Email already exists" });
-            }
-
-            // Hash password
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            var user = new User
-            {
-                Username = request.Username,
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                FullName = request.FullName,
-                Role = request.Role ?? 2, // Default to user role
-                IsActive = request.IsActive ?? true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
-            {
-                user.Id,
-                user.Username,
-                user.Email,
-                user.FullName,
-                user.Role,
-                user.IsActive,
-                user.CreatedAt,
-                user.UpdatedAt
-            });
-        }
-
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -106,14 +57,6 @@ namespace Backend.Controllers
                     u.Email,
                     u.FullName,
                     u.Gender,
-<<<<<<< Updated upstream
-                    u.Address,
-                    u.City,
-                    u.State,
-                    u.MobileNumber,
-                    u.DateOfBirth,
-=======
->>>>>>> Stashed changes
                     u.Role,
                     u.IsActive,
                     u.AvatarUrl,
@@ -138,6 +81,11 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest(new { message = "Username, Email, and Password are required" });
@@ -202,7 +150,6 @@ namespace Backend.Controllers
                 return BadRequest(new { message = "Cannot modify admin user" });
             }
 
-<<<<<<< Updated upstream
             Console.WriteLine($"Updating user {id}");
             Console.WriteLine($"Request data - FullName: {request.FullName}, City: {request.City}, State: {request.State}, Gender: {request.Gender}");
             Console.WriteLine($"Current user data - FullName: {user.FullName}, City: {user.City}, State: {user.State}, Gender: {user.Gender}");
@@ -211,9 +158,6 @@ namespace Backend.Controllers
             var entry = _context.Entry(user);
             
             // Update fields - allow null/empty to clear values (similar to ProfileController)
-=======
-            // Update allowed fields (username and email cannot be changed)
->>>>>>> Stashed changes
             if (request.FullName != null)
             {
                 user.FullName = request.FullName;
@@ -224,51 +168,39 @@ namespace Backend.Controllers
             if (request.Gender != null)
             {
                 user.Gender = request.Gender;
-<<<<<<< Updated upstream
                 entry.Property(u => u.Gender).IsModified = true;
                 Console.WriteLine($"Updated Gender to: {user.Gender}");
-=======
             }
 
             if (request.AvatarUrl != null)
             {
                 user.AvatarUrl = request.AvatarUrl;
->>>>>>> Stashed changes
+                entry.Property(u => u.AvatarUrl).IsModified = true;
             }
 
             if (request.Address != null)
             {
                 user.Address = request.Address;
-<<<<<<< Updated upstream
                 entry.Property(u => u.Address).IsModified = true;
-=======
->>>>>>> Stashed changes
             }
 
             if (request.City != null)
             {
                 user.City = request.City;
-<<<<<<< Updated upstream
                 entry.Property(u => u.City).IsModified = true;
                 Console.WriteLine($"Updated City to: {user.City}");
-=======
->>>>>>> Stashed changes
             }
 
             if (request.State != null)
             {
                 user.State = request.State;
-<<<<<<< Updated upstream
                 entry.Property(u => u.State).IsModified = true;
                 Console.WriteLine($"Updated State to: {user.State}");
-=======
->>>>>>> Stashed changes
             }
 
             if (request.MobileNumber != null)
             {
                 user.MobileNumber = request.MobileNumber;
-<<<<<<< Updated upstream
                 entry.Property(u => u.MobileNumber).IsModified = true;
             }
 
@@ -278,19 +210,12 @@ namespace Backend.Controllers
                 entry.Property(u => u.DateOfBirth).IsModified = true;
             }
             // Note: If DateOfBirth is null in request, we don't change it (keep existing value)
-=======
-            }
-
-            if (request.DateOfBirth != null)
-            {
-                user.DateOfBirth = request.DateOfBirth;
-            }
 
             if (request.Role.HasValue)
             {
                 user.Role = request.Role.Value;
+                entry.Property(u => u.Role).IsModified = true;
             }
->>>>>>> Stashed changes
 
             if (request.IsActive.HasValue)
             {
@@ -337,14 +262,6 @@ namespace Backend.Controllers
                 user.Email,
                 user.FullName,
                 user.Gender,
-<<<<<<< Updated upstream
-                user.Address,
-                user.City,
-                user.State,
-                user.MobileNumber,
-                user.DateOfBirth,
-=======
->>>>>>> Stashed changes
                 user.Role,
                 user.IsActive,
                 user.AvatarUrl,
@@ -356,6 +273,73 @@ namespace Backend.Controllers
                 user.CreatedAt,
                 user.UpdatedAt
             });
+        }
+
+        [HttpPost("{id}/upload-avatar")]
+        public async Task<ActionResult<object>> UploadUserAvatar(int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "No file uploaded" });
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
+            }
+
+            if (file.Length > 5 * 1024 * 1024) // 5MB
+            {
+                return BadRequest(new { message = "File size exceeds 5MB limit" });
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var uploadsFolder = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads", "avatars");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var fileName = $"avatar_{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{fileExtension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var avatarUrl = $"/uploads/avatars/{fileName}";
+
+            // Delete old avatar if exists
+            if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/uploads/avatars/"))
+            {
+                var oldFilePath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, user.AvatarUrl.TrimStart('/'));
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                    catch
+                    {
+                        // Ignore deletion errors
+                    }
+                }
+            }
+
+            user.AvatarUrl = avatarUrl;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { avatarUrl });
         }
 
         [HttpPost("{id}/change-password")]
@@ -425,42 +409,6 @@ namespace Backend.Controllers
 
     public class CreateUserRequest
     {
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string? FullName { get; set; }
-        public string? Gender { get; set; }
-        public string? Address { get; set; }
-        public string? City { get; set; }
-        public string? State { get; set; }
-        public string? MobileNumber { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public int? Role { get; set; }
-        public bool? IsActive { get; set; }
-    }
-
-    public class UserUpdateRequest
-    {
-        public string? FullName { get; set; }
-        public string? Gender { get; set; }
-<<<<<<< Updated upstream
-=======
-        public string? AvatarUrl { get; set; }
->>>>>>> Stashed changes
-        public string? Address { get; set; }
-        public string? City { get; set; }
-        public string? State { get; set; }
-        public string? MobileNumber { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-<<<<<<< Updated upstream
-=======
-        public int? Role { get; set; }
->>>>>>> Stashed changes
-        public bool? IsActive { get; set; }
-    }
-
-    public class CreateUserRequest
-    {
         [Required]
         [StringLength(50)]
         public string Username { get; set; } = string.Empty;
@@ -477,8 +425,39 @@ namespace Backend.Controllers
         [StringLength(100)]
         public string? FullName { get; set; }
 
-        public int? Role { get; set; } // 1 = Admin, 2 = User
+        [StringLength(10)]
+        public string? Gender { get; set; }
 
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        [StringLength(50)]
+        public string? City { get; set; }
+
+        [StringLength(50)]
+        public string? State { get; set; }
+
+        [StringLength(20)]
+        public string? MobileNumber { get; set; }
+
+        public DateTime? DateOfBirth { get; set; }
+
+        public int? Role { get; set; }
+
+        public bool? IsActive { get; set; }
+    }
+
+    public class UserUpdateRequest
+    {
+        public string? FullName { get; set; }
+        public string? Gender { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? MobileNumber { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public int? Role { get; set; }
         public bool? IsActive { get; set; }
     }
 

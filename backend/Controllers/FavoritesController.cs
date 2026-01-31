@@ -30,11 +30,6 @@ namespace Backend.Controllers
 
             var favorites = await _context.Favorites
                 .Where(item => item.UserId == userId.Value)
-<<<<<<< Updated upstream
-                .Include(item => item.Product)
-                .ThenInclude(product => product!.Category)
-=======
->>>>>>> Stashed changes
                 .OrderByDescending(item => item.CreatedAt)
                 .Select(item => new FavoriteDto
                 {

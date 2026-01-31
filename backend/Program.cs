@@ -118,24 +118,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
-<<<<<<< Updated upstream
-// Serve static files for avatars from uploads folder
-var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath = "/uploads"
-});
-
-// Also serve from wwwroot if it exists
-app.UseStaticFiles();
-
-=======
 // Enable static files for uploads - serve from wwwroot
 // UseStaticFiles() by default serves from wwwroot folder (WebRootPath)
 app.UseStaticFiles();
@@ -154,7 +136,6 @@ if (!Directory.Exists(avatarsPath))
     Directory.CreateDirectory(avatarsPath);
 }
 
->>>>>>> Stashed changes
 app.UseAuthentication();
 app.UseAuthorization();
 

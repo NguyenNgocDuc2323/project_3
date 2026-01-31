@@ -24,20 +24,8 @@ namespace Backend.Controllers
         {
             try
             {
-<<<<<<< Updated upstream
-                return Unauthorized();
-            }
-
-            var items = await _context.CartItems
-                .Include(item => item.Product)
-                .ThenInclude(product => product!.Category)
-                .Where(item => item.UserId == userId.Value)
-                .OrderByDescending(item => item.CreatedAt)
-                .Select(item => new CartItemDto
-=======
                 var userId = GetUserId();
                 if (userId == null)
->>>>>>> Stashed changes
                 {
                     return Unauthorized();
                 }
@@ -77,7 +65,7 @@ namespace Backend.Controllers
                     })
                     .ToListAsync();
 
-                return Ok(items);
+                    return Ok(items);
             }
             catch (Exception ex)
             {
@@ -96,7 +84,8 @@ namespace Backend.Controllers
 
             var count = await _context.CartItems
                 .Where(item => item.UserId == userId.Value)
-                .SumAsync(item => (int?)item.Quantity) ?? 0;
+                .Select(item => (int?)item.Quantity)
+                .SumAsync() ?? 0;
 
             return Ok(new CartCountDto { Count = count });
         }
@@ -163,20 +152,41 @@ namespace Backend.Controllers
                 await _context.SaveChangesAsync();
 
                 var itemWithProduct = await _context.CartItems
-                    .Include(item => item.Product)
-                    .ThenInclude(product => product!.Category)
-                    .FirstAsync(item => item.Id == existingItem.Id);
+                    .Where(item => item.Id == existingItem.Id)
+                    .Select(item => new CartItemDto
+                    {
+                        Id = item.Id,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        CreatedAt = item.CreatedAt,
+                        Product = item.Product != null ? new ProductDto
+                        {
+                            Id = item.Product.Id,
+                            Name = item.Product.Name,
+                            StyleCode = item.Product.StyleCode,
+                            ProductType = item.Product.ProductType,
+                            Brand = item.Product.Brand,
+                            GoldCarat = item.Product.GoldCarat,
+                            MRP = item.Product.MRP,
+                            OriginalPrice = item.Product.OriginalPrice,
+                            ImageUrl = item.Product.ImageUrl,
+                            Views = item.Product.Views,
+                            Likes = item.Product.Likes,
+                            CategoryId = item.Product.CategoryId,
+                            Category = item.Product.Category != null ? new CategoryDto
+                            {
+                                Id = item.Product.Category.Id,
+                                Name = item.Product.Category.Name,
+                                Description = item.Product.Category.Description
+                            } : null,
+                            IsFeatured = item.Product.IsFeatured,
+                            CreatedAt = item.Product.CreatedAt
+                        } : null
+                    })
+                    .FirstAsync();
 
-                return Ok(new CartItemDto
-                {
-                    Id = itemWithProduct.Id,
-                    ProductId = itemWithProduct.ProductId,
-                    Quantity = itemWithProduct.Quantity,
-                    CreatedAt = itemWithProduct.CreatedAt,
-                    Product = itemWithProduct.Product
-                });
+                return Ok(itemWithProduct);
             }
-<<<<<<< Updated upstream
             catch (Exception ex)
             {
                 // Log the full exception for debugging
@@ -188,46 +198,6 @@ namespace Backend.Controllers
                 }
                 return StatusCode(500, new { message = "An error occurred while adding item to cart", error = ex.Message });
             }
-=======
-
-            await _context.SaveChangesAsync();
-
-            var itemWithProduct = await _context.CartItems
-                .Where(item => item.Id == existingItem.Id)
-                .Select(item => new CartItemDto
-                {
-                    Id = item.Id,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    CreatedAt = item.CreatedAt,
-                    Product = item.Product != null ? new ProductDto
-                    {
-                        Id = item.Product.Id,
-                        Name = item.Product.Name,
-                        StyleCode = item.Product.StyleCode,
-                        ProductType = item.Product.ProductType,
-                        Brand = item.Product.Brand,
-                        GoldCarat = item.Product.GoldCarat,
-                        MRP = item.Product.MRP,
-                        OriginalPrice = item.Product.OriginalPrice,
-                        ImageUrl = item.Product.ImageUrl,
-                        Views = item.Product.Views,
-                        Likes = item.Product.Likes,
-                        CategoryId = item.Product.CategoryId,
-                        Category = item.Product.Category != null ? new CategoryDto
-                        {
-                            Id = item.Product.Category.Id,
-                            Name = item.Product.Category.Name,
-                            Description = item.Product.Category.Description
-                        } : null,
-                        IsFeatured = item.Product.IsFeatured,
-                        CreatedAt = item.Product.CreatedAt
-                    } : null
-                })
-                .FirstAsync();
-
-            return Ok(itemWithProduct);
->>>>>>> Stashed changes
         }
 
         [HttpPut("{productId}")]

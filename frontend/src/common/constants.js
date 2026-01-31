@@ -17,11 +17,6 @@ export const ROUTES = {
   CHECKOUT: '/checkout',
   THANK_YOU: '/thank-you',
   ABOUT: '/about',
-  PROFILE: '/profile',
-  UPDATE_PROFILE: '/profile/update',
-  CART: '/cart',
-  CHECKOUT: '/checkout',
-  THANK_YOU: '/thank-you',
   ADMIN: '/admin',
   ADMIN_STORIES_LIST: '/admin/stories/list',
   ADMIN_STORIES_CREATE: '/admin/stories/create',
@@ -31,11 +26,7 @@ export const ROUTES = {
   ADMIN_USERS_EDIT: '/admin/users/edit',
   ADMIN_CATEGORIES_LIST: '/admin/categories/list',
   ADMIN_CATEGORIES_CREATE: '/admin/categories/create',
-  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit',
-  PROFILE: '/profile',
-  PROFILE_EDIT: '/profile/edit',
-  CART: '/cart',
-  THANK_YOU: '/thank-you'
+  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit'
 }
 
 export const STORAGE_KEYS = {

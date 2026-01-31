@@ -80,24 +80,6 @@ namespace Backend.Controllers
             {
                 return StatusCode(500, new { message = "An error occurred while loading the product.", error = ex.Message });
             }
-<<<<<<< Updated upstream
-
-            product.Views++;
-            await _context.SaveChangesAsync();
-
-            var productDto = await BuildProductQuery()
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (productDto != null)
-            {
-                // Calculate FavoriteCount
-                productDto.FavoriteCount = await _context.Favorites
-                    .CountAsync(f => f.ProductId == id);
-            }
-
-            return Ok(productDto);
-=======
->>>>>>> Stashed changes
         }
 
         [HttpGet("popular")]
@@ -127,19 +109,9 @@ namespace Backend.Controllers
 
         private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery(IQueryable<Product>? baseQuery = null)
         {
-<<<<<<< Updated upstream
             var query = baseQuery ?? _context.Products;
             
             return query
-                .Include(p => p.Category)
-                .Include(p => p.Material)
-                .Include(p => p.MetalColor)
-                .Include(p => p.ProductImages)
-                .Include(p => p.ProductSizes)
-                .ThenInclude(ps => ps.Size)
-=======
-            return _context.Products
->>>>>>> Stashed changes
                 .AsNoTracking()
                 .Select(p => new ProductWithFavoriteCountDto
                 {

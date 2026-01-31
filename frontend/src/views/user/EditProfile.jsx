@@ -4,6 +4,7 @@ import { profileService } from '../../common/services'
 import { getCurrentUser, storageUtils } from '../../common/utils'
 import { ROUTES } from '../../common/constants'
 import './Profile.css'
+import './EditProfile.css'
 
 const EditProfile = () => {
   const navigate = useNavigate()
@@ -96,9 +97,10 @@ const EditProfile = () => {
       if (profileData.avatarUrl) {
         let avatarUrl = profileData.avatarUrl
         if (!avatarUrl.startsWith('http')) {
-          // Extract filename from path like /uploads/avatars/filename.jpg
-          const fileName = avatarUrl.split('/').pop()
-          avatarUrl = `http://localhost:5000/api/profile/avatar/${fileName}`
+          // Backend stores avatar URL as /uploads/avatars/filename.jpg
+          // Static files are served from wwwroot, so URL should be http://localhost:5000/uploads/avatars/filename.jpg
+          const avatarPath = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`
+          avatarUrl = `http://localhost:5000${avatarPath}`
         }
         setPreview(avatarUrl)
       }
@@ -398,8 +400,10 @@ const EditProfile = () => {
       if (profile?.avatarUrl) {
         let avatarUrl = profile.avatarUrl
         if (!avatarUrl.startsWith('http')) {
-          const fileName = profile.avatarUrl.split('/').pop()
-          avatarUrl = `http://localhost:5000/api/profile/avatar/${fileName}`
+          // Backend stores avatar URL as /uploads/avatars/filename.jpg
+          // Static files are served from wwwroot, so URL should be http://localhost:5000/uploads/avatars/filename.jpg
+          const avatarPath = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`
+          avatarUrl = `http://localhost:5000${avatarPath}`
         }
         setPreview(avatarUrl)
       } else {

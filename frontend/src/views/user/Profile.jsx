@@ -64,7 +64,10 @@ const Profile = () => {
       if (profile.avatarUrl.startsWith('http')) {
         return profile.avatarUrl
       }
-      return `${API_BASE_URL.replace('/api', '')}${profile.avatarUrl}`
+      // Backend stores avatar URL as /uploads/avatars/filename.jpg
+      // Static files are served from wwwroot, so URL should be http://localhost:5000/uploads/avatars/filename.jpg
+      const avatarPath = profile.avatarUrl.startsWith('/') ? profile.avatarUrl : `/${profile.avatarUrl}`
+      return `http://localhost:5000${avatarPath}`
     }
     return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile?.fullName || profile?.username || 'User') + '&background=random'
   }
@@ -105,7 +108,7 @@ const Profile = () => {
               </h1>
               <button
                 className="btn btn-primary"
-                onClick={() => navigate(ROUTES.UPDATE_PROFILE)}
+                onClick={() => navigate(ROUTES.PROFILE_EDIT)}
               >
                 <i className="bi bi-pencil me-2"></i>
                 Edit Profile
@@ -121,6 +124,10 @@ const Profile = () => {
                         src={getAvatarUrl()}
                         alt="Avatar"
                         className="profile-avatar"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile?.fullName || profile?.username || 'User') + '&background=random'
+                        }}
                       />
                     </div>
                     <h4 className="mt-3 mb-0">{profile.fullName || profile.username}</h4>

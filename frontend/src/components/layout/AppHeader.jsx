@@ -213,15 +213,9 @@ const AppHeader = () => {
                   </div>
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
-<<<<<<< Updated upstream
-                <NavDropdown.Item onClick={() => navigate('/profile')}>
+                <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
                   <i className="bi bi-person me-2"></i>
                   My Profile
-=======
-                <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
-                  <i className="bi bi-person-gear me-2"></i>
-                  Update Profile
->>>>>>> Stashed changes
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -234,9 +228,6 @@ const AppHeader = () => {
               type="button" 
               className="yash-icon-btn yash-bag" 
               aria-label="Bag"
-<<<<<<< Updated upstream
-              onClick={() => navigate('/cart')}
-=======
               onClick={() => {
                 if (isAuthenticated()) {
                   navigate(ROUTES.CART)
@@ -244,7 +235,6 @@ const AppHeader = () => {
                   navigate(ROUTES.LOGIN)
                 }
               }}
->>>>>>> Stashed changes
             >
               <i className="bi bi-bag"></i>
               <span className="yash-bag-count">{cartCount}</span>

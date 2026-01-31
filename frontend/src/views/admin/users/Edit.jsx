@@ -12,22 +12,14 @@ const UsersEdit = () => {
     email: '',
     fullName: '',
     gender: '',
-<<<<<<< Updated upstream
-=======
     role: 0,
     isActive: true,
     avatarUrl: '',
->>>>>>> Stashed changes
     address: '',
     city: '',
     state: '',
     mobileNumber: '',
-<<<<<<< Updated upstream
-    dateOfBirth: '',
-    isActive: true
-=======
     dateOfBirth: ''
->>>>>>> Stashed changes
   })
   const [selectedProvinceId, setSelectedProvinceId] = useState('')
   const [selectedWardId, setSelectedWardId] = useState('')
@@ -36,39 +28,34 @@ const UsersEdit = () => {
   const [errors, setErrors] = useState({})
   const [provinces, setProvinces] = useState([])
   const [wards, setWards] = useState([])
-  const [filteredWards, setFilteredWards] = useState([])
-  const [selectedProvinceId, setSelectedProvinceId] = useState('')
   const [passwordData, setPasswordData] = useState({
     newPassword: '',
     confirmPassword: ''
   })
   const [passwordErrors, setPasswordErrors] = useState({})
   const [changingPassword, setChangingPassword] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   // Filter wards based on selected province
   const filteredWards = useMemo(() => {
-    if (!selectedProvinceId || !wardsData || !Array.isArray(wardsData)) return []
-    const filtered = wardsData.filter(ward => ward.province_id === selectedProvinceId)
-    return filtered
-  }, [selectedProvinceId])
+    if (!selectedProvinceId || !wards || !Array.isArray(wards)) return []
+    return wards.filter(ward => ward.province_id === selectedProvinceId)
+  }, [selectedProvinceId, wards])
+
+  // Reset ward selection when province changes
+  useEffect(() => {
+    if (selectedProvinceId && filteredWards.length > 0 && form.state) {
+      if (!filteredWards.find(w => w.name === form.state)) {
+        setForm(prev => ({ ...prev, state: '' }))
+      }
+    }
+  }, [selectedProvinceId, filteredWards, form.state])
 
   useEffect(() => {
     loadUser()
     loadProvincesAndWards()
   }, [id])
-
-  useEffect(() => {
-    if (selectedProvinceId && wards.length > 0) {
-      const filtered = wards.filter(ward => ward.province_id === selectedProvinceId)
-      setFilteredWards(filtered)
-      // Reset ward selection when province changes
-      if (form.state && !filtered.find(w => w.name === form.state)) {
-        setForm(prev => ({ ...prev, state: '' }))
-      }
-    } else {
-      setFilteredWards([])
-    }
-  }, [selectedProvinceId, wards])
 
   const loadProvincesAndWards = async () => {
     try {
@@ -111,23 +98,27 @@ const UsersEdit = () => {
         email: user.email || '',
         fullName: user.fullName || '',
         gender: user.gender || '',
-<<<<<<< Updated upstream
-=======
         role: user.role || 0,
         isActive: user.isActive !== false,
         avatarUrl: user.avatarUrl || '',
->>>>>>> Stashed changes
         address: user.address || '',
         city: user.city || '',
         state: user.state || '',
         mobileNumber: user.mobileNumber || '',
-<<<<<<< Updated upstream
-        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
-        isActive: user.isActive !== false
-=======
-        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : ''
->>>>>>> Stashed changes
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : ''
       })
+
+      // Set avatar preview
+      if (user.avatarUrl) {
+        let avatarUrl = user.avatarUrl
+        if (!avatarUrl.startsWith('http')) {
+          const avatarPath = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`
+          avatarUrl = `http://localhost:5000${avatarPath}`
+        }
+        setAvatarPreview(avatarUrl)
+      } else {
+        setAvatarPreview('')
+      }
       
       // Set selected province if city matches a province name
       if (user.city && provinces.length > 0) {
@@ -190,25 +181,16 @@ const UsersEdit = () => {
     setErrors({})
 
     try {
-<<<<<<< Updated upstream
       // Format data similar to UpdateProfile.jsx
       const updateData = {
         fullName: form.fullName,
         gender: form.gender || null,
-=======
-      // Clean up empty strings to null for optional fields
-      const cleanedData = {
-        ...form,
-        id: parseInt(id),
-        gender: form.gender || null,
         avatarUrl: form.avatarUrl || null,
->>>>>>> Stashed changes
         address: form.address || null,
         city: form.city || null,
         state: form.state || null,
         mobileNumber: form.mobileNumber || null,
-<<<<<<< Updated upstream
-        dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : null,
+        dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth).toISOString() : null,
         isActive: form.isActive
       }
 
@@ -220,12 +202,6 @@ const UsersEdit = () => {
       console.log('Update response data - Gender:', response.data?.gender)
       console.log('Update response data - City:', response.data?.city)
       console.log('Update response data - State:', response.data?.state)
-=======
-        dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth).toISOString() : null,
-        fullName: form.fullName || null
-      }
-      await userService.update(id, cleanedData)
->>>>>>> Stashed changes
       if (window.showToast) {
         window.showToast({
           severity: 'success',
@@ -263,30 +239,20 @@ const UsersEdit = () => {
 
   const handleProvinceChange = (e) => {
     const provinceId = e.target.value
-<<<<<<< Updated upstream
-    const province = provincesData.find(p => p.id === provinceId)
-    setSelectedProvinceId(provinceId)
-    setSelectedWardId('') // Reset ward when province changes
-    setForm(prev => ({
-      ...prev,
-      city: province?.name || '',
-      state: '' // Reset state when province changes
-=======
     setSelectedProvinceId(provinceId)
     const selectedProvince = provinces.find(p => p.id === provinceId)
+    setSelectedWardId('') // Reset ward when province changes
     setForm(prev => ({
       ...prev,
       city: selectedProvince ? selectedProvince.name : '',
       state: '' // Reset ward when province changes
->>>>>>> Stashed changes
     }))
   }
 
   const handleWardChange = (e) => {
-<<<<<<< Updated upstream
     const wardId = e.target.value
     // Find ward from all wardsData (more reliable, similar to handleProvinceChange)
-    const ward = wardsData.find(w => w.id === wardId)
+    const ward = wards.find(w => w.id === wardId)
     setSelectedWardId(wardId)
     setForm(prev => ({
       ...prev,
@@ -294,12 +260,91 @@ const UsersEdit = () => {
     }))
   }
 
-=======
-    const wardName = e.target.value
-    setForm(prev => ({
-      ...prev,
-      state: wardName
-    }))
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Chỉ chấp nhận file ảnh (jpg, png, gif, webp)',
+          life: 3000
+        })
+      }
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Kích thước file không được vượt quá 5MB',
+          life: 3000
+        })
+      }
+      return
+    }
+
+    try {
+      setUploadingAvatar(true)
+      
+      // Show preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setAvatarPreview(e.target.result)
+      }
+      reader.readAsDataURL(file)
+
+      // Upload file
+      const response = await userService.uploadAvatar(id, file)
+      
+      if (response.data?.avatarUrl) {
+        setForm(prev => ({
+          ...prev,
+          avatarUrl: response.data.avatarUrl
+        }))
+        if (window.showToast) {
+          window.showToast({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Avatar uploaded successfully',
+            life: 3000
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to upload avatar'
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 4000
+        })
+      }
+      // Reset preview on error
+      if (form.avatarUrl) {
+        let avatarUrl = form.avatarUrl
+        if (!avatarUrl.startsWith('http')) {
+          const avatarPath = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`
+          avatarUrl = `http://localhost:5000${avatarPath}`
+        }
+        setAvatarPreview(avatarUrl)
+      } else {
+        setAvatarPreview('')
+      }
+    } finally {
+      setUploadingAvatar(false)
+      // Reset file input
+      e.target.value = ''
+    }
   }
 
   const handlePasswordChange = (e) => {
@@ -376,7 +421,6 @@ const UsersEdit = () => {
     }
   }
 
->>>>>>> Stashed changes
   if (loadingData) {
     return (
       <div className="container my-5">
@@ -573,15 +617,59 @@ const UsersEdit = () => {
                   <label htmlFor="avatarUrl" className="form-label">
                     Avatar URL
                   </label>
-                  <input
-                    type="url"
-                    className="form-control"
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    value={form.avatarUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  <div className="d-flex align-items-center gap-3 mb-2">
+                    {avatarPreview && (
+                      <div className="avatar-preview-container">
+                        <img 
+                          src={avatarPreview} 
+                          alt="Avatar preview" 
+                          className="rounded-circle border"
+                          style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(form.fullName || form.username || 'User') + '&background=random'
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex-grow-1">
+                      <input
+                        type="url"
+                        className="form-control"
+                        id="avatarUrl"
+                        name="avatarUrl"
+                        value={form.avatarUrl}
+                        onChange={handleChange}
+                        placeholder="https://example.com/avatar.jpg hoặc chọn file từ máy tính"
+                      />
+                    </div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <label htmlFor="avatarFile" className="btn btn-outline-primary btn-sm">
+                      <i className="bi bi-upload me-2"></i>
+                      {uploadingAvatar ? 'Đang tải...' : 'Chọn hình từ máy tính'}
+                    </label>
+                    <input
+                      type="file"
+                      id="avatarFile"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleAvatarFileChange}
+                      disabled={uploadingAvatar}
+                      style={{ display: 'none' }}
+                    />
+                    {form.avatarUrl && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => {
+                          setForm(prev => ({ ...prev, avatarUrl: '' }))
+                          setAvatarPreview('')
+                        }}
+                      >
+                        <i className="bi bi-trash me-2"></i>
+                        Xóa
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mb-3">
