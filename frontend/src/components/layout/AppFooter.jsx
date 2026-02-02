@@ -48,10 +48,15 @@ const AppFooter = () => {
                 <i className="bi bi-gem"></i>
                 <span>Shop</span>
               </Link>
+              <Link to="/gemstones" className="link">
+                <i className="bi bi-gem"></i>
+                <span>Gemstones</span>
+              </Link>
               <Link to="/about" className="link">
                 <i className="bi bi-info-circle"></i>
                 <span>About Us</span>
               </Link>
+              
               <a href="#" className="link">
                 <i className="bi bi-envelope"></i>
                 <span>Contact</span>

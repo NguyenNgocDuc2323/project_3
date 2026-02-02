@@ -15,6 +15,7 @@ import Register from './views/Register'
 import ForgotPassword from './views/ForgotPassword'
 import ResetPassword from './views/ResetPassword'
 import About from './views/About'
+import Gemstones from './views/Gemstones'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
@@ -95,7 +96,13 @@ function App() {
             <About />
           </DefaultLayout>
         } />
-        
+
+        <Route path="/gemstones" element={
+          <DefaultLayout>
+            <Gemstones />
+          </DefaultLayout>
+        } />
+
         <Route path={ROUTES.DASHBOARD} element={
           <DefaultLayout>
             <Dashboard />

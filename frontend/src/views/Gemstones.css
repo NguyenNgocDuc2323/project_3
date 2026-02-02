@@ -1,0 +1,398 @@
+/* Gemstones Page Styles */
+
+.gemstones-container {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.gemstones-hero {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 40px 0;
+}
+
+.gemstones-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.gemstones-title .highlight {
+  color: #d4af37;
+  font-style: italic;
+}
+
+.gemstones-subtitle {
+  font-size: 1.3rem;
+  color: #666;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* Section Heading */
+.section-heading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 50px 0 30px;
+  text-align: center;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+/* History Section */
+.history-section {
+  margin-bottom: 60px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+  padding: 40px;
+  border-radius: 10px;
+  border-left: 5px solid #d4af37;
+}
+
+.history-item {
+  margin-bottom: 30px;
+}
+
+.history-item:last-child {
+  margin-bottom: 0;
+}
+
+.history-item h4 {
+  font-size: 1.5rem;
+  color: #d4af37;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.history-item p {
+  color: #555;
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+/* Gemstones Grid */
+.gemstones-section {
+  margin-bottom: 60px;
+}
+
+.gemstones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.gemstone-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.gemstone-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.2);
+  border-color: #d4af37;
+}
+
+.gemstone-image-wrapper {
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f5f5, #ffffff);
+}
+
+.gemstone-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.gemstone-card:hover .gemstone-image {
+  transform: scale(1.1);
+}
+
+.gemstone-content {
+  padding: 25px;
+}
+
+.gemstone-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.gemstone-description {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.gemstone-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #d4af37;
+  min-width: 80px;
+}
+
+.detail-value {
+  color: #555;
+  text-align: right;
+  flex: 1;
+}
+
+/* Benefits Section */
+.benefits-section {
+  margin-bottom: 60px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
+  padding: 50px 40px;
+  border-radius: 10px;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.benefit-item {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border-top: 4px solid transparent;
+}
+
+.benefit-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+  border-top-color: #d4af37;
+}
+
+.benefit-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.benefit-item h4 {
+  font-size: 1.2rem;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.benefit-item p {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Quality Section */
+.quality-section {
+  margin-bottom: 60px;
+  background: white;
+}
+
+.quality-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.quality-item {
+  padding: 25px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f9f9f9, #ffffff);
+  border-left: 4px solid #d4af37;
+}
+
+.quality-item h4 {
+  font-size: 1.3rem;
+  color: #d4af37;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.quality-item ul {
+  list-style: none;
+  padding: 0;
+}
+
+.quality-item li {
+  color: #555;
+  margin-bottom: 12px;
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.6;
+}
+
+.quality-item li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #d4af37;
+  font-weight: bold;
+}
+
+.quality-item p {
+  color: #666;
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+/* Conclusion Section */
+.conclusion-section {
+  text-align: center;
+  padding: 50px 30px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+  border-radius: 10px;
+  margin-top: 60px;
+}
+
+.gemstones-quote {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  font-style: italic;
+  margin-bottom: 30px;
+  padding: 20px;
+  border-left: 4px solid #d4af37;
+  line-height: 1.8;
+}
+
+.conclusion-text {
+  color: #666;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .gemstones-title {
+    font-size: 2.5rem;
+  }
+
+  .gemstones-subtitle {
+    font-size: 1rem;
+  }
+
+  .section-heading {
+    font-size: 1.8rem;
+  }
+
+  .gemstones-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-content {
+    grid-template-columns: 1fr;
+  }
+
+  .history-section,
+  .benefits-section {
+    padding: 30px 20px;
+  }
+
+  .gemstones-quote {
+    font-size: 1.3rem;
+  }
+
+  .gemstone-image-wrapper {
+    height: 200px;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detail-value {
+    text-align: left;
+    margin-top: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gemstones-container {
+    padding: 20px 10px;
+  }
+
+  .gemstones-hero {
+    margin-bottom: 40px;
+    padding: 20px 0;
+  }
+
+  .gemstones-title {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+  }
+
+  .section-heading {
+    font-size: 1.5rem;
+    margin: 30px 0 20px;
+  }
+
+  .gemstone-content {
+    padding: 15px;
+  }
+
+  .gemstone-name {
+    font-size: 1.2rem;
+  }
+
+  .benefit-item {
+    padding: 20px;
+  }
+
+  .benefit-icon {
+    font-size: 2.5rem;
+  }
+}
