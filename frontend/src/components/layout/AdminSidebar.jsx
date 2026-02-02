@@ -40,6 +40,15 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
         { title: 'All Categories', path: '/admin/categories/list' },
         { title: 'Create Category', path: '/admin/categories/create' }
       ]
+    },
+    {
+      title: 'Banner',
+      icon: 'bi bi-image',
+      path: ROUTES.ADMIN_BANNERS_LIST,
+      children: [
+        { title: 'All Banners', path: ROUTES.ADMIN_BANNERS_LIST },
+        { title: 'Add Banner', path: ROUTES.ADMIN_BANNERS_CREATE }
+      ]
     }
   ]
 

@@ -71,6 +71,19 @@ CREATE TABLE IF NOT EXISTS Stories (
     INDEX IX_Stories_CreatedAt (CreatedAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS Banners (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    ImageUrl VARCHAR(500) NOT NULL,
+    Link VARCHAR(500) NULL,
+    SortOrder INT NOT NULL DEFAULT 0,
+    IsActive TINYINT(1) NOT NULL DEFAULT 1,
+    CreatedAt DATETIME(6) NOT NULL,
+    UpdatedAt DATETIME(6) NULL,
+    INDEX IX_Banners_IsActive (IsActive),
+    INDEX IX_Banners_SortOrder (SortOrder)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS Categories (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
@@ -245,6 +258,19 @@ CREATE TABLE IF NOT EXISTS Payments (
     INDEX IX_Payments_Reference (Reference),
     FOREIGN KEY (OrderId) REFERENCES Orders(Id) ON DELETE CASCADE,
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS Banners (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    ImageUrl VARCHAR(500) NOT NULL,
+    Link VARCHAR(500) NULL,
+    SortOrder INT NOT NULL DEFAULT 0,
+    IsActive TINYINT(1) NOT NULL DEFAULT 1,
+    CreatedAt DATETIME(6) NOT NULL,
+    UpdatedAt DATETIME(6) NULL,
+    INDEX IX_Banners_IsActive (IsActive),
+    INDEX IX_Banners_SortOrder (SortOrder)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt) VALUES

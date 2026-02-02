@@ -28,6 +28,7 @@ namespace Backend.Data
         public DbSet<Material> Materials { get; set; }
         public DbSet<MetalColor> MetalColors { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<Banner> Banners { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -329,6 +330,17 @@ namespace Backend.Data
                       .WithMany(p => p.ProductImages)
                       .HasForeignKey(e => e.ProductId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Banner>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Link).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.SortOrder);
             });
         }
     }

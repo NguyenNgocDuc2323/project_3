@@ -185,6 +185,24 @@ export const analyticsService = {
   },
 };
 
+export const bannerService = {
+  getAll(activeOnly = true) {
+    return apiClient.get("/banners", { params: { activeOnly } });
+  },
+  getById(id) {
+    return apiClient.get(`/banners/${id}`);
+  },
+  create(data) {
+    return apiClient.post("/banners", data);
+  },
+  update(id, data) {
+    return apiClient.put(`/banners/${id}`, data);
+  },
+  delete(id) {
+    return apiClient.delete(`/banners/${id}`);
+  },
+};
+
 export const chatService = {
   sendMessage(message) {
     return apiClient.post("/chat", { message });
