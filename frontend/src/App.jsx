@@ -20,9 +20,13 @@ import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
 import Profile from './views/user/Profile'
 import EditProfile from './views/user/EditProfile'
+import Cart from './views/user/Cart'
+import Checkout from './views/user/Checkout'
+import ThankYou from './views/user/ThankYou'
 import AdminDashboard from './views/admin/Dashboard'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
+import UsersCreate from './views/admin/users/Create'
 import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
@@ -131,6 +135,30 @@ function App() {
             </DefaultLayout>
           </ProtectedRoute>
         } />
+
+        <Route path={ROUTES.CART} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Cart />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.CHECKOUT} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Checkout />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.THANK_YOU} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <ThankYou />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
         
         <Route path={ROUTES.ADMIN} element={
           <ProtectedRoute requireAdmin={true}>
@@ -143,6 +171,13 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <UsersList />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/users/create" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <UsersCreate />
             </AdminLayout>
           </ProtectedRoute>
         } />

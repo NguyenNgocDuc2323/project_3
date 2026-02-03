@@ -211,6 +211,14 @@ const ProductDetail = () => {
       }
     } catch (error) {
       console.error('Failed to add to cart:', error)
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Lỗi',
+          detail: error.response?.data?.message || 'Không thể thêm sản phẩm vào giỏ hàng',
+          life: 4000
+        })
+      }
     }
   }
 

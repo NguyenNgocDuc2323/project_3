@@ -39,7 +39,14 @@ const EditProfile = () => {
     phone: '',
     dateOfBirth: ''
   })
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   const [errors, setErrors] = useState({})
+  const [passwordErrors, setPasswordErrors] = useState({})
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -90,6 +97,70 @@ const EditProfile = () => {
     }
   }
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    // Clear error when user types
+    if (passwordErrors[name]) {
+      setPasswordErrors(prev => ({
+        ...prev,
+        [name]: null
+      }))
+    }
+  }
+
+  const validatePasswordForm = () => {
+    const newErrors = {}
+    
+    if (!passwordData.oldPassword) {
+      newErrors.oldPassword = 'Vui lòng nhập mật khẩu cũ'
+    }
+
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới'
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự'
+    }
+
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới'
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+    }
+
+    setPasswordErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    
+    if (!validatePasswordForm()) {
+      return
+    }
+
+    try {
+      setChangingPassword(true)
+      await profileService.changePassword(passwordData.oldPassword, passwordData.newPassword)
+      showToast('Đổi mật khẩu thành công!', 'success')
+      
+      // Clear password fields
+      setPasswordData({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+    } catch (error) {
+      console.error('Error changing password:', error)
+      showToast(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu', 'error')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   const validateForm = () => {
     const newErrors = {}
     
@@ -111,7 +182,9 @@ const EditProfile = () => {
 
     if (formData.dateOfBirth) {
       const dateOfBirth = new Date(formData.dateOfBirth)
-      if (dateOfBirth > new Date()) {
+      const today = new Date()
+      today.setHours(23, 59, 59, 999) // Set to end of today
+      if (dateOfBirth > today) {
         newErrors.dateOfBirth = 'Ngày sinh không thể là ngày trong tương lai'
       }
     }
@@ -282,9 +355,6 @@ const EditProfile = () => {
                     disabled
                     className="bg-light"
                   />
-                  <Form.Text className="text-muted">
-                    Username không thể thay đổi
-                  </Form.Text>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
@@ -298,9 +368,6 @@ const EditProfile = () => {
                     disabled
                     className="bg-light"
                   />
-                  <Form.Text className="text-muted">
-                    Email không thể thay đổi
-                  </Form.Text>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
@@ -358,6 +425,7 @@ const EditProfile = () => {
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
                     isInvalid={!!errors.dateOfBirth}
+                    max={new Date().toISOString().split('T')[0]}
                   />
                   {errors.dateOfBirth && (
                     <Form.Control.Feedback type="invalid">
@@ -444,6 +512,109 @@ const EditProfile = () => {
                   </Button>
                 </div>
               </Form>
+
+              <hr className="my-4" />
+
+              {/* Change Password Section */}
+              <Card className="border-warning">
+                <Card.Header className="bg-warning text-dark">
+                  <h5 className="mb-0">
+                    <i className="bi bi-shield-lock me-2"></i>
+                    Đổi mật khẩu
+                  </h5>
+                </Card.Header>
+                <Card.Body>
+                  <Form onSubmit={handleChangePassword}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <i className="bi bi-lock me-2"></i>
+                        Mật khẩu cũ
+                      </Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="oldPassword"
+                        value={passwordData.oldPassword}
+                        onChange={handlePasswordChange}
+                        isInvalid={!!passwordErrors.oldPassword}
+                        placeholder="Nhập mật khẩu cũ"
+                        disabled={changingPassword}
+                      />
+                      {passwordErrors.oldPassword && (
+                        <Form.Control.Feedback type="invalid">
+                          {passwordErrors.oldPassword}
+                        </Form.Control.Feedback>
+                      )}
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <i className="bi bi-key me-2"></i>
+                        Mật khẩu mới
+                      </Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        isInvalid={!!passwordErrors.newPassword}
+                        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                        disabled={changingPassword}
+                      />
+                      {passwordErrors.newPassword && (
+                        <Form.Control.Feedback type="invalid">
+                          {passwordErrors.newPassword}
+                        </Form.Control.Feedback>
+                      )}
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <i className="bi bi-key-fill me-2"></i>
+                        Xác nhận mật khẩu mới
+                      </Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        isInvalid={!!passwordErrors.confirmPassword}
+                        placeholder="Nhập lại mật khẩu mới"
+                        disabled={changingPassword}
+                      />
+                      {passwordErrors.confirmPassword && (
+                        <Form.Control.Feedback type="invalid">
+                          {passwordErrors.confirmPassword}
+                        </Form.Control.Feedback>
+                      )}
+                    </Form.Group>
+
+                    <div className="d-grid">
+                      <Button
+                        type="submit"
+                        variant="warning"
+                        size="lg"
+                        disabled={changingPassword}
+                      >
+                        {changingPassword ? (
+                          <>
+                            <Spinner
+                              animation="border"
+                              size="sm"
+                              className="me-2"
+                            />
+                            Đang đổi mật khẩu...
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-shield-check me-2"></i>
+                            Đổi mật khẩu
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </Form>
+                </Card.Body>
+              </Card>
             </Card.Body>
           </Card>
         </Col>

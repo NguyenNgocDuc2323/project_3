@@ -4,6 +4,7 @@ using Backend.Data;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using BCrypt.Net;
 
 namespace Backend.Controllers
 {
@@ -255,6 +256,57 @@ namespace Backend.Controllers
                 return StatusCode(500, new { message = "An error occurred while uploading avatar", error = ex.Message });
             }
         }
+
+        [HttpPost("change-password")]
+        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+
+                if (string.IsNullOrEmpty(request.OldPassword))
+                {
+                    return BadRequest(new { message = "Old password is required" });
+                }
+
+                if (string.IsNullOrEmpty(request.NewPassword))
+                {
+                    return BadRequest(new { message = "New password is required" });
+                }
+
+                if (request.NewPassword.Length < 6)
+                {
+                    return BadRequest(new { message = "New password must be at least 6 characters" });
+                }
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                // Verify old password
+                if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
+                {
+                    return BadRequest(new { message = "Old password is incorrect" });
+                }
+
+                // Hash and update new password
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Password changed successfully" });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "Invalid authentication" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while changing password", error = ex.Message });
+            }
+        }
     }
 
     public class ProfileDto
@@ -279,6 +331,12 @@ namespace Backend.Controllers
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public DateTime? DateOfBirth { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string OldPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 }
 

@@ -89,12 +89,32 @@ export const userService = {
     return apiClient.get(`/admin/users/${id}`);
   },
 
+  create(data) {
+    return apiClient.post("/admin/users", data);
+  },
+
   update(id, data) {
     return apiClient.put(`/admin/users/${id}`, data);
   },
 
   delete(id) {
     return apiClient.delete(`/admin/users/${id}`);
+  },
+
+  uploadAvatar(userId, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post(`/admin/users/${userId}/avatar`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  changePassword(userId, newPassword) {
+    return apiClient.post(`/admin/users/${userId}/change-password`, {
+      newPassword,
+    });
   },
 };
 
@@ -197,6 +217,12 @@ export const cartService = {
   remove(productId) {
     return apiClient.delete(`/cart/${productId}`);
   },
+  updateOrder(itemOrders) {
+    return apiClient.post("/cart/update-order", { itemOrders });
+  },
+  clear() {
+    return apiClient.delete("/cart/clear");
+  },
 };
 
 export const favoriteService = {
@@ -231,6 +257,12 @@ export const profileService = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+    });
+  },
+  changePassword(oldPassword, newPassword) {
+    return apiClient.post("/profile/change-password", {
+      oldPassword,
+      newPassword,
     });
   },
 };
