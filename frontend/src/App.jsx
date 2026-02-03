@@ -18,6 +18,7 @@ import About from './views/About'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
+import DiamondInfo from './views/user/DiamondInfo'
 import AdminDashboard from './views/admin/Dashboard'
 import StoriesList from './views/admin/stories/List'
 import StoriesCreate from './views/admin/stories/Create'
@@ -27,6 +28,7 @@ import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
+import CategoryManagement from './views/admin/CategoryManagement'
 
 // Component để redirect từ HOME
 const HomeRedirect = () => {
@@ -113,6 +115,12 @@ function App() {
             <ProductDetail />
           </DefaultLayout>
         } />
+
+        <Route path="/diamond-info" element={
+          <DefaultLayout>
+            <DiamondInfo />
+          </DefaultLayout>
+        } />
         
         <Route path={ROUTES.ADMIN} element={
           <ProtectedRoute requireAdmin={true}>
@@ -153,6 +161,13 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <UsersEdit />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/categories" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <CategoryManagement />
             </AdminLayout>
           </ProtectedRoute>
         } />

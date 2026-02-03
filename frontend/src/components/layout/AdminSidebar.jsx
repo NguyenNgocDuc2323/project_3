@@ -35,9 +35,9 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
     {
       title: 'Categories',
       icon: 'bi bi-tags',
-      path: '/admin/categories/list',
+      path: ROUTES.ADMIN_CATEGORIES,
       children: [
-        { title: 'All Categories', path: '/admin/categories/list' },
+        { title: 'All Categories', path: ROUTES.ADMIN_CATEGORIES_LIST },
         { title: 'Create Category', path: '/admin/categories/create' }
       ]
     }

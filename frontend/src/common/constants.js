@@ -11,6 +11,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   SHOP: '/shop',
   PRODUCT_DETAIL: '/products/:id',
+  DIAMOND_INFO: '/diamond-info',
   ABOUT: '/about',
   ADMIN: '/admin',
   ADMIN_STORIES_LIST: '/admin/stories/list',
@@ -18,6 +19,7 @@ export const ROUTES = {
   ADMIN_STORIES_EDIT: '/admin/stories/edit',
   ADMIN_USERS_LIST: '/admin/users/list',
   ADMIN_USERS_EDIT: '/admin/users/edit',
+  ADMIN_CATEGORIES: '/admin/categories',
   ADMIN_CATEGORIES_LIST: '/admin/categories/list',
   ADMIN_CATEGORIES_CREATE: '/admin/categories/create',
   ADMIN_CATEGORIES_EDIT: '/admin/categories/edit'

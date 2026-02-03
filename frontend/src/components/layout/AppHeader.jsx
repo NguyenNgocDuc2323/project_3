@@ -153,6 +153,14 @@ const AppHeader = () => {
             >
               Shop
             </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/diamond-info" 
+              className="yash-nav-link"
+              active={location.pathname === '/diamond-info'}
+            >
+              Diamond Info
+            </Nav.Link>
             {menuItems.map((item) => {
               const currentCategoryId = new URLSearchParams(location.search).get('category');
               
