@@ -11,6 +11,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   SHOP: '/shop',
   PRODUCT_DETAIL: '/products/:id',
+  PROFILE: '/profile',
   ABOUT: '/about',
   ADMIN: '/admin',
   ADMIN_USERS_LIST: '/admin/users/list',

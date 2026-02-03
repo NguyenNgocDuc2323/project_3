@@ -235,7 +235,7 @@ const AppHeader = () => {
                   </div>
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => {}}>
+                <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
                   <i className="bi bi-person-gear me-2"></i>
                   Update Profile
                 </NavDropdown.Item>

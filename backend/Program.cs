@@ -117,6 +117,24 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
+// Enable static files for uploads - serve from wwwroot
+// UseStaticFiles() by default serves from wwwroot folder (WebRootPath)
+app.UseStaticFiles();
+
+// Ensure wwwroot/uploads/avatars directory exists
+// WebRootPath is automatically set by ASP.NET Core to point to wwwroot folder
+var webRootPath = app.Environment.WebRootPath;
+if (string.IsNullOrEmpty(webRootPath))
+{
+    webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+}
+
+var avatarsPath = Path.Combine(webRootPath, "uploads", "avatars");
+if (!Directory.Exists(avatarsPath))
+{
+    Directory.CreateDirectory(avatarsPath);
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 

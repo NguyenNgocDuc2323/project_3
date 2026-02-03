@@ -216,3 +216,21 @@ export const favoriteService = {
     return apiClient.delete(`/favorites/${productId}`);
   },
 };
+
+export const profileService = {
+  get() {
+    return apiClient.get("/profile");
+  },
+  update(data) {
+    return apiClient.put("/profile", data);
+  },
+  uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+};

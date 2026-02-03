@@ -1,0 +1,13 @@
+GOOGLE_GEMINI_API_KEY=your_api_key_here
+GOOGLE_GEMINI_MODEL=gemini-1.5-flash
+
+# Email (Gmail SMTP)
+Email__SmtpHost=smtp.gmail.com
+Email__SmtpPort=587
+Email__SmtpUsername=son.pt.2336@aptechlearning.edu.vn
+Email__SmtpPassword=jspr qchn qtuu zuoz
+Email__FromEmail=son.pt.2336@aptechlearning.edu.vn
+Email__FromName=Yash Gems
+Email__ResetPasswordBaseUrl=http://localhost:3000
+Email__VerifyEmailBaseUrl=http://localhost:5000/api/auth/verify-email
+

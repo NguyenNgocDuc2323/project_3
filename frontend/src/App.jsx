@@ -18,6 +18,7 @@ import About from './views/About'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
+import Profile from './views/user/Profile'
 import AdminDashboard from './views/admin/Dashboard'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
@@ -112,6 +113,14 @@ function App() {
           <DefaultLayout>
             <ProductDetail />
           </DefaultLayout>
+        } />
+
+        <Route path={ROUTES.PROFILE} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Profile />
+            </DefaultLayout>
+          </ProtectedRoute>
         } />
         
         <Route path={ROUTES.ADMIN} element={
