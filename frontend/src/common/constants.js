@@ -13,14 +13,14 @@ export const ROUTES = {
   PRODUCT_DETAIL: '/products/:id',
   ABOUT: '/about',
   ADMIN: '/admin',
-  ADMIN_STORIES_LIST: '/admin/stories/list',
-  ADMIN_STORIES_CREATE: '/admin/stories/create',
-  ADMIN_STORIES_EDIT: '/admin/stories/edit',
   ADMIN_USERS_LIST: '/admin/users/list',
   ADMIN_USERS_EDIT: '/admin/users/edit',
   ADMIN_CATEGORIES_LIST: '/admin/categories/list',
   ADMIN_CATEGORIES_CREATE: '/admin/categories/create',
-  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit'
+  ADMIN_CATEGORIES_EDIT: '/admin/categories/edit',
+  ADMIN_BANNERS_LIST: '/admin/banners/list',
+  ADMIN_BANNERS_CREATE: '/admin/banners/create',
+  ADMIN_BANNERS_EDIT: '/admin/banners/edit'
 }
 
 export const STORAGE_KEYS = {

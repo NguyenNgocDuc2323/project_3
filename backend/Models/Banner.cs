@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models
 {
-    public class Story
+    public class Banner
     {
         public int Id { get; set; }
 
@@ -10,34 +10,19 @@ namespace Backend.Models
         [StringLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string Author { get; set; } = string.Empty;
-
-        [StringLength(1000)]
-        public string? Description { get; set; }
-
         [Required]
         [StringLength(500)]
         public string ImageUrl { get; set; } = string.Empty;
 
-        public int Views { get; set; } = 0;
+        [StringLength(500)]
+        public string? Link { get; set; }
 
-        public int Likes { get; set; } = 0;
+        public int SortOrder { get; set; } = 0;
 
-        [StringLength(50)]
-        public string? Category { get; set; }
-
-        public bool IsFeatured { get; set; } = false;
+        public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
     }
 }
-
-
-
-
-
-
-

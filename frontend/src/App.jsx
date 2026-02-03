@@ -20,14 +20,14 @@ import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
 import AdminDashboard from './views/admin/Dashboard'
-import StoriesList from './views/admin/stories/List'
-import StoriesCreate from './views/admin/stories/Create'
-import StoriesEdit from './views/admin/stories/Edit'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
+import BannersList from './views/admin/banners/List'
+import BannersCreate from './views/admin/banners/Create'
+import BannersEdit from './views/admin/banners/Edit'
 
 // Component để redirect từ HOME
 const HomeRedirect = () => {
@@ -128,27 +128,6 @@ function App() {
             </AdminLayout>
           </ProtectedRoute>
         } />
-        <Route path="/admin/stories/list" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesList />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stories/create" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesCreate />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stories/edit/:id" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesEdit />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
         <Route path="/admin/users/list" element={
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
@@ -181,6 +160,27 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <CategoriesEdit />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_BANNERS_LIST} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <BannersList />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_BANNERS_CREATE} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <BannersCreate />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_BANNERS_EDIT + '/:id'} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <BannersEdit />
             </AdminLayout>
           </ProtectedRoute>
         } />

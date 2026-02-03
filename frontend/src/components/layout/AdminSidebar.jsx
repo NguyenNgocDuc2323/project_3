@@ -19,15 +19,6 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       exact: true
     },
     {
-      title: 'Gem Guides',
-      icon: 'bi bi-gem',
-      path: '/admin/stories/list',
-      children: [
-        { title: 'All Guides', path: '/admin/stories/list' },
-        { title: 'Create Guide', path: '/admin/stories/create' }
-      ]
-    },
-    {
       title: 'Users',
       icon: 'bi bi-people',
       path: '/admin/users/list'
@@ -39,6 +30,15 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       children: [
         { title: 'All Categories', path: '/admin/categories/list' },
         { title: 'Create Category', path: '/admin/categories/create' }
+      ]
+    },
+    {
+      title: 'Banner',
+      icon: 'bi bi-image',
+      path: '/admin/banners/list',
+      children: [
+        { title: 'All Banners', path: '/admin/banners/list' },
+        { title: 'Create Banner', path: '/admin/banners/create' }
       ]
     }
   ]
