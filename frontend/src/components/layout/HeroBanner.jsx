@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Carousel } from 'react-bootstrap'
-import { bannerService, storyService } from '../../common/services'
+import { bannerService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './HeroBanner.css'
 
@@ -24,27 +24,11 @@ const HeroBanner = () => {
       setLoading(true)
       const bannersRes = await bannerService.getAll(true)
       const list = bannersRes.data || []
-      if (list.length > 0) {
-        setBanners(list.map(b => ({
-          id: b.id,
-          imageUrl: b.imageUrl,
-          link: b.link || null,
-          title: b.title
-        })))
-        return
-      }
-      const featuredRes = await storyService.getAll(true)
-      let storiesData = featuredRes.data || []
-      if (storiesData.length === 0) {
-        const allRes = await storyService.getAll()
-        storiesData = allRes.data || []
-      }
-      storiesData = storiesData.slice(0, 4)
-      setBanners(storiesData.map(s => ({
-        id: s.id,
-        imageUrl: s.imageUrl,
-        link: null,
-        title: s.title
+      setBanners(list.map(b => ({
+        id: b.id,
+        imageUrl: b.imageUrl,
+        link: b.link || null,
+        title: b.title
       })))
     } catch (error) {
       console.error('Error loading banners:', error)

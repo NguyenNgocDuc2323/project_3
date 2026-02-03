@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getCurrentUser } from '../../common/utils'
-import { storyService, userService, categoryService, analyticsService } from '../../common/services'
+import { userService, categoryService, analyticsService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './Dashboard.css'
 
 const AdminDashboard = () => {
   const user = getCurrentUser()
   const [stats, setStats] = useState({
-    totalStories: 0,
     totalUsers: 0,
-    totalCategories: 0,
-    totalViews: 0
+    totalCategories: 0
   })
   const [loading, setLoading] = useState(true)
   const [revenuePeriod, setRevenuePeriod] = useState('month')
@@ -29,18 +27,14 @@ const AdminDashboard = () => {
   const loadStats = async () => {
     try {
       setLoading(true)
-      const [storiesRes, usersRes, categoriesRes, storyStatsRes] = await Promise.all([
-        storyService.getAll(),
+      const [usersRes, categoriesRes] = await Promise.all([
         userService.getAll(),
-        categoryService.getAll(),
-        storyService.getStats()
+        categoryService.getAll()
       ])
 
       setStats({
-        totalStories: storiesRes.data?.length || 0,
         totalUsers: usersRes.data?.length || 0,
-        totalCategories: categoriesRes.data?.length || 0,
-        totalViews: storyStatsRes.data?.totalViews || 0
+        totalCategories: categoriesRes.data?.length || 0
       })
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -76,14 +70,6 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
-      title: 'Manage Gem Guides',
-      description: 'View, create, edit, and delete guides',
-      icon: 'bi bi-gem',
-      link: ROUTES.ADMIN_STORIES_LIST,
-      color: 'primary',
-      count: stats.totalStories
-    },
-    {
       title: 'Manage Users',
       description: 'View and manage user accounts',
       icon: 'bi bi-people',
@@ -103,11 +89,6 @@ const AdminDashboard = () => {
 
   const chartItems = [
     {
-      label: 'Guides',
-      value: stats.totalStories,
-      color: 'primary'
-    },
-    {
       label: 'Users',
       value: stats.totalUsers,
       color: 'success'
@@ -116,11 +97,6 @@ const AdminDashboard = () => {
       label: 'Categories',
       value: stats.totalCategories,
       color: 'info'
-    },
-    {
-      label: 'Views',
-      value: stats.totalViews,
-      color: 'warning'
     }
   ]
   const chartMax = Math.max(1, ...chartItems.map((item) => item.value))
@@ -158,21 +134,6 @@ const AdminDashboard = () => {
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <div className="text-muted small mb-1">Total Guides</div>
-                    <div className="h3 mb-0 fw-bold text-primary">{stats.totalStories}</div>
-                  </div>
-                  <div className="bg-primary bg-opacity-10 p-3 rounded">
-                    <i className="bi bi-gem text-primary" style={{ fontSize: '2rem' }}></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-3 col-sm-6">
-            <div className="card border-0 shadow-sm h-100">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
                     <div className="text-muted small mb-1">Total Users</div>
                     <div className="h3 mb-0 fw-bold text-success">{stats.totalUsers}</div>
                   </div>
@@ -193,21 +154,6 @@ const AdminDashboard = () => {
                   </div>
                   <div className="bg-info bg-opacity-10 p-3 rounded">
                     <i className="bi bi-tags text-info" style={{ fontSize: '2rem' }}></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-3 col-sm-6">
-            <div className="card border-0 shadow-sm h-100">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <div className="text-muted small mb-1">Total Views</div>
-                    <div className="h3 mb-0 fw-bold text-warning">{stats.totalViews.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-warning bg-opacity-10 p-3 rounded">
-                    <i className="bi bi-eye text-warning" style={{ fontSize: '2rem' }}></i>
                   </div>
                 </div>
               </div>

@@ -13,7 +13,6 @@ namespace Backend.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
-        public DbSet<Story> Stories { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
@@ -89,18 +88,6 @@ namespace Backend.Data
                       .WithMany(u => u.EmailVerificationTokens)
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<Story>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Author).HasMaxLength(100);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
-                entity.Property(e => e.Category).HasMaxLength(50);
-                entity.Property(e => e.CreatedAt).IsRequired();
-                entity.HasIndex(e => e.IsFeatured);
             });
 
             modelBuilder.Entity<Category>(entity =>

@@ -19,9 +19,6 @@ import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
 import AdminDashboard from './views/admin/Dashboard'
-import StoriesList from './views/admin/stories/List'
-import StoriesCreate from './views/admin/stories/Create'
-import StoriesEdit from './views/admin/stories/Edit'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
@@ -121,27 +118,6 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <AdminDashboard />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stories/list" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesList />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stories/create" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesCreate />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stories/edit/:id" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <StoriesEdit />
             </AdminLayout>
           </ProtectedRoute>
         } />

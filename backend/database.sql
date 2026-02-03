@@ -54,23 +54,6 @@ CREATE TABLE IF NOT EXISTS EmailVerificationTokens (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS Stories (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Title VARCHAR(200) NOT NULL,
-    Author VARCHAR(100) NOT NULL,
-    Description VARCHAR(1000) NULL,
-    ImageUrl VARCHAR(500) NOT NULL,
-    Category VARCHAR(50) NULL,
-    Views INT NOT NULL DEFAULT 0,
-    Likes INT NOT NULL DEFAULT 0,
-    IsFeatured TINYINT(1) NOT NULL DEFAULT 0,
-    CreatedAt DATETIME(6) NOT NULL,
-    UpdatedAt DATETIME(6) NULL,
-    INDEX IX_Stories_IsFeatured (IsFeatured),
-    INDEX IX_Stories_Category (Category),
-    INDEX IX_Stories_CreatedAt (CreatedAt)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS Banners (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Title VARCHAR(200) NOT NULL,
@@ -390,15 +373,6 @@ JOIN Sizes s ON s.Name IN ('7', '8', '9')
 WHERE p.StyleCode = 'HN-HR-642'
 ON DUPLICATE KEY UPDATE ProductId = ProductId;
 
-INSERT INTO Stories (Id, Title, Author, Description, ImageUrl, Category, Views, Likes, IsFeatured, CreatedAt) VALUES
-(1, 'Royal Gold and Diamond Heritage', 'Yash Gems', 'Experience exquisite craftsmanship and timeless elegance in every piece.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw6a7b4efe/homepage/HeroBanner/fod-desktop-7-1-26.jpg', 'Banner', 0, 0, 1, NOW()),
-(2, 'Signature Bridal Radiance', 'Yash Gems', 'Curated for grand celebrations and heirloom-worthy sets.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw458029d9/homepage/HeroBanner/tanishq-at-pcw-desktop-26.jpg', 'Banner', 0, 0, 1, NOW()),
-(3, 'Timeless Gemstone Collection', 'Yash Gems', 'Discover refined insights from our gem experts.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw301aba3f/homepage/HeroBanner/sos-25-desktop.jpg', 'Banner', 0, 0, 1, NOW()),
-(4, 'Modern Artisan Highlights', 'Yash Gems', 'Explore elegant pieces crafted with modern artistry.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw1fc6a80f/homepage/HeroBanner/radiance-in-rhythm-desktop.jpg', 'Banner', 0, 0, 1, NOW()),
-(5, 'Radiant Sparkle Moments', 'Yash Gems', 'Celebrate brilliance with iconic designs.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw2f04db49/homepage/HeroBanner/wedding-gifting-desktop-vgreen.jpg', 'Banner', 0, 0, 1, NOW()),
-(6, 'Radiant Sparkle Moments', 'Yash Gems', 'Celebrate brilliance with iconic designs.', 'https://www.tanishq.co.in/dw/image/v2/BKCK_PRD/on/demandware.static/-/Library-Sites-TanishqSharedLibrary/default/dw32e1f8d0/homepage/HeroBanner/floral-bloom-desktop.jpg', 'Banner', 0, 0, 1, NOW())
-ON DUPLICATE KEY UPDATE Title=Title;
-
 SELECT 'Database project_3 and all tables created successfully!' AS Status;
 SELECT 'Users Table: ' AS Info, COUNT(*) AS TotalRows FROM Users
 UNION ALL
@@ -407,8 +381,6 @@ UNION ALL
 SELECT 'PasswordResetTokens Table: ', COUNT(*) FROM PasswordResetTokens
 UNION ALL
 SELECT 'EmailVerificationTokens Table: ', COUNT(*) FROM EmailVerificationTokens
-UNION ALL
-SELECT 'Stories Table: ', COUNT(*) FROM Stories
 UNION ALL
 SELECT 'Categories Table: ', COUNT(*) FROM Categories
 UNION ALL

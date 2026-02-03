@@ -80,37 +80,6 @@ export const authService = {
   },
 };
 
-export const storyService = {
-  getAll(featured = null) {
-    const params = featured !== null ? { featured } : {};
-    return apiClient.get("/stories", { params });
-  },
-
-  getById(id) {
-    return apiClient.get(`/stories/${id}`);
-  },
-
-  getPopular(limit = 5) {
-    return apiClient.get("/stories/popular", { params: { limit } });
-  },
-
-  getStats() {
-    return apiClient.get("/stories/stats");
-  },
-
-  create(data) {
-    return apiClient.post("/stories", data);
-  },
-
-  update(id, data) {
-    return apiClient.put(`/stories/${id}`, data);
-  },
-
-  delete(id) {
-    return apiClient.delete(`/stories/${id}`);
-  },
-};
-
 export const userService = {
   getAll() {
     return apiClient.get("/admin/users");
