@@ -19,6 +19,7 @@ import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
 import Profile from './views/user/Profile'
+import EditProfile from './views/user/EditProfile'
 import AdminDashboard from './views/admin/Dashboard'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
@@ -119,6 +120,14 @@ function App() {
           <ProtectedRoute>
             <DefaultLayout>
               <Profile />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.EDIT_PROFILE} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <EditProfile />
             </DefaultLayout>
           </ProtectedRoute>
         } />
