@@ -1,63 +1,44 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Carousel } from 'react-bootstrap'
-import { storyService } from '../../common/services'
+import { bannerService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './HeroBanner.css'
 
 const HeroBanner = () => {
   const navigate = useNavigate()
-  const [stories, setStories] = useState([])
+  const [banners, setBanners] = useState([])
   const [index, setIndex] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadStories()
+    loadBanners()
   }, [])
 
   const handleSelect = (selectedIndex) => {
     setIndex(selectedIndex)
   }
 
-  const loadStories = async () => {
+  const loadBanners = async () => {
     try {
       setLoading(true)
-      const featuredRes = await storyService.getAll(true)
-      let storiesData = featuredRes.data || []
-      
-      if (storiesData.length === 0) {
-        const allRes = await storyService.getAll()
-        storiesData = allRes.data || []
-      }
-
-      storiesData = storiesData.slice(0, 4)
-
-      setStories(storiesData)
+      const bannersRes = await bannerService.getAll(true)
+      const list = bannersRes.data || []
+      setBanners(list.map(b => ({
+        id: b.id,
+        imageUrl: b.imageUrl,
+        link: b.link || null,
+        title: b.title
+      })))
     } catch (error) {
-      console.error('Error loading stories:', error)
-      setStories([])
+      console.error('Error loading banners:', error)
+      setBanners([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleBannerClick = (story) => {
-    if (story?.link) {
-      navigate(story.link)
-      return
-    }
-
-    navigate(ROUTES.DASHBOARD)
-  }
-
-  const banners = stories.map(story => ({
-    id: story.id,
-    imageUrl: story.imageUrl,
-    buttonText: 'Shop Now',
-    story: story
-  }))
-
-  if (loading && stories.length === 0) {
+  if (loading && banners.length === 0) {
     return (
       <div className="hero-banner position-relative" style={{ minHeight: 'calc(100vh - 115px)' }}>
         <div className="d-flex align-items-center justify-content-center h-100">
@@ -96,6 +77,20 @@ const HeroBanner = () => {
                 minHeight: 'calc(100vh - 115px)',
                 height: 'calc(100vh - 115px)'
               }}
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                if (banner.link) navigate(banner.link)
+                else navigate(ROUTES.DASHBOARD)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (banner.link) navigate(banner.link)
+                  else navigate(ROUTES.DASHBOARD)
+                }
+              }}
+              aria-label={banner.title || 'Banner'}
             >
             </div>
           </Carousel.Item>
