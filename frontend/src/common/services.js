@@ -216,3 +216,12 @@ export const favoriteService = {
     return apiClient.delete(`/favorites/${productId}`);
   },
 };
+
+export const submitContact = async (contactData) => {
+  try {
+    const response = await apiClient.post("/contact/submit", contactData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

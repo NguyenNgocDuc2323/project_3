@@ -244,5 +244,70 @@ namespace Backend.Services
                 throw;
             }
         }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return;
+            }
+
+            try
+            {
+                var smtpHost = _configuration["Email:SmtpHost"];
+                var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
+                var smtpUsername = _configuration["Email:SmtpUsername"];
+                var smtpPassword = _configuration["Email:SmtpPassword"];
+                var fromEmail = _configuration["Email:FromEmail"];
+                var fromName = _configuration["Email:FromName"] ?? "Project 3";
+
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
+                {
+                    _logger.LogWarning("Email configuration is incomplete");
+                    return;
+                }
+
+                var emailMessage = new MimeMessage();
+                emailMessage.From.Add(new MailboxAddress(fromName, fromEmail));
+                emailMessage.To.Add(new MailboxAddress("", email));
+                emailMessage.Subject = subject;
+
+                var bodyBuilder = new BodyBuilder
+                {
+                    TextBody = message
+                };
+
+                emailMessage.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+
+                var secureSocketOptions = smtpPort == 465
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTls;
+
+                _logger.LogInformation("Connecting to SMTP server: {Host}:{Port} with {Security}",
+                    smtpHost, smtpPort, secureSocketOptions);
+
+                await client.ConnectAsync(smtpHost, smtpPort, secureSocketOptions);
+
+                if (!string.IsNullOrEmpty(smtpUsername) && !string.IsNullOrEmpty(smtpPassword))
+                {
+                    _logger.LogInformation("Authenticating with username: {Username}", smtpUsername);
+                    await client.AuthenticateAsync(smtpUsername, smtpPassword);
+                }
+
+                _logger.LogInformation("Sending email to: {Email} with subject: {Subject}", email, subject);
+                await client.SendAsync(emailMessage);
+                await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Email sent successfully to: {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to {Email}. Error: {Error}",
+                    email, ex.Message);
+                throw;
+            }
+        }
     }
 }

@@ -57,10 +57,10 @@ const AppFooter = () => {
                 <span>About Us</span>
               </Link>
               
-              <a href="#" className="link">
+              <Link to="/contact" className="link">
                 <i className="bi bi-envelope"></i>
                 <span>Contact</span>
-              </a>
+              </Link>
               <a href="#" className="link">
                 <i className="bi bi-file-text"></i>
                 <span>Terms</span>
