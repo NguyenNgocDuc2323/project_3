@@ -33,6 +33,15 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       ]
     },
     {
+      title: 'Products',
+      icon: 'bi bi-gem',
+      path: ROUTES.ADMIN_PRODUCTS_LIST,
+      children: [
+        { title: 'All Products', path: ROUTES.ADMIN_PRODUCTS_LIST },
+        { title: 'Create Product', path: ROUTES.ADMIN_PRODUCTS_CREATE }
+      ]
+    },
+    {
       title: 'Banner',
       icon: 'bi bi-image',
       path: '/admin/banners/list',

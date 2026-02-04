@@ -23,6 +23,9 @@ export const ROUTES = {
   ADMIN_CATEGORIES_LIST: '/admin/categories/list',
   ADMIN_CATEGORIES_CREATE: '/admin/categories/create',
   ADMIN_CATEGORIES_EDIT: '/admin/categories/edit',
+  ADMIN_PRODUCTS_LIST: '/admin/products/list',
+  ADMIN_PRODUCTS_CREATE: '/admin/products/create',
+  ADMIN_PRODUCTS_EDIT: '/admin/products/edit',
   ADMIN_BANNERS_LIST: '/admin/banners/list',
   ADMIN_BANNERS_CREATE: '/admin/banners/create',
   ADMIN_BANNERS_EDIT: '/admin/banners/edit'

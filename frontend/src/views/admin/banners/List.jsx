@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { bannerService } from '../../../common/services'
 import { ROUTES } from '../../../common/constants'
+import ConfirmModal from '../../../components/common/ConfirmModal'
 import './List.css'
 
 const BannersList = () => {
@@ -9,6 +10,8 @@ const BannersList = () => {
   const [banners, setBanners] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [confirm, setConfirm] = useState({ open: false, id: null, title: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadBanners()
@@ -35,8 +38,8 @@ const BannersList = () => {
   }
 
   const handleDelete = async (id, title) => {
-    if (!window.confirm(`Are you sure you want to delete banner "${title}"?`)) return
     try {
+      setIsDeleting(true)
       await bannerService.delete(id)
       if (window.showToast) {
         window.showToast({
@@ -57,6 +60,9 @@ const BannersList = () => {
           life: 4000
         })
       }
+    } finally {
+      setIsDeleting(false)
+      setConfirm({ open: false, id: null, title: '' })
     }
   }
 
@@ -86,6 +92,17 @@ const BannersList = () => {
 
   return (
     <div className="admin-banners-list">
+      <ConfirmModal
+        open={confirm.open}
+        title="Delete banner"
+        message={`Are you sure you want to delete banner "${confirm.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={isDeleting}
+        onCancel={() => setConfirm({ open: false, id: null, title: '' })}
+        onConfirm={() => handleDelete(confirm.id, confirm.title)}
+      />
       <div className="container my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
@@ -174,7 +191,7 @@ const BannersList = () => {
                             </button>
                             <button
                               className="btn btn-outline-danger"
-                              onClick={() => handleDelete(banner.id, banner.title)}
+                              onClick={() => setConfirm({ open: true, id: banner.id, title: banner.title })}
                               title="Delete"
                             >
                               <i className="bi bi-trash"></i>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userService } from '../../../common/services'
+import ConfirmModal from '../../../components/common/ConfirmModal'
 import './List.css'
 
 const UsersList = () => {
@@ -8,6 +9,8 @@ const UsersList = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [confirm, setConfirm] = useState({ open: false, id: null, username: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadUsers()
@@ -34,11 +37,8 @@ const UsersList = () => {
   }
 
   const handleDelete = async (id, username) => {
-    if (!window.confirm(`Are you sure you want to delete user "${username}"?`)) {
-      return
-    }
-
     try {
+      setIsDeleting(true)
       await userService.delete(id)
       if (window.showToast) {
         window.showToast({
@@ -59,6 +59,9 @@ const UsersList = () => {
           life: 4000
         })
       }
+    } finally {
+      setIsDeleting(false)
+      setConfirm({ open: false, id: null, username: '' })
     }
   }
 
@@ -86,6 +89,17 @@ const UsersList = () => {
 
   return (
     <div className="admin-users-list">
+      <ConfirmModal
+        open={confirm.open}
+        title="Delete user"
+        message={`Are you sure you want to delete user "${confirm.username}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={isDeleting}
+        onCancel={() => setConfirm({ open: false, id: null, username: '' })}
+        onConfirm={() => handleDelete(confirm.id, confirm.username)}
+      />
       <div className="container my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
