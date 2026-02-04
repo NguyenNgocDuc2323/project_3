@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import './ContactForm.css';
 import { submitContact } from '../../common/services';
-import Toast from '../../components/Toast';
+
+const showToast = (detail, severity = 'info', summary = null) => {
+  if (typeof window.showToast !== 'function') return;
+  window.showToast({
+    severity,
+    summary: summary ?? (severity === 'success' ? 'Thành công' : severity === 'error' ? 'Lỗi' : 'Thông báo'),
+    detail,
+    life: severity === 'error' ? 4000 : 3000,
+  });
+};
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +22,6 @@ const ContactForm = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,40 +31,32 @@ const ContactForm = () => {
     }));
   };
 
-  const showToast = (message, type) => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: '', type: '' });
-    }, 3000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.name.trim()) {
-      showToast('Please enter your name', 'error');
+      showToast('Vui lòng nhập tên của bạn.', 'error');
       return;
     }
 
     if (!formData.email.trim()) {
-      showToast('Please enter your email', 'error');
+      showToast('Vui lòng nhập email.', 'error');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      showToast('Please enter a valid email', 'error');
+      showToast('Vui lòng nhập đúng định dạng email.', 'error');
       return;
     }
 
     if (!formData.subject.trim()) {
-      showToast('Please enter a subject', 'error');
+      showToast('Vui lòng nhập chủ đề.', 'error');
       return;
     }
 
     if (!formData.message.trim()) {
-      showToast('Please enter your message', 'error');
+      showToast('Vui lòng nhập nội dung tin nhắn.', 'error');
       return;
     }
 
@@ -64,9 +64,9 @@ const ContactForm = () => {
 
     try {
       const response = await submitContact(formData);
-      
+
       if (response.success) {
-        showToast(response.message, 'success');
+        showToast(response.message || 'Gửi liên hệ thành công. Chúng tôi sẽ phản hồi sớm!', 'success');
         setFormData({
           name: '',
           email: '',
@@ -75,11 +75,12 @@ const ContactForm = () => {
           message: '',
         });
       } else {
-        showToast(response.message || 'Failed to send message', 'error');
+        showToast(response.message || 'Gửi tin nhắn thất bại. Vui lòng thử lại.', 'error');
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
-      showToast('An error occurred while sending your message. Please try again.', 'error');
+      const msg = error.response?.data?.message || 'Đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại.';
+      showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -87,8 +88,6 @@ const ContactForm = () => {
 
   return (
     <div className="contact-form-container">
-      {toast.show && <Toast message={toast.message} type={toast.type} />}
-      
       <div className="contact-form-wrapper">
         <h2 className="contact-form-title">Get In Touch</h2>
         <p className="contact-form-subtitle">

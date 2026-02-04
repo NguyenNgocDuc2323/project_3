@@ -261,6 +261,21 @@ CREATE TABLE IF NOT EXISTS UserAddresses (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS Contacts (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(255) NOT NULL,
+    Phone VARCHAR(20) NOT NULL DEFAULT '',
+    Subject VARCHAR(100) NOT NULL,
+    Message VARCHAR(5000) NOT NULL,
+    CreatedAt DATETIME(6) NOT NULL,
+    IsResolved TINYINT(1) NOT NULL DEFAULT 0,
+    AdminResponse VARCHAR(500) NOT NULL DEFAULT '',
+    INDEX IX_Contacts_Email (Email),
+    INDEX IX_Contacts_IsResolved (IsResolved),
+    INDEX IX_Contacts_CreatedAt (CreatedAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 INSERT INTO Categories (Name, Description, ParentCategoryId, CreatedAt) VALUES
 ('Rings', 'Engagement, wedding, and statement rings', NULL, NOW()),
@@ -419,6 +434,10 @@ UNION ALL
 SELECT 'OrderItems Table: ', COUNT(*) FROM OrderItems
 UNION ALL
 SELECT 'Payments Table: ', COUNT(*) FROM Payments
+UNION ALL
+SELECT 'UserAddresses Table: ', COUNT(*) FROM UserAddresses
+UNION ALL
+SELECT 'Contacts Table: ', COUNT(*) FROM Contacts
 UNION ALL
 SELECT 'Materials Table: ', COUNT(*) FROM Materials
 UNION ALL
