@@ -28,6 +28,7 @@ namespace Backend.Data
         public DbSet<MetalColor> MetalColors { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Banner> Banners { get; set; }
+        public DbSet<UserAddress> UserAddresses { get; set; }
         public DbSet<Contact> Contacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -329,6 +330,21 @@ namespace Backend.Data
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.SortOrder);
+            });
+
+            modelBuilder.Entity<UserAddress>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ReceiverName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Phone).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.AddressLine).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.City).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Addresses)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

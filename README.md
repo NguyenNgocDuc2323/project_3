@@ -99,6 +99,42 @@ Email__VerifyEmailBaseUrl=http://localhost:5000/api/auth/verify-email
 - `Email__ResetPasswordBaseUrl` trỏ về frontend để mở trang đặt lại mật khẩu
 - `Email__VerifyEmailBaseUrl` trỏ về API endpoint xác thực email
 
+## Cấu hình Thanh toán Online
+
+Dự án tích hợp các cổng thanh toán phổ biến tại Việt Nam (VNPAY, ZaloPay) và Chuyển khoản ngân hàng (VietQR).
+
+### 1. Cấu hình VNPAY (Sandbox)
+
+1. Đăng ký tài khoản test tại: [VNPAY Sandbox Register](https://sandbox.vnpayment.vn/devreg/)
+2. Lấy `vnp_TmnCode` và `vnp_HashSecret` từ email VNPAY gửi.
+3. Cấu hình trong `backend/.env`:
+   ```
+   Vnpay__TmnCode=YOUR_TMN_CODE
+   Vnpay__HashSecret=YOUR_HASH_SECRET
+   Vnpay__BaseUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+   Vnpay__ReturnUrl=http://localhost:3000/checkout/payment-callback
+   ```
+4. **Thẻ test NCB:**
+   - Số thẻ: `9704198526191432198`
+   - Tên chủ thẻ: `NGUYEN VAN A`
+   - Ngày phát hành: `07/15`
+   - OTP: `123456`
+
+### 2. Cấu hình ZaloPay (Sandbox)
+
+Sử dụng bộ mã test mặc định của ZaloPay trong `backend/.env`:
+```
+ZaloPay__AppId=2553
+ZaloPay__Key1=9ph319p987679393p622p7rr6f6p9113
+ZaloPay__Key2=Iyz2p763th0p939393p622p7rr6f6p9113
+ZaloPay__BaseUrl=https://sb-openapi.zalopay.vn/v2/create
+ZaloPay__RedirectUrl=http://localhost:3000/checkout/payment-callback
+```
+
+### 3. Chuyển khoản VietQR
+
+Hệ thống tự động tạo mã VietQR dựa trên số tài khoản cấu hình. Hiện tại đang sử dụng demo VietQR.io.
+
 ## Cấu trúc Frontend
 
 ```

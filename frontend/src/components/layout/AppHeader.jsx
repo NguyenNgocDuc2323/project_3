@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
+import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
 import { cartService, categoryService } from '../../common/services'
@@ -13,6 +13,7 @@ const AppHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
   const [cartCount, setCartCount] = useState(0)
+  const [cartItems, setCartItems] = useState([])
 
   const [categoryTree, setCategoryTree] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
@@ -53,34 +54,41 @@ const AppHeader = () => {
   }, [location])
 
   useEffect(() => {
-    const updateCartCount = async () => {
+    const updateCartData = async () => {
       if (!isAuthenticated()) {
         setCartCount(0)
+        setCartItems([])
         return
       }
 
       const user = getCurrentUser()
       if (!user?.id) {
         setCartCount(0)
+        setCartItems([])
         return
       }
 
       try {
-        const response = await cartService.getCount()
-        setCartCount(response.data?.count || 0)
+        const [countRes, itemsRes] = await Promise.all([
+          cartService.getCount(),
+          cartService.getAll()
+        ])
+        setCartCount(countRes.data?.count || 0)
+        setCartItems(itemsRes.data || [])
       } catch (error) {
-        console.error('Failed to load cart count:', error)
+        console.error('Failed to load cart data:', error)
         setCartCount(0)
+        setCartItems([])
       }
     }
 
-    updateCartCount()
-    window.addEventListener('cart:updated', updateCartCount)
-    window.addEventListener('storage', updateCartCount)
+    updateCartData()
+    window.addEventListener('cart:updated', updateCartData)
+    window.addEventListener('storage', updateCartData)
 
     return () => {
-      window.removeEventListener('cart:updated', updateCartCount)
-      window.removeEventListener('storage', updateCartCount)
+      window.removeEventListener('cart:updated', updateCartData)
+      window.removeEventListener('storage', updateCartData)
     }
   }, [])
 
@@ -243,9 +251,13 @@ const AppHeader = () => {
                   </div>
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => {}}>
-                  <i className="bi bi-person-gear me-2"></i>
-                  Update Profile
+                <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
+                  <i className="bi bi-person-circle me-2"></i>
+                  Thông tin cá nhân
+                </NavDropdown.Item>
+                <NavDropdown.Item onClick={() => navigate(ROUTES.ADDRESSES)}>
+                  <i className="bi bi-geo-alt me-2"></i>
+                  Sổ địa chỉ
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -254,10 +266,64 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
-            <button type="button" className="yash-icon-btn yash-bag" aria-label="Bag">
-              <i className="bi bi-bag"></i>
-              <span className="yash-bag-count">{cartCount}</span>
-            </button>
+            <NavDropdown
+              title={
+                <div className="yash-bag-icon-wrapper">
+                  <i className="bi bi-bag"></i>
+                  <span className="yash-bag-count">{cartCount}</span>
+                </div>
+              }
+              id="cart-nav-dropdown"
+              align="end"
+              className="nav-icon-dropdown cart-dropdown"
+            >
+              <div className="cart-dropdown-header p-3 border-bottom">
+                <h6 className="mb-0 fw-bold text-uppercase small" style={{ letterSpacing: '0.1em' }}>Giỏ hàng ({cartCount})</h6>
+              </div>
+              <div className="cart-dropdown-body" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {cartItems.length === 0 ? (
+                  <div className="p-4 text-center text-muted">
+                    <i className="bi bi-bag-x display-4 d-block mb-2"></i>
+                    <p className="mb-0 small">Giỏ hàng của bạn đang trống</p>
+                  </div>
+                ) : (
+                  cartItems.map((item) => (
+                    <div key={item.id} className="cart-dropdown-item p-3 d-flex gap-3 align-items-center border-bottom">
+                      <img 
+                        src={item.product?.imageUrl || 'https://via.placeholder.com/50'} 
+                        alt={item.product?.name} 
+                        style={{ width: '50px', height: '60px', objectFit: 'cover' }}
+                      />
+                      <div className="flex-grow-1 min-width-0">
+                        <h6 className="mb-1 text-truncate small fw-bold" style={{ fontFamily: 'serif' }}>{item.product?.name}</h6>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="text-muted extra-small">Qty: {item.quantity}</span>
+                          <span className="fw-bold small">{(item.product?.mrp * item.quantity).toLocaleString('vi-VN')}₫</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              {cartItems.length > 0 && (
+                <div className="cart-dropdown-footer p-3">
+                  <div className="d-flex justify-content-between mb-3">
+                    <span className="text-muted small">Subtotal:</span>
+                    <span className="fw-bold text-dark">
+                      {cartItems.reduce((total, item) => total + (item.product?.mrp * item.quantity), 0).toLocaleString('vi-VN')}₫
+                    </span>
+                  </div>
+                  <div className="d-grid gap-2">
+                    <Button variant="dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CART)}>
+                      Xem giỏ hàng
+                    </Button>
+                    <Button variant="outline-dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.SHOP)}>
+                      Tiếp tục mua sắm
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </NavDropdown>
           </div>
         </Navbar.Collapse>
     </Navbar>

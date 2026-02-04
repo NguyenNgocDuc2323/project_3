@@ -43,6 +43,11 @@ const refreshTokenOnScroll = async () => {
 }
 
 const handleScroll = () => {
+  const hasSession = cookieUtils.get('accessToken') || storageUtils.get('user')
+  if (!hasSession) {
+    return
+  }
+
   const now = Date.now()
   
   if (scrollRefreshTimeout) {
@@ -59,11 +64,6 @@ const handleScroll = () => {
 
 export const initScrollTokenRefresh = () => {
   if (window._scrollTokenRefreshInitialized) {
-    return
-  }
-
-  const hasSession = cookieUtils.get('accessToken') || storageUtils.get('user')
-  if (!hasSession) {
     return
   }
 

@@ -20,6 +20,12 @@ import Contact from './views/Contact'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
+import Profile from './views/user/Profile'
+import EditProfile from './views/user/EditProfile'
+import AddressManagement from './views/user/AddressManagement'
+import Cart from './views/user/Cart'
+import Checkout from './views/user/Checkout'
+import PaymentCallback from './views/user/PaymentCallback'
 import AdminDashboard from './views/admin/Dashboard'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
@@ -41,12 +47,17 @@ function App() {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const hasSession = isAuthenticated() || !!getCurrentUser()
-      if (hasSession && !isAuthenticated()) {
+      const user = getCurrentUser()
+      const hasAccessToken = isAuthenticated()
+
+      if (user && !hasAccessToken) {
         try {
           await authService.refreshToken()
         } catch (error) {
-          console.error('Failed to refresh token on app init:', error)
+          // If refresh fails with 401, it means the session is dead
+          if (error.response?.status === 401) {
+            authService.logout()
+          }
         }
       }
       setIsInitializing(false)
@@ -123,6 +134,54 @@ function App() {
           <DefaultLayout>
             <ProductDetail />
           </DefaultLayout>
+        } />
+
+        <Route path={ROUTES.PROFILE} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Profile />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.EDIT_PROFILE} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <EditProfile />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.ADDRESSES} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <AddressManagement />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.CART} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Cart />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.CHECKOUT} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <Checkout />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/checkout/payment-callback" element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <PaymentCallback />
+            </DefaultLayout>
+          </ProtectedRoute>
         } />
         
         <Route path={ROUTES.ADMIN} element={
