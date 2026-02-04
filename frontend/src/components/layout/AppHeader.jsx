@@ -161,6 +161,14 @@ const AppHeader = () => {
             >
               Shop
             </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/contact" 
+              className="yash-nav-link"
+              active={location.pathname === '/contact'}
+            >
+              Contact
+            </Nav.Link>
             {menuItems.map((item) => {
               const currentCategoryId = new URLSearchParams(location.search).get('category');
               
