@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS Users (
     Email VARCHAR(255) NOT NULL,
     PasswordHash LONGTEXT NOT NULL,
     FullName VARCHAR(100) NULL,
+    AvatarUrl VARCHAR(500) NULL,
+    Gender VARCHAR(20) NULL,
+    Address VARCHAR(500) NULL,
+    Phone VARCHAR(20) NULL,
+    DateOfBirth DATE NULL,
     CreatedAt DATETIME(6) NOT NULL,
     UpdatedAt DATETIME(6) NULL,
     IsActive TINYINT(1) NOT NULL DEFAULT 1,
@@ -227,7 +232,7 @@ CREATE TABLE IF NOT EXISTS Payments (
     OrderId INT NOT NULL,
     UserId INT NOT NULL,
     Amount DECIMAL(10,2) NOT NULL DEFAULT 0,
-    Currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+    Currency VARCHAR(10) NOT NULL DEFAULT 'VND',
     Status VARCHAR(50) NOT NULL DEFAULT 'Pending',
     Provider VARCHAR(100) NULL,
     Method VARCHAR(100) NULL,
@@ -240,6 +245,19 @@ CREATE TABLE IF NOT EXISTS Payments (
     INDEX IX_Payments_Status (Status),
     INDEX IX_Payments_Reference (Reference),
     FOREIGN KEY (OrderId) REFERENCES Orders(Id) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS UserAddresses (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    ReceiverName VARCHAR(100) NOT NULL,
+    Phone VARCHAR(20) NOT NULL,
+    AddressLine VARCHAR(500) NOT NULL,
+    City VARCHAR(100) NOT NULL,
+    IsDefault TINYINT(1) NOT NULL DEFAULT 0,
+    CreatedAt DATETIME(6) NOT NULL,
+    INDEX IX_UserAddresses_UserId (UserId),
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -307,15 +325,15 @@ ON DUPLICATE KEY UPDATE
   Sizes.PriceMultiplier = VALUES(PriceMultiplier);
 
 INSERT INTO Products (Name, StyleCode, ProductType, Brand, GoldCarat, MRP, OriginalPrice, ImageUrl, Views, Likes, CategoryId, MaterialId, MetalColorId, IsFeatured, CreatedAt) VALUES
-('Regal Solitaire Ring', 'RG-ASM-102', 'Ring', 'Asmi', '18K', 185, 215, 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=800&h=600&fit=crop&q=80', 15200, 1200, (SELECT Id FROM Categories WHERE Name = 'Diamond Rings' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'White Gold' LIMIT 1), 1, NOW()),
-('Imperial Halo Necklace', 'NK-DDM-415', 'Necklace', 'Ddamas', '22K', 425, 489, 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=800&h=600&fit=crop&q=80', 9800, 756, (SELECT Id FROM Categories WHERE Name = 'Diamond Necklaces' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 1, NOW()),
-('Celestial Drop Earrings', 'ER-CT-308', 'Earrings', 'Caratlane', '18K', 118, 136, 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&h=600&fit=crop&q=80', 11200, 890, (SELECT Id FROM Categories WHERE Name = 'Diamond Earrings' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Rose Gold' LIMIT 1), 1, NOW()),
-('Royal Charm Bracelet', 'BR-ASM-220', 'Bracelet', 'Asmi', '18K', 165, 189, 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop&q=80', 8500, 634, (SELECT Id FROM Categories WHERE Name = 'Gold Bracelets' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 0, NOW()),
-('Majestic Heritage Bangle', 'BG-HR-519', 'Bangle', 'Heritage', '22K', 355, 399, 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=600&fit=crop&q=80', 13800, 1023, (SELECT Id FROM Categories WHERE Name = 'Gold Bangles' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 1, NOW()),
-('Crown Pendant Set', 'PD-DDM-314', 'Pendant', 'Ddamas', '18K', 142, 165, 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=600&fit=crop&q=80', 12400, 912, (SELECT Id FROM Categories WHERE Name = 'Gold Pendants' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'White Gold' LIMIT 1), 0, NOW()),
-('Bridal Radiance Set', 'BRD-ASM-777', 'Bridal Set', 'Asmi', '22K', 895, 975, 'https://images.unsplash.com/photo-1490367532201-b9bc1dc483f6?w=800&h=600&fit=crop&q=80', 9800, 756, (SELECT Id FROM Categories WHERE Name = 'Gold Bridal Sets' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Rose Gold' LIMIT 1), 1, NOW()),
-('Heritage Kundan Necklace', 'HN-HR-642', 'Necklace', 'Heritage', '22K', 585, 648, 'https://images.unsplash.com/photo-1503342452485-86b7f54527ef?w=800&h=600&fit=crop&q=80', 11500, 801, (SELECT Id FROM Categories WHERE Name = 'Gold Heritage' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 0, NOW())
-ON DUPLICATE KEY UPDATE Name=Name;
+('Regal Solitaire Ring', 'RG-ASM-102', 'Ring', 'Asmi', '18K', 18500000, 21500000, 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=800&h=600&fit=crop&q=80', 15200, 1200, (SELECT Id FROM Categories WHERE Name = 'Diamond Rings' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'White Gold' LIMIT 1), 1, NOW()),
+('Imperial Halo Necklace', 'NK-DDM-415', 'Necklace', 'Ddamas', '22K', 42500000, 48900000, 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=800&h=600&fit=crop&q=80', 9800, 756, (SELECT Id FROM Categories WHERE Name = 'Diamond Necklaces' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 1, NOW()),
+('Celestial Drop Earrings', 'ER-CT-308', 'Earrings', 'Caratlane', '18K', 11800000, 13600000, 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&h=600&fit=crop&q=80', 11200, 890, (SELECT Id FROM Categories WHERE Name = 'Diamond Earrings' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Rose Gold' LIMIT 1), 1, NOW()),
+('Royal Charm Bracelet', 'BR-ASM-220', 'Bracelet', 'Asmi', '18K', 16500000, 18900000, 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop&q=80', 8500, 634, (SELECT Id FROM Categories WHERE Name = 'Gold Bracelets' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 0, NOW()),
+('Majestic Heritage Bangle', 'BG-HR-519', 'Bangle', 'Heritage', '22K', 35500000, 39900000, 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=600&fit=crop&q=80', 13800, 1023, (SELECT Id FROM Categories WHERE Name = 'Gold Bangles' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 1, NOW()),
+('Crown Pendant Set', 'PD-DDM-314', 'Pendant', 'Ddamas', '18K', 14200000, 16500000, 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=600&fit=crop&q=80', 12400, 912, (SELECT Id FROM Categories WHERE Name = 'Gold Pendants' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '18K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'White Gold' LIMIT 1), 0, NOW()),
+('Bridal Radiance Set', 'BRD-ASM-777', 'Bridal Set', 'Asmi', '22K', 89500000, 97500000, 'https://images.unsplash.com/photo-1490367532201-b9bc1dc483f6?w=800&h=600&fit=crop&q=80', 9800, 756, (SELECT Id FROM Categories WHERE Name = 'Gold Bridal Sets' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Rose Gold' LIMIT 1), 1, NOW()),
+('Heritage Kundan Necklace', 'HN-HR-642', 'Necklace', 'Heritage', '22K', 58500000, 64800000, 'https://images.unsplash.com/photo-1503342452485-86b7f54527ef?w=800&h=600&fit=crop&q=80', 11500, 801, (SELECT Id FROM Categories WHERE Name = 'Gold Heritage' LIMIT 1), (SELECT Id FROM Materials WHERE Name = '22K' LIMIT 1), (SELECT Id FROM MetalColors WHERE Name = 'Yellow Gold' LIMIT 1), 0, NOW())
+ON DUPLICATE KEY UPDATE Name=VALUES(Name), MRP=VALUES(MRP), OriginalPrice=VALUES(OriginalPrice);
 
 INSERT INTO ProductSizes (ProductId, SizeId)
 SELECT p.Id, s.Id
