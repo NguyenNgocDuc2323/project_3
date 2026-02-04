@@ -178,6 +178,27 @@ export const chatService = {
   },
 };
 
+export const profileService = {
+  get() {
+    return apiClient.get("/profile");
+  },
+  update(data) {
+    return apiClient.put("/profile", data);
+  },
+  uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  changePassword(oldPassword, newPassword) {
+    return apiClient.post("/profile/change-password", { oldPassword, newPassword });
+  },
+};
+
 export const cartService = {
   getAll() {
     return apiClient.get("/cart");
@@ -197,6 +218,42 @@ export const cartService = {
   remove(productId) {
     return apiClient.delete(`/cart/${productId}`);
   },
+  clear() {
+    return apiClient.delete("/cart/clear");
+  },
+};
+
+export const orderService = {
+  create(data) {
+    return apiClient.post("/orders", data);
+  },
+  getAll() {
+    return apiClient.get("/orders");
+  },
+  getById(id) {
+    return apiClient.get(`/orders/${id}`);
+  },
+};
+
+export const addressService = {
+  getAll() {
+    return apiClient.get("/addresses");
+  },
+  getById(id) {
+    return apiClient.get(`/addresses/${id}`);
+  },
+  create(data) {
+    return apiClient.post("/addresses", data);
+  },
+  update(id, data) {
+    return apiClient.put(`/addresses/${id}`, data);
+  },
+  delete(id) {
+    return apiClient.delete(`/addresses/${id}`);
+  },
+  setDefault(id) {
+    return apiClient.patch(`/addresses/${id}/set-default`);
+  },
 };
 
 export const favoriteService = {
@@ -215,4 +272,13 @@ export const favoriteService = {
   remove(productId) {
     return apiClient.delete(`/favorites/${productId}`);
   },
+};
+
+export const submitContact = async (contactData) => {
+  try {
+    const response = await apiClient.post("/contact/submit", contactData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };

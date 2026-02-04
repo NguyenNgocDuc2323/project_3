@@ -89,11 +89,13 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         isRefreshing = false;
         processQueue(refreshError, null);
-        const hasAccessToken = cookieUtils.get("accessToken");
+        
+        // Clear everything
         cookieUtils.remove("accessToken");
-        localStorage.removeItem("user");
+        storageUtils.remove("user");
 
-        if (hasAccessToken && window.location.pathname !== "/login") {
+        // Force redirect to login if we're not already there
+        if (window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
 

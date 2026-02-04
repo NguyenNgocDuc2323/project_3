@@ -20,6 +20,20 @@ namespace Backend.Models
         [StringLength(100)]
         public string? FullName { get; set; }
 
+        [StringLength(500)]
+        public string? AvatarUrl { get; set; }
+
+        [StringLength(20)]
+        public string? Gender { get; set; }
+
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        [StringLength(20)]
+        public string? Phone { get; set; }
+
+        public DateTime? DateOfBirth { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
@@ -43,5 +57,7 @@ namespace Backend.Models
         public ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
     }
 }
