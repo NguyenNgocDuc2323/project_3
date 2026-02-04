@@ -14,10 +14,9 @@ const ProductCard = ({ product, showStats = false, onView }) => {
 
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+      currency: 'VND'
     }).format(amount)
   }
 
@@ -26,51 +25,9 @@ const ProductCard = ({ product, showStats = false, onView }) => {
   }
 
   useEffect(() => {
-    let isMounted = true
-
-    const loadStatus = async () => {
-      if (!isAuthenticated()) {
-        if (isMounted) {
-          setIsFavorite(false)
-          setInCart(false)
-        }
-        return
-      }
-
-      const user = getCurrentUser()
-      if (!user?.id) {
-        if (isMounted) {
-          setIsFavorite(false)
-          setInCart(false)
-        }
-        return
-      }
-
-      try {
-        const [favoriteResponse, cartResponse] = await Promise.all([
-          favoriteService.contains(product.id),
-          cartService.contains(product.id)
-        ])
-
-        if (isMounted) {
-          setIsFavorite(!!favoriteResponse.data?.isFavorite)
-          setInCart(!!cartResponse.data?.inCart)
-        }
-      } catch (error) {
-        if (isMounted) {
-          setIsFavorite(false)
-          setInCart(false)
-        }
-        console.error('Failed to load product actions:', error)
-      }
-    }
-
-    loadStatus()
-
-    return () => {
-      isMounted = false
-    }
-  }, [product.id])
+    setIsFavorite(!!(product.isFavorite || product.IsFavorite))
+    setInCart(!!(product.isInCart || product.IsInCart))
+  }, [product.id, product.isFavorite, product.IsFavorite, product.isInCart, product.IsInCart])
 
   const requireLogin = (type) => {
     savePostLoginAction({ type, productId: product.id })
@@ -211,7 +168,7 @@ const ProductCard = ({ product, showStats = false, onView }) => {
           </button>
         </div>
       </div>
-      <div className="product-body d-flex flex-column p-3">
+      <div className="p-3">
         <h3
           className="product-title mb-2"
           title={product.name}

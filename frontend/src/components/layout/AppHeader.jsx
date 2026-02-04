@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
+import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
 import { cartService, categoryService } from '../../common/services'
@@ -14,8 +14,6 @@ const AppHeader = () => {
   const [userInfo, setUserInfo] = useState(null)
   const [cartCount, setCartCount] = useState(0)
   const [cartItems, setCartItems] = useState([])
-  const [loadingCart, setLoadingCart] = useState(false)
-  const [updatingCart, setUpdatingCart] = useState(false)
 
   const [categoryTree, setCategoryTree] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
@@ -55,26 +53,8 @@ const AppHeader = () => {
     setUserInfo(getCurrentUser())
   }, [location])
 
-  const loadCartItems = async () => {
-    if (!isAuthenticated()) {
-      setCartItems([])
-      return
-    }
-
-    try {
-      setLoadingCart(true)
-      const response = await cartService.getAll()
-      setCartItems(response.data || [])
-    } catch (error) {
-      console.error('Failed to load cart items:', error)
-      setCartItems([])
-    } finally {
-      setLoadingCart(false)
-    }
-  }
-
   useEffect(() => {
-    const updateCartCount = async () => {
+    const updateCartData = async () => {
       if (!isAuthenticated()) {
         setCartCount(0)
         setCartItems([])
@@ -89,118 +69,32 @@ const AppHeader = () => {
       }
 
       try {
-        // Load both count and items in parallel
-        const [countResponse, itemsResponse] = await Promise.all([
+        const [countRes, itemsRes] = await Promise.all([
           cartService.getCount(),
           cartService.getAll()
         ])
-        const count = countResponse.data?.count || 0
-        const items = itemsResponse.data || []
-        
-        setCartCount(count)
-        setCartItems(items)
-        
-        // Debug log
-        if (count > 0 && items.length === 0) {
-          console.warn('Cart count is', count, 'but items array is empty. Response:', itemsResponse)
-        }
+        setCartCount(countRes.data?.count || 0)
+        setCartItems(itemsRes.data || [])
       } catch (error) {
-        console.error('Failed to load cart:', error)
+        console.error('Failed to load cart data:', error)
         setCartCount(0)
         setCartItems([])
       }
     }
 
-    updateCartCount()
-    window.addEventListener('cart:updated', updateCartCount)
-    window.addEventListener('storage', updateCartCount)
+    updateCartData()
+    window.addEventListener('cart:updated', updateCartData)
+    window.addEventListener('storage', updateCartData)
 
     return () => {
-      window.removeEventListener('cart:updated', updateCartCount)
-      window.removeEventListener('storage', updateCartCount)
+      window.removeEventListener('cart:updated', updateCartData)
+      window.removeEventListener('storage', updateCartData)
     }
   }, [])
 
   const handleLogout = () => {
     logout()
     navigate(ROUTES.LOGIN)
-  }
-
-  const handleCartDropdownToggle = (isOpen) => {
-    if (isOpen && isAuthenticated()) {
-      loadCartItems()
-    }
-  }
-
-  const handleQuantityChange = async (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      return
-    }
-
-    try {
-      setUpdatingCart(true)
-      await cartService.update(productId, newQuantity)
-      await loadCartItems()
-      window.dispatchEvent(new Event('cart:updated'))
-      
-      if (window.showToast) {
-        window.showToast({
-          severity: 'success',
-          summary: 'Thành công',
-          detail: 'Đã cập nhật số lượng',
-          life: 2000
-        })
-      }
-    } catch (error) {
-      console.error('Error updating quantity:', error)
-      if (window.showToast) {
-        window.showToast({
-          severity: 'error',
-          summary: 'Lỗi',
-          detail: error.response?.data?.message || 'Không thể cập nhật số lượng',
-          life: 4000
-        })
-      }
-    } finally {
-      setUpdatingCart(false)
-    }
-  }
-
-  const handleRemoveItem = async (productId) => {
-    try {
-      setUpdatingCart(true)
-      await cartService.remove(productId)
-      await loadCartItems()
-      window.dispatchEvent(new Event('cart:updated'))
-      
-      if (window.showToast) {
-        window.showToast({
-          severity: 'success',
-          summary: 'Thành công',
-          detail: 'Đã xóa sản phẩm khỏi giỏ hàng',
-          life: 2000
-        })
-      }
-    } catch (error) {
-      console.error('Error removing item:', error)
-      if (window.showToast) {
-        window.showToast({
-          severity: 'error',
-          summary: 'Lỗi',
-          detail: error.response?.data?.message || 'Không thể xóa sản phẩm',
-          life: 4000
-        })
-      }
-    } finally {
-      setUpdatingCart(false)
-    }
-  }
-
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = item.product?.originalPrice || 0
-      return total + (price * item.quantity)
-    }, 0)
   }
 
   const renderMenuItem = (item) => {
@@ -350,8 +244,12 @@ const AppHeader = () => {
                 </NavDropdown.ItemText>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
-                  <i className="bi bi-person-gear me-2"></i>
-                  Profile
+                  <i className="bi bi-person-circle me-2"></i>
+                  Thông tin cá nhân
+                </NavDropdown.Item>
+                <NavDropdown.Item onClick={() => navigate(ROUTES.ADDRESSES)}>
+                  <i className="bi bi-geo-alt me-2"></i>
+                  Sổ địa chỉ
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -360,143 +258,64 @@ const AppHeader = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             )}
-            {isAuthenticated() ? (
-              <NavDropdown
-                title={
-                  <span className="yash-icon-btn yash-bag" style={{ position: 'relative' }}>
-                    <i className="bi bi-bag"></i>
-                    {cartCount > 0 && (
-                      <span className="yash-bag-count">{cartCount}</span>
-                    )}
-                  </span>
-                }
-                id="cart-nav-dropdown"
-                align="end"
-                className="nav-icon-dropdown"
-                onToggle={handleCartDropdownToggle}
-              >
-                <NavDropdown.ItemText>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <strong>
-                      <i className="bi bi-cart me-2"></i>
-                      Giỏ hàng ({cartItems.length})
-                    </strong>
+            <NavDropdown
+              title={
+                <div className="yash-bag-icon-wrapper">
+                  <i className="bi bi-bag"></i>
+                  <span className="yash-bag-count">{cartCount}</span>
+                </div>
+              }
+              id="cart-nav-dropdown"
+              align="end"
+              className="nav-icon-dropdown cart-dropdown"
+            >
+              <div className="cart-dropdown-header p-3 border-bottom">
+                <h6 className="mb-0 fw-bold text-uppercase small" style={{ letterSpacing: '0.1em' }}>Giỏ hàng ({cartCount})</h6>
+              </div>
+              <div className="cart-dropdown-body" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {cartItems.length === 0 ? (
+                  <div className="p-4 text-center text-muted">
+                    <i className="bi bi-bag-x display-4 d-block mb-2"></i>
+                    <p className="mb-0 small">Giỏ hàng của bạn đang trống</p>
                   </div>
-                </NavDropdown.ItemText>
-                <NavDropdown.Divider />
-                {loadingCart ? (
-                  <NavDropdown.ItemText>
-                    <div className="text-center py-3">
-                      <div className="spinner-border spinner-border-sm text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    </div>
-                  </NavDropdown.ItemText>
-                ) : cartItems.length === 0 ? (
-                  <NavDropdown.ItemText>
-                    <div className="text-center py-3 text-muted">
-                      <i className="bi bi-cart-x" style={{ fontSize: '2rem' }}></i>
-                      <p className="mb-0 mt-2">Giỏ hàng trống</p>
-                    </div>
-                  </NavDropdown.ItemText>
                 ) : (
-                  <>
-                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                      {cartItems.map((item) => (
-                        <div key={item.id} className="cart-dropdown-item">
-                          <div className="d-flex align-items-center p-2">
-                            <img
-                              src={item.product?.imageUrl || 'https://via.placeholder.com/60'}
-                              alt={item.product?.name || 'Product'}
-                              style={{
-                                width: '60px',
-                                height: '60px',
-                                objectFit: 'cover',
-                                borderRadius: '4px',
-                                marginRight: '12px'
-                              }}
-                              onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/60'
-                              }}
-                            />
-                            <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                              <div className="fw-semibold" style={{ fontSize: '0.875rem' }}>
-                                {item.product?.name || 'Sản phẩm'}
-                              </div>
-                              <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                                ${(item.product?.originalPrice || 0).toFixed(2)} × {item.quantity}
-                              </div>
-                              <div className="d-flex align-items-center gap-2 mt-1">
-                                <button
-                                  className="btn btn-sm btn-outline-secondary p-0"
-                                  style={{ width: '24px', height: '24px', fontSize: '0.75rem' }}
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleQuantityChange(item.productId || item.ProductId, item.quantity - 1)
-                                  }}
-                                  disabled={updatingCart || item.quantity <= 1}
-                                >
-                                  <i className="bi bi-dash"></i>
-                                </button>
-                                <span style={{ fontSize: '0.875rem', minWidth: '24px', textAlign: 'center' }}>
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  className="btn btn-sm btn-outline-secondary p-0"
-                                  style={{ width: '24px', height: '24px', fontSize: '0.75rem' }}
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleQuantityChange(item.productId || item.ProductId, item.quantity + 1)
-                                  }}
-                                  disabled={updatingCart}
-                                >
-                                  <i className="bi bi-plus"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-link text-danger p-0 ms-auto"
-                                  style={{ fontSize: '0.75rem' }}
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRemoveItem(item.productId || item.ProductId)
-                                  }}
-                                  disabled={updatingCart}
-                                >
-                                  <i className="bi bi-trash"></i>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                  cartItems.map((item) => (
+                    <div key={item.id} className="cart-dropdown-item p-3 d-flex gap-3 align-items-center border-bottom">
+                      <img 
+                        src={item.product?.imageUrl || 'https://via.placeholder.com/50'} 
+                        alt={item.product?.name} 
+                        style={{ width: '50px', height: '60px', objectFit: 'cover' }}
+                      />
+                      <div className="flex-grow-1 min-width-0">
+                        <h6 className="mb-1 text-truncate small fw-bold" style={{ fontFamily: 'serif' }}>{item.product?.name}</h6>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="text-muted extra-small">Qty: {item.quantity}</span>
+                          <span className="fw-bold small">{(item.product?.mrp * item.quantity).toLocaleString('vi-VN')}₫</span>
                         </div>
-                      ))}
-                    </div>
-                    <NavDropdown.Divider />
-                    <NavDropdown.ItemText>
-                      <div className="d-flex justify-content-between align-items-center px-2 mb-2">
-                        <strong>Tổng cộng:</strong>
-                        <strong className="text-primary">${calculateTotal().toFixed(2)}</strong>
                       </div>
-                    </NavDropdown.ItemText>
-                    <NavDropdown.Item
-                      onClick={() => navigate(ROUTES.CART)}
-                      className="text-center bg-primary text-white"
-                      style={{ margin: '0 8px 8px 8px', borderRadius: '4px' }}
-                    >
-                      <i className="bi bi-credit-card me-2"></i>
-                      Thanh toán
-                    </NavDropdown.Item>
-                  </>
+                    </div>
+                  ))
                 )}
-              </NavDropdown>
-            ) : (
-              <button 
-                type="button" 
-                className="yash-icon-btn yash-bag" 
-                aria-label="Bag"
-                onClick={() => navigate(ROUTES.LOGIN)}
-              >
-                <i className="bi bi-bag"></i>
-              </button>
-            )}
+              </div>
+              {cartItems.length > 0 && (
+                <div className="cart-dropdown-footer p-3">
+                  <div className="d-flex justify-content-between mb-3">
+                    <span className="text-muted small">Subtotal:</span>
+                    <span className="fw-bold text-dark">
+                      {cartItems.reduce((total, item) => total + (item.product?.mrp * item.quantity), 0).toLocaleString('vi-VN')}₫
+                    </span>
+                  </div>
+                  <div className="d-grid gap-2">
+                    <Button variant="dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CART)}>
+                      Xem giỏ hàng
+                    </Button>
+                    <Button variant="outline-dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.SHOP)}>
+                      Tiếp tục mua sắm
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </NavDropdown>
           </div>
         </Navbar.Collapse>
     </Navbar>

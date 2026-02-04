@@ -177,10 +177,9 @@ const ProductDetail = () => {
 
   const formatCurrency = (value) => {
     const amount = Number(value || 0)
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+      currency: 'VND'
     }).format(amount)
   }
 

@@ -106,6 +106,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var app = builder.Build();
 
@@ -118,12 +119,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
-// Enable static files for uploads - serve from wwwroot
-// UseStaticFiles() by default serves from wwwroot folder (WebRootPath)
 app.UseStaticFiles();
 
-// Ensure wwwroot/uploads/avatars directory exists
-// WebRootPath is automatically set by ASP.NET Core to point to wwwroot folder
 var webRootPath = app.Environment.WebRootPath;
 if (string.IsNullOrEmpty(webRootPath))
 {

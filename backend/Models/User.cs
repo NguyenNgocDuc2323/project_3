@@ -57,5 +57,7 @@ namespace Backend.Models
         public ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
     }
 }

@@ -88,6 +88,42 @@
   line-height: 1;
 }
 
+.yash-bag-icon-wrapper {
+  position: relative;
+  font-size: 1.5rem;
+  color: #111;
+  display: flex;
+  align-items: center;
+}
+
+.cart-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.cart-dropdown .dropdown-menu {
+  min-width: 350px;
+  padding: 0;
+  border: none;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+.cart-dropdown-header h6 {
+  font-family: serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cart-dropdown-item {
+  transition: background-color 0.2s;
+}
+
+.cart-dropdown-item:hover {
+  background-color: #fcf9f6;
+}
+
 .nav-icon-dropdown .dropdown-toggle {
   border: none;
   background: transparent;

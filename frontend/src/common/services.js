@@ -89,32 +89,12 @@ export const userService = {
     return apiClient.get(`/admin/users/${id}`);
   },
 
-  create(data) {
-    return apiClient.post("/admin/users", data);
-  },
-
   update(id, data) {
     return apiClient.put(`/admin/users/${id}`, data);
   },
 
   delete(id) {
     return apiClient.delete(`/admin/users/${id}`);
-  },
-
-  uploadAvatar(userId, file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return apiClient.post(`/admin/users/${userId}/avatar`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-  },
-
-  changePassword(userId, newPassword) {
-    return apiClient.post(`/admin/users/${userId}/change-password`, {
-      newPassword,
-    });
   },
 };
 
@@ -198,6 +178,27 @@ export const chatService = {
   },
 };
 
+export const profileService = {
+  get() {
+    return apiClient.get("/profile");
+  },
+  update(data) {
+    return apiClient.put("/profile", data);
+  },
+  uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  changePassword(oldPassword, newPassword) {
+    return apiClient.post("/profile/change-password", { oldPassword, newPassword });
+  },
+};
+
 export const cartService = {
   getAll() {
     return apiClient.get("/cart");
@@ -217,11 +218,41 @@ export const cartService = {
   remove(productId) {
     return apiClient.delete(`/cart/${productId}`);
   },
-  updateOrder(itemOrders) {
-    return apiClient.post("/cart/update-order", { itemOrders });
-  },
   clear() {
     return apiClient.delete("/cart/clear");
+  },
+};
+
+export const orderService = {
+  create(data) {
+    return apiClient.post("/orders", data);
+  },
+  getAll() {
+    return apiClient.get("/orders");
+  },
+  getById(id) {
+    return apiClient.get(`/orders/${id}`);
+  },
+};
+
+export const addressService = {
+  getAll() {
+    return apiClient.get("/addresses");
+  },
+  getById(id) {
+    return apiClient.get(`/addresses/${id}`);
+  },
+  create(data) {
+    return apiClient.post("/addresses", data);
+  },
+  update(id, data) {
+    return apiClient.put(`/addresses/${id}`, data);
+  },
+  delete(id) {
+    return apiClient.delete(`/addresses/${id}`);
+  },
+  setDefault(id) {
+    return apiClient.patch(`/addresses/${id}/set-default`);
   },
 };
 
@@ -240,29 +271,5 @@ export const favoriteService = {
   },
   remove(productId) {
     return apiClient.delete(`/favorites/${productId}`);
-  },
-};
-
-export const profileService = {
-  get() {
-    return apiClient.get("/profile");
-  },
-  update(data) {
-    return apiClient.put("/profile", data);
-  },
-  uploadAvatar(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return apiClient.post("/profile/avatar", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-  },
-  changePassword(oldPassword, newPassword) {
-    return apiClient.post("/profile/change-password", {
-      oldPassword,
-      newPassword,
-    });
   },
 };

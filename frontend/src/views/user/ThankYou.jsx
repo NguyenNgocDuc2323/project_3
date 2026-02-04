@@ -179,7 +179,7 @@ const ThankYou = () => {
                         <Col xs={6} md={2} className="text-end">
                           <div className="text-muted small">Thành tiền</div>
                           <div className="fw-bold text-primary">
-                            ${((item.product?.originalPrice || 0) * item.quantity).toFixed(2)}
+                            {((item.product?.originalPrice || 0) * item.quantity).toLocaleString('vi-VN')}₫
                           </div>
                         </Col>
                       </Row>
@@ -196,17 +196,17 @@ const ThankYou = () => {
                     <div className="total-breakdown">
                       <div className="d-flex justify-content-between mb-2">
                         <span>Tạm tính:</span>
-                        <span>${orderData.subtotal.toFixed(2)}</span>
+                        <span>{orderData.subtotal.toLocaleString('vi-VN')}₫</span>
                       </div>
                       <div className="d-flex justify-content-between mb-2">
                         <span>Giảm giá:</span>
-                        <span className="text-success">-${orderData.discount.toFixed(2)}</span>
+                        <span className="text-success">-{orderData.discount.toLocaleString('vi-VN')}₫</span>
                       </div>
                       <hr />
                       <div className="d-flex justify-content-between">
                         <strong>Tổng cộng:</strong>
                         <strong className="text-primary" style={{ fontSize: '1.25rem' }}>
-                          ${orderData.total.toFixed(2)}
+                          {orderData.total.toLocaleString('vi-VN')}₫
                         </strong>
                       </div>
                     </div>
