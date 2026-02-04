@@ -24,6 +24,9 @@ import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
 import CategoriesCreate from './views/admin/categories/Create'
 import CategoriesEdit from './views/admin/categories/Edit'
+import ProductsList from './views/admin/products/List'
+import ProductsCreate from './views/admin/products/Create'
+import ProductsEdit from './views/admin/products/Edit'
 import BannersList from './views/admin/banners/List'
 import BannersCreate from './views/admin/banners/Create'
 import BannersEdit from './views/admin/banners/Edit'
@@ -153,6 +156,27 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <CategoriesEdit />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_PRODUCTS_LIST} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <ProductsList />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_PRODUCTS_CREATE} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <ProductsCreate />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_PRODUCTS_EDIT + '/:id'} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <ProductsEdit />
             </AdminLayout>
           </ProtectedRoute>
         } />

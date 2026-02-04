@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { categoryService } from '../../../common/services'
+import ConfirmModal from '../../../components/common/ConfirmModal'
 import './List.css'
 
 const CategoriesList = () => {
@@ -8,6 +9,8 @@ const CategoriesList = () => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [confirm, setConfirm] = useState({ open: false, id: null, name: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -34,11 +37,8 @@ const CategoriesList = () => {
   }
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete category "${name}"?`)) {
-      return
-    }
-
     try {
+      setIsDeleting(true)
       await categoryService.delete(id)
       if (window.showToast) {
         window.showToast({
@@ -59,6 +59,9 @@ const CategoriesList = () => {
           life: 4000
         })
       }
+    } finally {
+      setIsDeleting(false)
+      setConfirm({ open: false, id: null, name: '' })
     }
   }
 
@@ -85,6 +88,17 @@ const CategoriesList = () => {
 
   return (
     <div className="admin-categories-list">
+      <ConfirmModal
+        open={confirm.open}
+        title="Delete category"
+        message={`Are you sure you want to delete category "${confirm.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={isDeleting}
+        onCancel={() => setConfirm({ open: false, id: null, name: '' })}
+        onConfirm={() => handleDelete(confirm.id, confirm.name)}
+      />
       <div className="container my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
@@ -167,7 +181,7 @@ const CategoriesList = () => {
                             </button>
                             <button
                               className="btn btn-outline-danger"
-                              onClick={() => handleDelete(category.id, category.name)}
+                              onClick={() => setConfirm({ open: true, id: category.id, name: category.name })}
                               title="Delete"
                             >
                               <i className="bi bi-trash"></i>
