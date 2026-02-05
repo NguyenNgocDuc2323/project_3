@@ -14,6 +14,8 @@ export const ROUTES = {
     PROFILE: '/profile',
     EDIT_PROFILE: '/profile/edit',
     ADDRESSES: '/profile/addresses',
+    USER_ORDERS_LIST: '/orders',
+    USER_ORDERS_DETAIL: '/orders',
     CART: '/cart',
     CHECKOUT: '/checkout',
     ABOUT: '/about',
@@ -28,7 +30,9 @@ export const ROUTES = {
   ADMIN_PRODUCTS_EDIT: '/admin/products/edit',
   ADMIN_BANNERS_LIST: '/admin/banners/list',
   ADMIN_BANNERS_CREATE: '/admin/banners/create',
-  ADMIN_BANNERS_EDIT: '/admin/banners/edit'
+  ADMIN_BANNERS_EDIT: '/admin/banners/edit',
+  ADMIN_ORDERS_LIST: '/admin/orders/list',
+  ADMIN_ORDERS_DETAIL: '/admin/orders/detail'
 }
 
 export const STORAGE_KEYS = {

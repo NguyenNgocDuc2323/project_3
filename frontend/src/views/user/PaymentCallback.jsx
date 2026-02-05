@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Container, Card, Button } from 'react-bootstrap'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../common/constants'
+import { cartService } from '../../common/services'
 import './PaymentCallback.css'
 
 const PaymentCallback = () => {
@@ -28,15 +29,15 @@ const PaymentCallback = () => {
 
       window.showToast?.({
         severity: 'success',
-        summary: 'Thanh toán thành công',
-        detail: `Đơn hàng #${txnRef} đã được thanh toán.`
+        summary: 'Payment successful',
+        detail: 'Your payment has been confirmed.'
       })
     } else {
       setStatus('error')
       window.showToast?.({
         severity: 'error',
-        summary: 'Thanh toán thất bại',
-        detail: 'Giao dịch đã bị hủy hoặc có lỗi xảy ra.'
+        summary: 'Payment failed',
+        detail: 'The transaction was cancelled or an error occurred.'
       })
     }
   }, [location])
@@ -48,7 +49,7 @@ const PaymentCallback = () => {
           {status === 'processing' && (
             <div className="py-4">
               <div className="spinner-border text-primary mb-3" role="status"></div>
-              <h4>Đang kiểm tra kết quả giao dịch...</h4>
+              <h4>Checking payment status...</h4>
             </div>
           )}
 
@@ -57,12 +58,12 @@ const PaymentCallback = () => {
               <div className="result-icon success mb-4">
                 <i className="bi bi-check-circle-fill"></i>
               </div>
-              <h2 className="mb-3">Thanh toán thành công!</h2>
+              <h2 className="mb-3">Payment successful!</h2>
               <p className="text-muted mb-4">
-                Cảm ơn bạn đã mua sắm. Đơn hàng <strong>#{orderId}</strong> của bạn đang được xử lý.
+                Thank you for your purchase. Your order is being processed.
               </p>
-              <Button variant="dark" className="px-4 py-2" onClick={() => navigate(ROUTES.DASHBOARD)}>
-                Xem đơn hàng của tôi
+              <Button variant="dark" className="px-4 py-2" onClick={() => navigate(ROUTES.USER_ORDERS_LIST)}>
+                View my orders
               </Button>
             </div>
           )}
@@ -72,16 +73,16 @@ const PaymentCallback = () => {
               <div className="result-icon error mb-4">
                 <i className="bi bi-x-circle-fill"></i>
               </div>
-              <h2 className="mb-3">Thanh toán thất bại</h2>
+              <h2 className="mb-3">Payment failed</h2>
               <p className="text-muted mb-4">
-                Đã có lỗi xảy ra trong quá trình thanh toán hoặc giao dịch đã bị hủy.
+                There was an error during payment, or the transaction was cancelled.
               </p>
               <div className="d-flex gap-3 justify-content-center">
                 <Button variant="outline-dark" onClick={() => navigate(ROUTES.CHECKOUT)}>
-                  Thử lại
+                  Try again
                 </Button>
                 <Button variant="dark" onClick={() => navigate(ROUTES.SHOP)}>
-                  Tiếp tục mua sắm
+                  Continue shopping
                 </Button>
               </div>
             </div>

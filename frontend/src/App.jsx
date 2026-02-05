@@ -26,6 +26,8 @@ import AddressManagement from './views/user/AddressManagement'
 import Cart from './views/user/Cart'
 import Checkout from './views/user/Checkout'
 import PaymentCallback from './views/user/PaymentCallback'
+import UserOrdersList from './views/user/orders/List'
+import UserOrderDetail from './views/user/orders/Detail'
 import AdminDashboard from './views/admin/Dashboard'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
@@ -38,6 +40,8 @@ import ProductsEdit from './views/admin/products/Edit'
 import BannersList from './views/admin/banners/List'
 import BannersCreate from './views/admin/banners/Create'
 import BannersEdit from './views/admin/banners/Edit'
+import OrdersList from './views/admin/orders/List'
+import OrderDetail from './views/admin/orders/Detail'
 
 // Component để redirect từ HOME
 const HomeRedirect = () => {
@@ -182,6 +186,21 @@ function App() {
           </ProtectedRoute>
         } />
 
+        <Route path={ROUTES.USER_ORDERS_LIST} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <UserOrdersList />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.USER_ORDERS_DETAIL + '/:id'} element={
+          <ProtectedRoute>
+            <DefaultLayout>
+              <UserOrderDetail />
+            </DefaultLayout>
+          </ProtectedRoute>
+        } />
+
         <Route path="/checkout/payment-callback" element={
           <ProtectedRoute>
             <DefaultLayout>
@@ -271,6 +290,21 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <BannersEdit />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path={ROUTES.ADMIN_ORDERS_LIST} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <OrdersList />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_ORDERS_DETAIL + '/:id'} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <OrderDetail />
             </AdminLayout>
           </ProtectedRoute>
         } />

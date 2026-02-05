@@ -19,6 +19,14 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       exact: true
     },
     {
+      title: 'Orders',
+      icon: 'bi bi-receipt',
+      path: ROUTES.ADMIN_ORDERS_LIST,
+      children: [
+        { title: 'All Orders', path: ROUTES.ADMIN_ORDERS_LIST }
+      ]
+    },
+    {
       title: 'Users',
       icon: 'bi bi-people',
       path: '/admin/users/list'

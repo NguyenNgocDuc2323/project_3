@@ -26,7 +26,7 @@ const Cart = () => {
       setCartItems(response.data || [])
     } catch (error) {
       console.error('Error loading cart:', error)
-      setError('Không thể tải giỏ hàng. Vui lòng thử lại.')
+      setError('Unable to load your cart. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -70,8 +70,8 @@ const Cart = () => {
       
       window.showToast?.({
         severity: 'success',
-        summary: 'Thành công',
-        detail: 'Đã xóa sản phẩm'
+        summary: 'Success',
+        detail: 'Item removed'
       })
     } catch (error) {
       console.error('Error removing item:', error)
@@ -132,7 +132,7 @@ const Cart = () => {
                           <span>Category: {item.product?.category?.name}</span>
                         </div>
                         <div className="cart-item-price">
-                          {item.product?.mrp?.toLocaleString('vi-VN')}₫
+                    {item.product?.mrp?.toLocaleString('en-US')}₫
                         </div>
                       </div>
                       <div className="cart-item-actions">
@@ -171,7 +171,7 @@ const Cart = () => {
                 <Card.Body className="p-4">
                   <div className="summary-row">
                     <span>Subtotal</span>
-                    <span>{calculateSubtotal().toLocaleString('vi-VN')}₫</span>
+                    <span>{calculateSubtotal().toLocaleString('en-US')}₫</span>
                   </div>
                   <div className="summary-row">
                     <span>Shipping</span>
@@ -179,7 +179,7 @@ const Cart = () => {
                   </div>
                   <div className="summary-row total-row">
                     <span>Estimated Total</span>
-                    <span>{calculateSubtotal().toLocaleString('vi-VN')}₫</span>
+                    <span>{calculateSubtotal().toLocaleString('en-US')}₫</span>
                   </div>
                   <Button 
                     variant="dark" 
@@ -204,18 +204,18 @@ const Cart = () => {
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered className="cart-delete-modal">
         <Modal.Header closeButton className="border-0">
-          <Modal.Title className="h5 fw-bold text-uppercase" style={{ letterSpacing: '0.1em' }}>Xác nhận xóa</Modal.Title>
+          <Modal.Title className="h5 fw-bold text-uppercase" style={{ letterSpacing: '0.1em' }}>Confirm removal</Modal.Title>
         </Modal.Header>
         <Modal.Body className="py-4 text-center">
           <i className="bi bi-exclamation-circle text-warning display-4 d-block mb-3"></i>
-          <p className="mb-0">Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?</p>
+          <p className="mb-0">Are you sure you want to remove this item from your cart?</p>
         </Modal.Body>
         <Modal.Footer className="border-0 justify-content-center pb-4">
           <Button variant="outline-dark" className="px-4 rounded-0 text-uppercase small" onClick={() => setShowDeleteModal(false)}>
-            Hủy bỏ
+            Cancel
           </Button>
           <Button variant="danger" className="px-4 rounded-0 text-uppercase small" onClick={confirmDelete}>
-            Đồng ý xóa
+            Remove
           </Button>
         </Modal.Footer>
       </Modal>

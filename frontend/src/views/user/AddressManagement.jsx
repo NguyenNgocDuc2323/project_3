@@ -8,6 +8,7 @@ const AddressManagement = () => {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingAddress, setEditingAddress] = useState(null)
+  const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({
     receiverName: '',
     phone: '',
@@ -34,10 +35,15 @@ const AddressManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
+    const nextValue =
+      name === 'phone'
+        ? String(value || '').replace(/\D/g, '').slice(0, 10)
+        : (type === 'checkbox' ? checked : value)
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: nextValue
     }))
+    setErrors(prev => ({ ...prev, [name]: undefined }))
   }
 
   const handleShowModal = (address = null) => {
@@ -60,12 +66,54 @@ const AddressManagement = () => {
         isDefault: addresses.length === 0
       })
     }
+    setErrors({})
     setShowModal(true)
+  }
+
+  const hasDigits = (value) => /\d/.test(String(value || ''))
+
+  const validate = () => {
+    const next = {}
+    const receiverName = String(formData.receiverName || '').trim()
+    if (!receiverName) next.receiverName = 'Recipient name is required'
+    else if (receiverName.length < 2) next.receiverName = 'Recipient name must be at least 2 characters'
+    else if (receiverName.length > 100) next.receiverName = 'Recipient name must be 100 characters or less'
+    else if (hasDigits(receiverName)) next.receiverName = 'Recipient name must not contain numbers'
+
+    const phone = String(formData.phone || '').trim()
+    if (!phone) {
+      next.phone = 'Phone number is required'
+    } else if (!/^\d{10}$/.test(phone)) {
+      next.phone = 'Phone number must be exactly 10 digits'
+    }
+
+    const addressLine = String(formData.addressLine || '').trim()
+    if (!addressLine) next.addressLine = 'Address line is required'
+    else if (addressLine.length < 5) next.addressLine = 'Address line must be at least 5 characters'
+    else if (addressLine.length > 500) next.addressLine = 'Address line must be 500 characters or less'
+
+    const city = String(formData.city || '').trim()
+    if (!city) next.city = 'City / Province is required'
+    else if (city.length < 2) next.city = 'City / Province must be at least 2 characters'
+    else if (city.length > 100) next.city = 'City / Province must be 100 characters or less'
+
+    return next
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      const nextErrors = validate()
+      setErrors(nextErrors)
+      if (Object.keys(nextErrors).length > 0) {
+        window.showToast?.({
+          severity: 'error',
+          summary: 'Missing information',
+          detail: 'Please fill in all required fields (*)'
+        })
+        return
+      }
+
       if (editingAddress) {
         await addressService.update(editingAddress.id, formData)
       } else {
@@ -75,8 +123,8 @@ const AddressManagement = () => {
       loadAddresses()
       window.showToast?.({
         severity: 'success',
-        summary: 'Thành công',
-        detail: editingAddress ? 'Đã cập nhật địa chỉ' : 'Đã thêm địa chỉ mới'
+        summary: 'Success',
+        detail: editingAddress ? 'Address updated' : 'Address added'
       })
     } catch (error) {
       console.error('Error saving address:', error)
@@ -84,14 +132,14 @@ const AddressManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return
+    if (!window.confirm('Are you sure you want to delete this address?')) return
     try {
       await addressService.delete(id)
       loadAddresses()
       window.showToast?.({
         severity: 'success',
-        summary: 'Thành công',
-        detail: 'Đã xóa địa chỉ'
+        summary: 'Success',
+        detail: 'Address deleted'
       })
     } catch (error) {
       console.error('Error deleting address:', error)
@@ -104,8 +152,8 @@ const AddressManagement = () => {
       loadAddresses()
       window.showToast?.({
         severity: 'success',
-        summary: 'Thành công',
-        detail: 'Đã đặt làm địa chỉ mặc định'
+        summary: 'Success',
+        detail: 'Default address updated'
       })
     } catch (error) {
       console.error('Error setting default address:', error)
@@ -115,9 +163,9 @@ const AddressManagement = () => {
   return (
     <Container className="py-5 address-management-page">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 fw-bold text-uppercase" style={{ letterSpacing: '0.1em' }}>Sổ địa chỉ</h1>
+        <h1 className="h3 fw-bold text-uppercase" style={{ letterSpacing: '0.1em' }}>Address book</h1>
         <Button variant="dark" className="rounded-0 px-4" onClick={() => handleShowModal()}>
-          Thêm địa chỉ mới
+          Add new address
         </Button>
       </div>
 
@@ -129,7 +177,7 @@ const AddressManagement = () => {
         <Card className="text-center py-5 border-0 shadow-sm">
           <Card.Body>
             <i className="bi bi-geo-alt display-1 text-muted mb-3"></i>
-            <p className="text-muted">Bạn chưa có địa chỉ giao hàng nào.</p>
+            <p className="text-muted">You don't have any shipping addresses yet.</p>
           </Card.Body>
         </Card>
       ) : (
@@ -140,7 +188,7 @@ const AddressManagement = () => {
                 <Card.Body className="p-4">
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <h5 className="fw-bold mb-0">{address.receiverName}</h5>
-                    {address.isDefault && <Badge bg="dark" className="rounded-0 text-uppercase small">Mặc định</Badge>}
+                    {address.isDefault && <Badge bg="dark" className="rounded-0 text-uppercase small">Default</Badge>}
                   </div>
                   <p className="mb-2"><i className="bi bi-telephone me-2"></i>{address.phone}</p>
                   <p className="mb-4 text-muted">
@@ -153,7 +201,7 @@ const AddressManagement = () => {
                       className="rounded-0 px-4 py-2 text-uppercase small fw-bold"
                       onClick={() => handleShowModal(address)}
                     >
-                      Chỉnh sửa
+                      Edit
                     </Button>
                     {!address.isDefault && (
                       <>
@@ -162,14 +210,14 @@ const AddressManagement = () => {
                           className="rounded-0 px-4 py-2 text-uppercase small fw-bold"
                           onClick={() => handleSetDefault(address.id)}
                         >
-                          Mặc định
+                          Set default
                         </Button>
                         <Button 
                           variant="outline-danger" 
                           className="rounded-0 px-4 py-2 text-uppercase small fw-bold"
                           onClick={() => handleDelete(address.id)}
                         >
-                          Xóa
+                          Delete
                         </Button>
                       </>
                     )}
@@ -184,11 +232,13 @@ const AddressManagement = () => {
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Form onSubmit={handleSubmit}>
           <Modal.Header closeButton className="border-0">
-            <Modal.Title className="h5 fw-bold text-uppercase">{editingAddress ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}</Modal.Title>
+            <Modal.Title className="h5 fw-bold text-uppercase">{editingAddress ? 'Edit address' : 'Add new address'}</Modal.Title>
           </Modal.Header>
           <Modal.Body className="px-4">
             <Form.Group className="mb-3">
-              <Form.Label className="small text-uppercase fw-bold">Tên người nhận</Form.Label>
+              <Form.Label className="small text-uppercase fw-bold">
+                Recipient name <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control 
                 type="text" 
                 name="receiverName" 
@@ -196,10 +246,16 @@ const AddressManagement = () => {
                 onChange={handleInputChange} 
                 required 
                 className="rounded-0"
+                isInvalid={!!errors.receiverName}
+                maxLength={100}
+                placeholder="Full name"
               />
+              <Form.Control.Feedback type="invalid">{errors.receiverName}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label className="small text-uppercase fw-bold">Số điện thoại</Form.Label>
+              <Form.Label className="small text-uppercase fw-bold">
+                Phone number <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control 
                 type="tel" 
                 name="phone" 
@@ -207,10 +263,18 @@ const AddressManagement = () => {
                 onChange={handleInputChange} 
                 required 
                 className="rounded-0"
+                isInvalid={!!errors.phone}
+                inputMode="numeric"
+                pattern="\d{10}"
+                maxLength={10}
+                placeholder="10 digits"
               />
+              <Form.Control.Feedback type="invalid">{errors.phone}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label className="small text-uppercase fw-bold">Địa chỉ chi tiết</Form.Label>
+              <Form.Label className="small text-uppercase fw-bold">
+                Address line <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control 
                 type="text" 
                 name="addressLine" 
@@ -218,11 +282,16 @@ const AddressManagement = () => {
                 onChange={handleInputChange} 
                 required 
                 className="rounded-0"
-                placeholder="Số nhà, tên đường..."
+                placeholder="House number, street name..."
+                isInvalid={!!errors.addressLine}
+                maxLength={500}
               />
+              <Form.Control.Feedback type="invalid">{errors.addressLine}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label className="small text-uppercase fw-bold">Thành phố / Tỉnh</Form.Label>
+              <Form.Label className="small text-uppercase fw-bold">
+                City / Province <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control 
                 type="text" 
                 name="city" 
@@ -230,12 +299,16 @@ const AddressManagement = () => {
                 onChange={handleInputChange} 
                 required 
                 className="rounded-0"
+                isInvalid={!!errors.city}
+                maxLength={100}
+                placeholder="City / Province"
               />
+              <Form.Control.Feedback type="invalid">{errors.city}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Check 
                 type="checkbox" 
-                label="Đặt làm địa chỉ mặc định" 
+                label="Set as default address" 
                 name="isDefault" 
                 checked={formData.isDefault} 
                 onChange={handleInputChange}
@@ -244,8 +317,8 @@ const AddressManagement = () => {
             </Form.Group>
           </Modal.Body>
           <Modal.Footer className="border-0 px-4 pb-4">
-            <Button variant="outline-dark" className="rounded-0 px-4" onClick={() => setShowModal(false)}>Hủy</Button>
-            <Button variant="dark" type="submit" className="rounded-0 px-4">Lưu địa chỉ</Button>
+            <Button variant="outline-dark" className="rounded-0 px-4" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button variant="dark" type="submit" className="rounded-0 px-4">Save address</Button>
           </Modal.Footer>
         </Form>
       </Modal>
