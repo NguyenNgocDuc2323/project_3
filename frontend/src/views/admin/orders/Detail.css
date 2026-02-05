@@ -1,0 +1,101 @@
+.admin-order-detail .order-item-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.admin-order-detail .admin-soft-card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+}
+
+.admin-order-detail .admin-items-list {
+  margin-top: 6px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-order-detail .admin-item-line {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.admin-order-detail .admin-item-line:last-child {
+  border-bottom: none;
+}
+
+.admin-order-detail .admin-item-right {
+  text-align: right;
+  min-width: 120px;
+}
+
+/* Reuse hero/status styles from list for consistent flow */
+.admin-order-detail .admin-orders-hero {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  background:
+    radial-gradient(600px 200px at 20% 10%, rgba(99, 102, 241, 0.16) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(600px 200px at 85% 0%, rgba(236, 72, 153, 0.12) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
+  box-shadow: 0 14px 40px rgba(17, 24, 39, 0.06);
+  padding: 18px 18px;
+}
+
+.admin-order-detail .admin-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(17, 24, 39, 0.6);
+}
+
+.admin-order-detail .admin-title {
+  letter-spacing: 0.2px;
+}
+
+.admin-order-detail .admin-cta {
+  border-radius: 12px;
+}
+
+.admin-order-detail .admin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(17, 24, 39, 0.04);
+  color: rgba(17, 24, 39, 0.84);
+  font-weight: 750;
+  letter-spacing: 0.15px;
+  white-space: nowrap;
+}
+
+.admin-order-detail .admin-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(17, 24, 39, 0.03);
+  color: rgba(17, 24, 39, 0.78);
+  white-space: nowrap;
+}
+
+.admin-order-detail .admin-status--success { background: rgba(25, 135, 84, 0.10); border-color: rgba(25, 135, 84, 0.18); color: rgba(25, 135, 84, 0.95); }
+.admin-order-detail .admin-status--danger { background: rgba(220, 53, 69, 0.10); border-color: rgba(220, 53, 69, 0.18); color: rgba(220, 53, 69, 0.95); }
+.admin-order-detail .admin-status--info { background: rgba(13, 202, 240, 0.10); border-color: rgba(13, 202, 240, 0.20); color: rgba(8, 145, 178, 1); }
+.admin-order-detail .admin-status--primary { background: rgba(13, 110, 253, 0.10); border-color: rgba(13, 110, 253, 0.18); color: rgba(13, 110, 253, 0.95); }
+.admin-order-detail .admin-status--warning { background: rgba(255, 193, 7, 0.14); border-color: rgba(255, 193, 7, 0.22); color: rgba(148, 108, 0, 1); }
+.admin-order-detail .admin-status--secondary { background: rgba(108, 117, 125, 0.10); border-color: rgba(108, 117, 125, 0.18); color: rgba(108, 117, 125, 1); }
+

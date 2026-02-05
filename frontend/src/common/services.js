@@ -235,6 +235,22 @@ export const orderService = {
   },
 };
 
+export const adminOrderService = {
+  getAll({ status = null, q = "", paymentMethod = null } = {}) {
+    const params = {};
+    if (status) params.status = status;
+    if (q) params.q = q;
+    if (paymentMethod) params.paymentMethod = paymentMethod;
+    return apiClient.get("/admin/orders", { params });
+  },
+  getById(id) {
+    return apiClient.get(`/admin/orders/${id}`);
+  },
+  updateStatus(id, status) {
+    return apiClient.put(`/admin/orders/${id}/status`, { status });
+  },
+};
+
 export const addressService = {
   getAll() {
     return apiClient.get("/addresses");

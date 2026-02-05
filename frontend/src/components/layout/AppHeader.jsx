@@ -255,6 +255,10 @@ const AppHeader = () => {
                   <i className="bi bi-person-circle me-2"></i>
                   Thông tin cá nhân
                 </NavDropdown.Item>
+                <NavDropdown.Item onClick={() => navigate(ROUTES.USER_ORDERS_LIST)}>
+                  <i className="bi bi-receipt me-2"></i>
+                  My orders
+                </NavDropdown.Item>
                 <NavDropdown.Item onClick={() => navigate(ROUTES.ADDRESSES)}>
                   <i className="bi bi-geo-alt me-2"></i>
                   Sổ địa chỉ

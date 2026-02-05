@@ -14,6 +14,7 @@ const Checkout = () => {
   const [selectedAddressId, setSelectedAddressId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [errors, setErrors] = useState({})
   
   const [formData, setFormData] = useState({
     email: user?.email || '',
@@ -95,10 +96,14 @@ const Checkout = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+    const nextValue = name === 'phone'
+      ? String(value || '').replace(/\D/g, '').slice(0, 10)
+      : value
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }))
+    setErrors(prev => ({ ...prev, [name]: undefined }))
   }
 
   const calculateSubtotal = () => {
@@ -109,19 +114,80 @@ const Checkout = () => {
     return formData.shippingMethod === 'express' ? 25000 : 0
   }
 
+  const calculatePaymentFee = () => {
+    // COD handling fee
+    return formData.paymentMethod === 'cod' ? 15000 : 0
+  }
+
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateShipping()
+    return calculateSubtotal() + calculateShipping() + calculatePaymentFee()
+  }
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim())
+
+  const hasDigits = (value) => /\d/.test(String(value || ''))
+
+  const validate = () => {
+    const next = {}
+    const email = String(formData.email || '').trim()
+    if (!email) next.email = 'Email is required'
+    else if (!isValidEmail(email)) next.email = 'Please enter a valid email address'
+    else if (email.length > 255) next.email = 'Email must be 255 characters or less'
+
+    const firstName = String(formData.firstName || '').trim()
+    if (!firstName) next.firstName = 'First name is required'
+    else if (firstName.length < 2) next.firstName = 'First name must be at least 2 characters'
+    else if (firstName.length > 100) next.firstName = 'First name must be 100 characters or less'
+    else if (hasDigits(firstName)) next.firstName = 'First name must not contain numbers'
+
+    const lastName = String(formData.lastName || '').trim()
+    if (!lastName) next.lastName = 'Last name is required'
+    else if (lastName.length < 2) next.lastName = 'Last name must be at least 2 characters'
+    else if (lastName.length > 100) next.lastName = 'Last name must be 100 characters or less'
+    else if (hasDigits(lastName)) next.lastName = 'Last name must not contain numbers'
+
+    const address = String(formData.address || '').trim()
+    if (!address) next.address = 'Street address is required'
+    else if (address.length < 5) next.address = 'Street address must be at least 5 characters'
+    else if (address.length > 500) next.address = 'Street address must be 500 characters or less'
+
+    const city = String(formData.city || '').trim()
+    if (!city) next.city = 'City is required'
+    else if (city.length < 2) next.city = 'City must be at least 2 characters'
+    else if (city.length > 100) next.city = 'City must be 100 characters or less'
+
+    const phone = String(formData.phone || '').trim()
+    if (!phone) {
+      next.phone = 'Phone number is required'
+    } else if (!/^\d{10}$/.test(phone)) {
+      next.phone = 'Phone number must be exactly 10 digits'
+    }
+    if (!String(formData.paymentMethod || '').trim()) next.paymentMethod = 'Payment method is required'
+    return next
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     
     try {
+      const nextErrors = validate()
+      setErrors(nextErrors)
+      if (Object.keys(nextErrors).length > 0) {
+        window.showToast?.({
+          severity: 'error',
+          summary: 'Missing information',
+          detail: 'Please fill in all required fields (*)'
+        })
+        return
+      }
+
       setIsProcessing(true)
       
       const orderData = {
         shippingAddress: `${formData.address}, ${formData.city}`,
+        shippingMethod: formData.shippingMethod,
         paymentMethod: formData.paymentMethod,
+        phone: String(formData.phone || '').trim()
       }
 
       const response = await orderService.create(orderData)
@@ -186,7 +252,7 @@ const Checkout = () => {
               {/* Address Selection */}
               {addresses.length > 0 && (
                 <section className="checkout-section mb-4">
-                  <h3 className="section-title">Chọn địa chỉ giao hàng</h3>
+                  <h3 className="section-title">Choose a shipping address</h3>
                   <div className="address-selection-grid mb-3">
                     {addresses.map((addr) => (
                       <div 
@@ -196,7 +262,7 @@ const Checkout = () => {
                       >
                         <div className="d-flex justify-content-between">
                           <span className="fw-bold">{addr.receiverName}</span>
-                          {addr.isDefault && <Badge bg="dark" className="extra-small">Mặc định</Badge>}
+                          {addr.isDefault && <Badge bg="dark" className="extra-small">Default</Badge>}
                         </div>
                         <p className="small mb-0 text-muted">{addr.phone}</p>
                         <p className="small mb-0 text-truncate">{addr.addressLine}, {addr.city}</p>
@@ -208,18 +274,20 @@ const Checkout = () => {
                     className="rounded-0 px-3 py-1 text-uppercase extra-small fw-bold mt-2" 
                     onClick={() => navigate(ROUTES.ADDRESSES)}
                   >
-                    <i className="bi bi-gear-fill me-1"></i> Quản lý địa chỉ
+                    <i className="bi bi-gear-fill me-1"></i> Manage addresses
                   </Button>
                 </section>
               )}
 
               {/* Shipping Information */}
               <section className="checkout-section mb-5">
-                <h3 className="section-title">Thông tin giao hàng</h3>
+                <h3 className="section-title">Shipping information</h3>
                 <Row className="g-3">
                   <Col md={12}>
                     <Form.Group>
-                      <Form.Label>Email Address</Form.Label>
+                      <Form.Label>
+                        Email address <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="email" 
                         name="email" 
@@ -227,12 +295,18 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.email}
+                        maxLength={255}
+                        placeholder="name@example.com"
                       />
+                      <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group>
-                      <Form.Label>First Name</Form.Label>
+                      <Form.Label>
+                        First name <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="text" 
                         name="firstName" 
@@ -240,12 +314,18 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.firstName}
+                        maxLength={100}
+                        placeholder="Enter first name"
                       />
+                      <Form.Control.Feedback type="invalid">{errors.firstName}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group>
-                      <Form.Label>Last Name</Form.Label>
+                      <Form.Label>
+                        Last name <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="text" 
                         name="lastName" 
@@ -253,12 +333,18 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.lastName}
+                        maxLength={100}
+                        placeholder="Enter last name"
                       />
+                      <Form.Control.Feedback type="invalid">{errors.lastName}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={12}>
                     <Form.Group>
-                      <Form.Label>Street Address</Form.Label>
+                      <Form.Label>
+                        Street address <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="text" 
                         name="address" 
@@ -266,12 +352,18 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.address}
+                        maxLength={500}
+                        placeholder="House number, street name..."
                       />
+                      <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={12}>
                     <Form.Group>
-                      <Form.Label>City</Form.Label>
+                      <Form.Label>
+                        City <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="text" 
                         name="city" 
@@ -279,12 +371,18 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.city}
+                        maxLength={100}
+                        placeholder="City / Province"
                       />
+                      <Form.Control.Feedback type="invalid">{errors.city}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={12}>
                     <Form.Group>
-                      <Form.Label>Phone Number</Form.Label>
+                      <Form.Label>
+                        Phone number <span className="text-danger">*</span>
+                      </Form.Label>
                       <Form.Control 
                         type="tel" 
                         name="phone" 
@@ -292,7 +390,13 @@ const Checkout = () => {
                         onChange={handleInputChange} 
                         required 
                         className="yash-input"
+                        isInvalid={!!errors.phone}
+                        inputMode="numeric"
+                        pattern="\d{10}"
+                        maxLength={10}
+                        placeholder="10 digits"
                       />
+                      <Form.Control.Feedback type="invalid">{errors.phone}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                 </Row>
@@ -320,14 +424,16 @@ const Checkout = () => {
                       <span className="option-name">Express Delivery</span>
                       <span className="option-desc">1-2 Business Days</span>
                     </div>
-                    <span className="option-price">{formData.shippingMethod === 'express' ? '25.000₫' : 'Miễn phí'}</span>
+                    <span className="option-price">25,000₫</span>
                   </div>
                 </div>
               </section>
 
               {/* Payment Method */}
               <section className="checkout-section mb-5">
-                <h3 className="section-title">Payment Method</h3>
+                <h3 className="section-title">
+                  Payment method <span className="text-danger">*</span>
+                </h3>
                 <div className="payment-options">
                   <div 
                     className={`payment-card ${formData.paymentMethod === 'vnpay' ? 'active' : ''}`}
@@ -344,7 +450,7 @@ const Checkout = () => {
                   >
                     <div className="payment-logo-container">
                       <i className="bi bi-chat-fill text-primary"></i>
-                      <span>Ví ZaloPay / Zalo</span>
+                      <span>ZaloPay wallet</span>
                     </div>
                   </div>
                   <div 
@@ -353,7 +459,7 @@ const Checkout = () => {
                   >
                     <div className="payment-logo-container">
                       <i className="bi bi-bank"></i>
-                      <span>Chuyển khoản ngân hàng (VietQR)</span>
+                      <span>Bank transfer (VietQR)</span>
                     </div>
                   </div>
                   <div 
@@ -366,6 +472,9 @@ const Checkout = () => {
                     </div>
                   </div>
                 </div>
+                {errors.paymentMethod ? (
+                  <div className="text-danger small mt-2">{errors.paymentMethod}</div>
+                ) : null}
               </section>
             </Col>
 
@@ -384,7 +493,7 @@ const Checkout = () => {
                           </div>
                           <div className="item-details">
                             <h6 className="item-name">{item.product.name}</h6>
-                            <p className="item-price">{(item.product.mrp * item.quantity).toLocaleString('vi-VN')}₫</p>
+                            <p className="item-price">{(item.product.mrp * item.quantity).toLocaleString('en-US')}₫</p>
                           </div>
                         </div>
                       ))}
@@ -394,15 +503,21 @@ const Checkout = () => {
 
                     <div className="summary-row mb-2">
                       <span>Subtotal</span>
-                      <span>{calculateSubtotal().toLocaleString('vi-VN')}₫</span>
+                      <span>{calculateSubtotal().toLocaleString('en-US')}₫</span>
                     </div>
                     <div className="summary-row mb-2">
                       <span>Shipping</span>
-                      <span>{calculateShipping() === 0 ? 'Free' : `${calculateShipping().toLocaleString('vi-VN')}₫`}</span>
+                      <span>{calculateShipping() === 0 ? 'Free' : `${calculateShipping().toLocaleString('en-US')}₫`}</span>
                     </div>
+                    {calculatePaymentFee() > 0 && (
+                      <div className="summary-row mb-2">
+                        <span>COD fee</span>
+                        <span>{calculatePaymentFee().toLocaleString('en-US')}₫</span>
+                      </div>
+                    )}
                     <div className="summary-row total-row mt-3">
                       <span>Total</span>
-                      <span>{calculateTotal().toLocaleString('vi-VN')}₫</span>
+                      <span>{calculateTotal().toLocaleString('en-US')}₫</span>
                     </div>
 
                     <Button 

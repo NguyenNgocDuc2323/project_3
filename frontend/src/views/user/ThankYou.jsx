@@ -25,11 +25,14 @@ const ThankYou = () => {
   const getPaymentMethodName = (method) => {
     switch (method) {
       case 'bank_transfer':
-        return 'Chuyển khoản ngân hàng'
+      case 'bank':
+        return 'Bank transfer'
       case 'cod':
-        return 'Thanh toán khi giao hàng (COD)'
+        return 'Cash on Delivery (COD)'
       case 'vnpay':
-        return 'Thanh toán qua VNPay'
+        return 'VNPay'
+      case 'zalopay':
+        return 'ZaloPay'
       default:
         return method
     }
@@ -38,11 +41,14 @@ const ThankYou = () => {
   const getPaymentMethodIcon = (method) => {
     switch (method) {
       case 'bank_transfer':
+      case 'bank':
         return 'bi-bank'
       case 'cod':
         return 'bi-truck'
       case 'vnpay':
         return 'bi-wallet2'
+      case 'zalopay':
+        return 'bi-chat-fill'
       default:
         return 'bi-credit-card'
     }
@@ -52,16 +58,21 @@ const ThankYou = () => {
     return (
       <Container className="py-5">
         <Alert variant="warning">
-          <Alert.Heading>Không tìm thấy thông tin đơn hàng</Alert.Heading>
-          <p>Vui lòng quay lại trang chủ hoặc kiểm tra đơn hàng của bạn.</p>
+          <Alert.Heading>Order information not found</Alert.Heading>
+          <p>Please go back to the dashboard or check your orders.</p>
           <Button onClick={() => navigate(ROUTES.DASHBOARD)}>
             <i className="bi bi-house me-2"></i>
-            Về trang chủ
+            Go to dashboard
           </Button>
         </Alert>
       </Container>
     )
   }
+
+  const subtotal = Number(orderData.subtotal ?? 0)
+  const discount = Number(orderData.discount ?? 0)
+  const total = Number(orderData.total ?? (subtotal - discount))
+  const items = Array.isArray(orderData.items) ? orderData.items : []
 
   return (
     <Container className="py-5">
@@ -70,10 +81,10 @@ const ThankYou = () => {
           <i className="bi bi-check-circle-fill"></i>
         </div>
         <h1 className="display-4 fw-bold text-success mb-3">
-          Cảm ơn bạn đã đặt hàng!
+          Thank you for your order!
         </h1>
         <p className="lead text-muted">
-          Đơn hàng của bạn đã được tiếp nhận và đang được xử lý
+          Your order has been received and is being processed.
         </p>
       </div>
 
@@ -84,7 +95,7 @@ const ThankYou = () => {
             <Card.Header className="bg-primary text-white">
               <h5 className="mb-0">
                 <i className="bi bi-receipt me-2"></i>
-                Thông tin đơn hàng
+                Order details
               </h5>
             </Card.Header>
             <Card.Body>
@@ -93,10 +104,10 @@ const ThankYou = () => {
                   <div className="info-section">
                     <h6 className="section-title">
                       <i className="bi bi-calendar-event me-2"></i>
-                      Ngày đặt hàng
+                      Order date
                     </h6>
                     <p className="mb-0">
-                      {new Date(orderData.createdAt).toLocaleString('vi-VN', {
+                      {new Date(orderData.createdAt).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -110,7 +121,7 @@ const ThankYou = () => {
                   <div className="info-section">
                     <h6 className="section-title">
                       <i className={`bi ${getPaymentMethodIcon(orderData.paymentMethod)} me-2`}></i>
-                      Phương thức thanh toán
+                      Payment method
                     </h6>
                     <p className="mb-0">{getPaymentMethodName(orderData.paymentMethod)}</p>
                   </div>
@@ -122,20 +133,20 @@ const ThankYou = () => {
                 <div className="info-section mb-4">
                   <h6 className="section-title">
                     <i className="bi bi-person me-2"></i>
-                    Thông tin người nhận
+                    Recipient information
                   </h6>
                   <Row>
                     <Col md={6} className="mb-2">
-                      <strong>Họ và tên:</strong> {orderData.customer.fullName || orderData.customer.username || 'N/A'}
+                      <strong>Full name:</strong> {orderData.customer.fullName || orderData.customer.username || 'N/A'}
                     </Col>
                     <Col md={6} className="mb-2">
                       <strong>Email:</strong> {orderData.customer.email || 'N/A'}
                     </Col>
                     <Col md={6} className="mb-2">
-                      <strong>Số điện thoại:</strong> {orderData.customer.phone || 'Chưa cập nhật'}
+                      <strong>Phone:</strong> {orderData.customer.phone || 'Not provided'}
                     </Col>
                     <Col md={6} className="mb-2">
-                      <strong>Địa chỉ:</strong> {orderData.customer.address || 'Chưa cập nhật'}
+                      <strong>Address:</strong> {orderData.customer.address || 'Not provided'}
                     </Col>
                   </Row>
                 </div>
@@ -145,10 +156,10 @@ const ThankYou = () => {
               <div className="order-items-section">
                 <h6 className="section-title mb-3">
                   <i className="bi bi-bag me-2"></i>
-                  Sản phẩm đã đặt ({orderData.items.length})
+                  Items ordered ({items.length})
                 </h6>
                 <div className="order-items-list">
-                  {orderData.items.map((item) => (
+                  {items.map((item) => (
                     <div key={item.id} className="order-item-card">
                       <Row className="align-items-center">
                         <Col xs={3} md={2}>
@@ -163,23 +174,23 @@ const ThankYou = () => {
                         </Col>
                         <Col xs={9} md={6}>
                           <h6 className="order-item-name mb-1">
-                            {item.product?.name || 'Sản phẩm'}
+                            {item.product?.name || 'Product'}
                           </h6>
                           <div className="text-muted small">
-                            Mã: {item.product?.styleCode || 'N/A'}
+                            SKU: {item.product?.styleCode || 'N/A'}
                             {item.product?.category && (
                               <span className="ms-2">| {item.product.category.name}</span>
                             )}
                           </div>
                         </Col>
                         <Col xs={6} md={2} className="text-center">
-                          <div className="text-muted small">Số lượng</div>
+                          <div className="text-muted small">Quantity</div>
                           <div className="fw-bold">{item.quantity}</div>
                         </Col>
                         <Col xs={6} md={2} className="text-end">
-                          <div className="text-muted small">Thành tiền</div>
+                          <div className="text-muted small">Line total</div>
                           <div className="fw-bold text-primary">
-                            {((item.product?.originalPrice || 0) * item.quantity).toLocaleString('vi-VN')}₫
+                            {((item.product?.mrp ?? item.product?.originalPrice ?? 0) * (item.quantity ?? 0)).toLocaleString('en-US')}₫
                           </div>
                         </Col>
                       </Row>
@@ -195,18 +206,18 @@ const ThankYou = () => {
                   <Col md={6}>
                     <div className="total-breakdown">
                       <div className="d-flex justify-content-between mb-2">
-                        <span>Tạm tính:</span>
-                        <span>{orderData.subtotal.toLocaleString('vi-VN')}₫</span>
+                        <span>Subtotal:</span>
+                        <span>{subtotal.toLocaleString('en-US')}₫</span>
                       </div>
                       <div className="d-flex justify-content-between mb-2">
-                        <span>Giảm giá:</span>
-                        <span className="text-success">-{orderData.discount.toLocaleString('vi-VN')}₫</span>
+                        <span>Discount:</span>
+                        <span className="text-success">-{discount.toLocaleString('en-US')}₫</span>
                       </div>
                       <hr />
                       <div className="d-flex justify-content-between">
-                        <strong>Tổng cộng:</strong>
+                        <strong>Total:</strong>
                         <strong className="text-primary" style={{ fontSize: '1.25rem' }}>
-                          {orderData.total.toLocaleString('vi-VN')}₫
+                          {total.toLocaleString('en-US')}₫
                         </strong>
                       </div>
                     </div>
@@ -225,7 +236,7 @@ const ThankYou = () => {
               onClick={() => navigate(ROUTES.DASHBOARD)}
             >
               <i className="bi bi-house me-2"></i>
-              Về trang chủ
+              Go to dashboard
             </Button>
             <Button
               variant="outline-primary"
@@ -233,7 +244,7 @@ const ThankYou = () => {
               onClick={() => navigate(ROUTES.SHOP)}
             >
               <i className="bi bi-bag me-2"></i>
-              Tiếp tục mua sắm
+              Continue shopping
             </Button>
           </div>
         </Col>
