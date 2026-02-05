@@ -19,12 +19,11 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       exact: true
     },
     {
-      title: 'Gem Guides',
-      icon: 'bi bi-gem',
-      path: '/admin/stories/list',
+      title: 'Orders',
+      icon: 'bi bi-receipt',
+      path: ROUTES.ADMIN_ORDERS_LIST,
       children: [
-        { title: 'All Guides', path: '/admin/stories/list' },
-        { title: 'Create Guide', path: '/admin/stories/create' }
+        { title: 'All Orders', path: ROUTES.ADMIN_ORDERS_LIST }
       ]
     },
     {
@@ -35,10 +34,28 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
     {
       title: 'Categories',
       icon: 'bi bi-tags',
-      path: ROUTES.ADMIN_CATEGORIES,
+      path: ROUTES.ADMIN_CATEGORIES_LIST,
       children: [
         { title: 'All Categories', path: ROUTES.ADMIN_CATEGORIES_LIST },
         { title: 'Create Category', path: '/admin/categories/create' }
+      ]
+    },
+    {
+      title: 'Products',
+      icon: 'bi bi-gem',
+      path: ROUTES.ADMIN_PRODUCTS_LIST,
+      children: [
+        { title: 'All Products', path: ROUTES.ADMIN_PRODUCTS_LIST },
+        { title: 'Create Product', path: ROUTES.ADMIN_PRODUCTS_CREATE }
+      ]
+    },
+    {
+      title: 'Banner',
+      icon: 'bi bi-image',
+      path: '/admin/banners/list',
+      children: [
+        { title: 'All Banners', path: '/admin/banners/list' },
+        { title: 'Create Banner', path: '/admin/banners/create' }
       ]
     }
   ]

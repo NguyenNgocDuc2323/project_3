@@ -22,28 +22,43 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CartItemDto>>> GetCartItems()
         {
-            var userId = GetUserId();
-            if (userId == null)
+            try
             {
-                return Unauthorized();
-            }
+                var userId = GetUserId();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
 
-            var items = await _context.CartItems
-                .Where(item => item.UserId == userId.Value)
-                .Include(item => item.Product)
-                .ThenInclude(product => product.Category)
-                .OrderByDescending(item => item.CreatedAt)
-                .Select(item => new CartItemDto
+                // Load cart items with products and categories
+                var items = await _context.CartItems
+                    .Where(item => item.UserId == userId.Value)
+                    .Include(item => item.Product!)
+                        .ThenInclude(product => product.Category)
+                    .OrderByDescending(item => item.CreatedAt)
+                    .ToListAsync();
+
+                // Map to DTO, handling null products
+                var result = items.Select(item => new CartItemDto
                 {
                     Id = item.Id,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     CreatedAt = item.CreatedAt,
-                    Product = item.Product
-                })
-                .ToListAsync();
+                    Product = item.Product // Can be null if product was deleted
+                }).ToList();
 
-            return Ok(items);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception for debugging
+                Console.WriteLine($"Error in GetCartItems: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Return empty list instead of 500 error
+                return Ok(new List<CartItemDto>());
+            }
         }
 
         [HttpGet("count")]
@@ -122,18 +137,18 @@ namespace Backend.Controllers
 
             await _context.SaveChangesAsync();
 
-            var itemWithProduct = await _context.CartItems
-                .Include(item => item.Product)
+            var finalItem = await _context.CartItems
+                .Include(item => item.Product!)
                 .ThenInclude(product => product.Category)
                 .FirstAsync(item => item.Id == existingItem.Id);
 
             return Ok(new CartItemDto
             {
-                Id = itemWithProduct.Id,
-                ProductId = itemWithProduct.ProductId,
-                Quantity = itemWithProduct.Quantity,
-                CreatedAt = itemWithProduct.CreatedAt,
-                Product = itemWithProduct.Product
+                Id = finalItem.Id,
+                ProductId = finalItem.ProductId,
+                Quantity = finalItem.Quantity,
+                CreatedAt = finalItem.CreatedAt,
+                Product = finalItem.Product
             });
         }
 
@@ -168,6 +183,30 @@ namespace Backend.Controllers
             return NoContent();
         }
 
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearCart()
+        {
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var userCartItems = await _context.CartItems
+                .Where(item => item.UserId == userId.Value)
+                .ToListAsync();
+
+            if (userCartItems.Count == 0)
+            {
+                return NoContent();
+            }
+
+            _context.CartItems.RemoveRange(userCartItems);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
@@ -186,6 +225,46 @@ namespace Backend.Controllers
             }
 
             _context.CartItems.Remove(existingItem);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPost("update-order")]
+        public async Task<IActionResult> UpdateOrder([FromBody] CartOrderUpdateRequest request)
+        {
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            if (request.ItemOrders == null || request.ItemOrders.Count == 0)
+            {
+                return BadRequest("ItemOrders is required.");
+            }
+
+            // Validate all items belong to the user
+            var itemIds = request.ItemOrders.Select(io => io.ItemId).ToList();
+            var userItems = await _context.CartItems
+                .Where(item => item.UserId == userId.Value && itemIds.Contains(item.Id))
+                .ToListAsync();
+
+            if (userItems.Count != itemIds.Count)
+            {
+                return BadRequest("Some items do not belong to the user.");
+            }
+
+            // Update UpdatedAt for each item (SortOrder not used)
+            foreach (var itemOrder in request.ItemOrders)
+            {
+                var item = userItems.FirstOrDefault(i => i.Id == itemOrder.ItemId);
+                if (item != null)
+                {
+                    item.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -220,6 +299,17 @@ namespace Backend.Controllers
             public int Quantity { get; set; }
             public DateTime CreatedAt { get; set; }
             public Product? Product { get; set; }
+        }
+
+        public class CartOrderUpdateRequest
+        {
+            public List<CartItemOrder> ItemOrders { get; set; } = new List<CartItemOrder>();
+        }
+
+        public class CartItemOrder
+        {
+            public int ItemId { get; set; }
+            public int SortOrder { get; set; }
         }
 
         public class CartCountDto

@@ -16,7 +16,7 @@ namespace Backend.Models
 
         [Required]
         [StringLength(10)]
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = "VND";
 
         [Required]
         [StringLength(50)]

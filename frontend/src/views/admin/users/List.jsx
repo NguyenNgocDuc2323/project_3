@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userService } from '../../../common/services'
+import ConfirmModal from '../../../components/common/ConfirmModal'
 import './List.css'
 
 const UsersList = () => {
@@ -8,6 +9,8 @@ const UsersList = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [confirm, setConfirm] = useState({ open: false, id: null, username: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadUsers()
@@ -34,11 +37,8 @@ const UsersList = () => {
   }
 
   const handleDelete = async (id, username) => {
-    if (!window.confirm(`Are you sure you want to delete user "${username}"?`)) {
-      return
-    }
-
     try {
+      setIsDeleting(true)
       await userService.delete(id)
       if (window.showToast) {
         window.showToast({
@@ -59,6 +59,9 @@ const UsersList = () => {
           life: 4000
         })
       }
+    } finally {
+      setIsDeleting(false)
+      setConfirm({ open: false, id: null, username: '' })
     }
   }
 
@@ -86,6 +89,17 @@ const UsersList = () => {
 
   return (
     <div className="admin-users-list">
+      <ConfirmModal
+        open={confirm.open}
+        title="Delete user"
+        message={`Are you sure you want to delete user "${confirm.username}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={isDeleting}
+        onCancel={() => setConfirm({ open: false, id: null, username: '' })}
+        onConfirm={() => handleDelete(confirm.id, confirm.username)}
+      />
       <div className="container my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
@@ -95,6 +109,13 @@ const UsersList = () => {
             </h1>
             <p className="text-muted">View and manage user accounts</p>
           </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/users/create')}
+          >
+            <i className="bi bi-plus-circle me-2"></i>
+            Create User
+          </button>
         </div>
 
         <div className="row mb-4">
@@ -121,9 +142,12 @@ const UsersList = () => {
                 <thead className="table-light">
                   <tr>
                     <th>ID</th>
+                    <th>Avatar</th>
                     <th>Username</th>
                     <th>Full Name</th>
                     <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th style={{ width: '150px' }}>Actions</th>
@@ -131,58 +155,86 @@ const UsersList = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.length > 0 ? (
-                    filteredUsers.map(user => (
-                      <tr key={user.id}>
-                        <td>{user.id}</td>
-                        <td>
-                          <div className="fw-bold">{user.username}</div>
-                        </td>
-                        <td>{user.fullName || '-'}</td>
-                        <td>{user.email}</td>
-                        <td>
-                          {user.role === 1 ? (
-                            <span className="badge bg-danger">Admin</span>
-                          ) : (
-                            <span className="badge bg-success">User</span>
-                          )}
-                        </td>
-                        <td>
-                          {user.isActive !== false ? (
-                            <span className="badge bg-success">
-                              <i className="bi bi-check-circle me-1"></i>
-                              Active
-                            </span>
-                          ) : (
-                            <span className="badge bg-secondary">
-                              <i className="bi bi-x-circle me-1"></i>
-                              Inactive
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="btn-group btn-group-sm" role="group">
-                            <button
-                              className="btn btn-outline-primary"
-                              onClick={() => navigate(`/admin/users/edit/${user.id}`)}
-                              title="Edit"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-outline-danger"
-                              onClick={() => handleDelete(user.id, user.username)}
-                              title="Delete"
-                              disabled={user.role === 1}
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    filteredUsers.map(user => {
+                      const getAvatarUrl = () => {
+                        if (user.avatarUrl) {
+                          if (user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')) {
+                            return user.avatarUrl
+                          }
+                          const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+                          const avatarPath = user.avatarUrl.startsWith('/') ? user.avatarUrl : `/${user.avatarUrl}`
+                          return `${apiBase}${avatarPath}`
+                        }
+                        return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username || 'User')}&background=random`
+                      }
+                      
+                      return (
+                        <tr key={user.id}>
+                          <td>{user.id}</td>
+                          <td>
+                            <img
+                              src={getAvatarUrl()}
+                              alt={user.username}
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <div className="fw-bold">{user.username}</div>
+                          </td>
+                          <td>{user.fullName || '-'}</td>
+                          <td>{user.email}</td>
+                          <td>{user.phone || '-'}</td>
+                          <td>{user.gender || '-'}</td>
+                          <td>
+                            {user.role === 1 ? (
+                              <span className="badge bg-danger">Admin</span>
+                            ) : (
+                              <span className="badge bg-success">User</span>
+                            )}
+                          </td>
+                          <td>
+                            {user.isActive !== false ? (
+                              <span className="badge bg-success">
+                                <i className="bi bi-check-circle me-1"></i>
+                                Active
+                              </span>
+                            ) : (
+                              <span className="badge bg-secondary">
+                                <i className="bi bi-x-circle me-1"></i>
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="btn-group btn-group-sm" role="group">
+                              <button
+                                className="btn btn-outline-primary"
+                                onClick={() => navigate(`/admin/users/edit/${user.id}`)}
+                                title="Edit"
+                              >
+                                <i className="bi bi-pencil"></i>
+                              </button>
+                              <button
+                                className="btn btn-outline-danger"
+                                onClick={() => handleDelete(user.id, user.username)}
+                                title="Delete"
+                                disabled={user.role === 1}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
                   ) : (
                     <tr>
-                      <td colSpan="7" className="text-center py-5 text-muted">
+                      <td colSpan="10" className="text-center py-5 text-muted">
                         <i className="bi bi-inbox display-4 d-block mb-2"></i>
                         No users found
                       </td>

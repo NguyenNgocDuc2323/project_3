@@ -1,20 +1,20 @@
-.admin-stories-list {
+.admin-products-list {
   min-height: 100vh;
   background: #f8f9fa;
   padding: 2rem 0;
 }
 
-.admin-stories-list .card {
+.admin-products-list .card {
   border: 1px solid #dee2e6;
   border-radius: 0.5rem;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-.admin-stories-list .table {
+.admin-products-list .table {
   margin-bottom: 0;
 }
 
-.admin-stories-list .table thead th {
+.admin-products-list .table thead th {
   border-top: none;
   border-bottom: 2px solid #dee2e6;
   font-weight: 600;
@@ -24,59 +24,46 @@
   color: #495057;
   background-color: #f8f9fa;
   padding: 1rem;
+  white-space: nowrap;
 }
 
-.admin-stories-list .table tbody td {
+.admin-products-list .table tbody td {
   padding: 1rem;
   vertical-align: middle;
 }
 
-.admin-stories-list .table tbody tr {
-  transition: background-color 0.2s ease;
-}
-
-.admin-stories-list .table tbody tr:hover {
+.admin-products-list .table tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-.admin-stories-list .img-thumbnail {
-  border-radius: 0.25rem;
-  border: 1px solid #dee2e6;
-  object-fit: cover;
-}
-
-.admin-stories-list .input-group-text {
+.admin-products-list .input-group-text {
   background-color: #f8f9fa;
   border-color: #ced4da;
 }
 
-.admin-stories-list .form-control:focus,
-.admin-stories-list .form-select:focus {
+.admin-products-list .form-control:focus,
+.admin-products-list .form-select:focus {
   border-color: #111;
   box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
 }
 
-.admin-stories-list .btn-group-sm .btn {
+.admin-products-list .btn-group-sm .btn {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
-  .admin-stories-list {
+  .admin-products-list {
     padding: 1rem 0;
   }
-  
-  .admin-stories-list .table {
+
+  .admin-products-list .table {
     font-size: 0.875rem;
   }
-  
-  .admin-stories-list .table thead th,
-  .admin-stories-list .table tbody td {
+
+  .admin-products-list .table thead th,
+  .admin-products-list .table tbody td {
     padding: 0.75rem 0.5rem;
   }
-  
-  .admin-stories-list .img-thumbnail {
-    width: 40px !important;
-    height: 40px !important;
-  }
 }
+

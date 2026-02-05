@@ -1,0 +1,134 @@
+.profile-container {
+  max-width: 1000px;
+  margin: 40px auto;
+}
+
+.profile-card {
+  background: #fff;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.profile-header-accent {
+  height: 120px;
+  background: linear-gradient(135deg, #111 0%, #333 100%);
+  position: relative;
+}
+
+.profile-avatar-section {
+  margin-top: -60px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.profile-avatar-wrapper {
+  display: inline-block;
+  padding: 5px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.profile-name {
+  font-family: serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #111;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.profile-username {
+  color: #888;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.profile-content {
+  padding: 0 40px 40px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label i {
+  font-size: 1rem;
+  color: #111;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.profile-actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-edit-profile {
+  padding: 12px 40px;
+  background: #111;
+  border: none;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-profile:hover {
+  background: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .profile-content {
+    padding: 0 20px 30px;
+  }
+}

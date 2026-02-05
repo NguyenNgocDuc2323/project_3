@@ -1,0 +1,20 @@
+.payment-result-card {
+  border-radius: 12px;
+}
+
+.result-icon {
+  font-size: 4rem;
+}
+
+.result-icon.success {
+  color: #28a745;
+}
+
+.result-icon.error {
+  color: #dc3545;
+}
+
+.payment-result-card h2 {
+  font-family: serif;
+  font-weight: 600;
+}

@@ -13,7 +13,6 @@ namespace Backend.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
-        public DbSet<Story> Stories { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
@@ -28,6 +27,9 @@ namespace Backend.Data
         public DbSet<Material> Materials { get; set; }
         public DbSet<MetalColor> MetalColors { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<Banner> Banners { get; set; }
+        public DbSet<UserAddress> UserAddresses { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,18 +90,6 @@ namespace Backend.Data
                       .WithMany(u => u.EmailVerificationTokens)
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<Story>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Author).HasMaxLength(100);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
-                entity.Property(e => e.Category).HasMaxLength(50);
-                entity.Property(e => e.CreatedAt).IsRequired();
-                entity.HasIndex(e => e.IsFeatured);
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -328,6 +318,32 @@ namespace Backend.Data
                 entity.HasOne(e => e.Product)
                       .WithMany(p => p.ProductImages)
                       .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Banner>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Link).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.SortOrder);
+            });
+
+            modelBuilder.Entity<UserAddress>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ReceiverName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Phone).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.AddressLine).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.City).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Addresses)
+                      .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }

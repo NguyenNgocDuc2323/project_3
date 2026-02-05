@@ -97,7 +97,7 @@ namespace Backend.Controllers
 
         private async Task<string> GenerateGeminiResponse(string userMessage, string apiKey, string model)
         {
-            var systemPrompt = "You are a helpful AI assistant for a book and story website. " +
+            var systemPrompt = "You are a helpful AI assistant for a jewelry website. " +
                 "You help customers find books, answer questions about the website, and provide recommendations. " +
                 "Be friendly, concise, and helpful. Keep responses under 200 words.";
 

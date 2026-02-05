@@ -20,7 +20,8 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductWithFavoriteCountDto>>> GetProducts([FromQuery] int? categoryId = null, [FromQuery] bool? featured = null)
         {
-            var products = await BuildProductQuery()
+            var userId = GetUserId();
+            var products = await BuildProductQuery(userId)
                 .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .Where(p => !featured.HasValue || !featured.Value || p.IsFeatured)
                 .OrderByDescending(p => p.CreatedAt)
@@ -32,6 +33,7 @@ namespace Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductWithFavoriteCountDto>> GetProduct(int id)
         {
+            var userId = GetUserId();
             var product = await _context.Products
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -43,7 +45,7 @@ namespace Backend.Controllers
             product.Views++;
             await _context.SaveChangesAsync();
 
-            var productDto = await BuildProductQuery()
+            var productDto = await BuildProductQuery(userId)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return Ok(productDto);
@@ -52,7 +54,8 @@ namespace Backend.Controllers
         [HttpGet("popular")]
         public async Task<ActionResult<IEnumerable<ProductWithFavoriteCountDto>>> GetPopularProducts([FromQuery] int limit = 5)
         {
-            var products = await BuildProductQuery()
+            var userId = GetUserId();
+            var products = await BuildProductQuery(userId)
                 .OrderByDescending(p => p.Views)
                 .ThenByDescending(p => p.Likes)
                 .Take(limit)
@@ -61,7 +64,20 @@ namespace Backend.Controllers
             return Ok(products);
         }
 
-        private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery()
+        private int GetUserId()
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("id")?.Value 
+                         ?? User.FindFirst("sub")?.Value;
+            
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                return userId;
+            }
+            return 0;
+        }
+
+        private IQueryable<ProductWithFavoriteCountDto> BuildProductQuery(int userId = 0)
         {
             return _context.Products
                 .Include(p => p.Category)
@@ -107,6 +123,8 @@ namespace Backend.Controllers
                     IsFeatured = p.IsFeatured,
                     CreatedAt = p.CreatedAt,
                     FavoriteCount = _context.Favorites.Count(f => f.ProductId == p.Id),
+                    IsFavorite = userId > 0 && _context.Favorites.Any(f => f.ProductId == p.Id && f.UserId == userId),
+                    IsInCart = userId > 0 && _context.CartItems.Any(c => c.ProductId == p.Id && c.UserId == userId),
                     Images = p.ProductImages
                         .OrderBy(img => img.SortOrder)
                         .Select(img => img.ImageUrl)
@@ -139,6 +157,8 @@ namespace Backend.Controllers
             public bool IsFeatured { get; set; }
             public DateTime CreatedAt { get; set; }
             public int FavoriteCount { get; set; }
+            public bool IsFavorite { get; set; }
+            public bool IsInCart { get; set; }
             public List<string> Images { get; set; } = new List<string>();
         }
 

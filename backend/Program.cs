@@ -20,6 +20,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 32;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -105,6 +106,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var app = builder.Build();
 
@@ -116,6 +118,20 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseCors("AllowReactApp");
+
+app.UseStaticFiles();
+
+var webRootPath = app.Environment.WebRootPath;
+if (string.IsNullOrEmpty(webRootPath))
+{
+    webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+}
+
+var avatarsPath = Path.Combine(webRootPath, "uploads", "avatars");
+if (!Directory.Exists(avatarsPath))
+{
+    Directory.CreateDirectory(avatarsPath);
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

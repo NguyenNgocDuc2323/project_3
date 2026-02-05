@@ -1,0 +1,55 @@
+.address-management-page {
+  background-color: #fcf9f6;
+  min-height: calc(100vh - 100px);
+}
+
+.address-card {
+  border: 1px solid #eee;
+  border-radius: 0;
+  transition: all 0.3s ease;
+}
+
+.address-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.address-card.border-dark {
+  border-width: 2px;
+}
+
+.address-card h5 {
+  font-family: serif;
+  letter-spacing: 0.05em;
+}
+
+.address-card p {
+  font-size: 0.95rem;
+}
+
+.extra-small {
+  font-size: 0.7rem;
+}
+
+/* Button override for consistency */
+.address-card .btn {
+  transition: all 0.2s ease;
+  letter-spacing: 0.1em;
+}
+
+.address-card .btn-dark:hover {
+  background-color: #333;
+  border-color: #333;
+  transform: translateY(-1px);
+}
+
+.address-card .btn-outline-dark:hover {
+  background-color: #111;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.address-card .btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: #fff;
+  transform: translateY(-1px);
+}
