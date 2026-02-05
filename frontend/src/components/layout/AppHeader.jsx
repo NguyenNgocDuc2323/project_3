@@ -253,7 +253,7 @@ const AppHeader = () => {
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={() => navigate(ROUTES.PROFILE)}>
                   <i className="bi bi-person-circle me-2"></i>
-                  Thông tin cá nhân
+                  Profile
                 </NavDropdown.Item>
                 <NavDropdown.Item onClick={() => navigate(ROUTES.USER_ORDERS_LIST)}>
                   <i className="bi bi-receipt me-2"></i>
@@ -261,7 +261,7 @@ const AppHeader = () => {
                 </NavDropdown.Item>
                 <NavDropdown.Item onClick={() => navigate(ROUTES.ADDRESSES)}>
                   <i className="bi bi-geo-alt me-2"></i>
-                  Sổ địa chỉ
+                  Address
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -282,13 +282,13 @@ const AppHeader = () => {
               className="nav-icon-dropdown cart-dropdown"
             >
               <div className="cart-dropdown-header p-3 border-bottom">
-                <h6 className="mb-0 fw-bold text-uppercase small" style={{ letterSpacing: '0.1em' }}>Giỏ hàng ({cartCount})</h6>
+                <h6 className="mb-0 fw-bold text-uppercase small" style={{ letterSpacing: '0.1em' }}>Cart ({cartCount})</h6>
               </div>
               <div className="cart-dropdown-body" style={{ maxHeight: '350px', overflowY: 'auto' }}>
                 {cartItems.length === 0 ? (
                   <div className="p-4 text-center text-muted">
                     <i className="bi bi-bag-x display-4 d-block mb-2"></i>
-                    <p className="mb-0 small">Giỏ hàng của bạn đang trống</p>
+                    <p className="mb-0 small">Your cart is empty</p>
                   </div>
                 ) : (
                   cartItems.map((item) => (
@@ -319,10 +319,10 @@ const AppHeader = () => {
                   </div>
                   <div className="d-grid gap-2">
                     <Button variant="dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CART)}>
-                      Xem giỏ hàng
+                      View cart
                     </Button>
-                    <Button variant="outline-dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.SHOP)}>
-                      Tiếp tục mua sắm
+                    <Button variant="outline-dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CHECKOUT)}>
+                      Checkout
                     </Button>
                   </div>
                 </div>

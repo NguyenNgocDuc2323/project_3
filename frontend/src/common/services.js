@@ -227,6 +227,12 @@ export const orderService = {
   create(data) {
     return apiClient.post("/orders", data);
   },
+  buyNow(data) {
+    return apiClient.post("/orders/buy-now", data);
+  },
+  confirmPayment(data) {
+    return apiClient.post("/orders/confirm-payment", data);
+  },
   getAll() {
     return apiClient.get("/orders");
   },

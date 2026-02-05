@@ -9,8 +9,7 @@ const PAYMENT_METHODS = [
   { value: '', label: 'All payments' },
   { value: 'cod', label: 'COD' },
   { value: 'bank', label: 'Bank transfer' },
-  { value: 'vnpay', label: 'VNPay' },
-  { value: 'zalopay', label: 'ZaloPay' },
+  { value: 'vnpay', label: 'VNPay' }
 ]
 
 const getCustomerName = (o) => o?.user?.fullName || o?.user?.username || 'Unknown'

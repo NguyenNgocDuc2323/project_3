@@ -44,7 +44,7 @@ import BannersEdit from './views/admin/banners/Edit'
 import OrdersList from './views/admin/orders/List'
 import OrderDetail from './views/admin/orders/Detail'
 
-// Component để redirect từ HOME
+// Redirect component for HOME
 const HomeRedirect = () => {
   if (isAdmin()) {
     return <Navigate to={ROUTES.ADMIN} replace />

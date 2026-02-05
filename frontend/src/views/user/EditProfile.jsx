@@ -11,7 +11,7 @@ const EditProfile = () => {
     if (window.showToast) {
       window.showToast({
         severity,
-        summary: severity === 'success' ? 'Thành công' : severity === 'error' ? 'Lỗi' : 'Thông báo',
+        summary: severity === 'success' ? 'Success' : severity === 'error' ? 'Error' : 'Notice',
         detail: message
       })
     }
@@ -52,6 +52,15 @@ const EditProfile = () => {
     loadProfile()
   }, [])
 
+  const normalizeGender = (value) => {
+    if (!value) return ''
+    const normalized = String(value).toLowerCase()
+    if (normalized === 'nam' || normalized === 'male') return 'Male'
+    if (normalized === 'nữ' || normalized === 'nu' || normalized === 'female') return 'Female'
+    if (normalized === 'khac' || normalized === 'other') return 'Other'
+    return String(value)
+  }
+
   const loadProfile = async () => {
     try {
       setLoading(true)
@@ -69,14 +78,14 @@ const EditProfile = () => {
       
       setFormData({
         fullName: data.fullName || '',
-        gender: data.gender || '',
+        gender: normalizeGender(data.gender),
         address: data.address || '',
         phone: data.phone || '',
         dateOfBirth: formatDateForInput(data.dateOfBirth)
       })
     } catch (error) {
       console.error('Error loading profile:', error)
-      showToast(error.response?.data?.message || 'Không thể tải thông tin profile', 'error')
+      showToast(error.response?.data?.message || 'Unable to load profile', 'error')
     } finally {
       setLoading(false)
     }
@@ -116,19 +125,19 @@ const EditProfile = () => {
     const newErrors = {}
     
     if (!passwordData.oldPassword) {
-      newErrors.oldPassword = 'Vui lòng nhập mật khẩu cũ'
+      newErrors.oldPassword = 'Please enter your current password'
     }
 
     if (!passwordData.newPassword) {
-      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới'
+      newErrors.newPassword = 'Please enter a new password'
     } else if (passwordData.newPassword.length < 6) {
-      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự'
+      newErrors.newPassword = 'New password must be at least 6 characters'
     }
 
     if (!passwordData.confirmPassword) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới'
+      newErrors.confirmPassword = 'Please confirm your new password'
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+      newErrors.confirmPassword = 'Passwords do not match'
     }
 
     setPasswordErrors(newErrors)
@@ -145,7 +154,7 @@ const EditProfile = () => {
     try {
       setChangingPassword(true)
       await profileService.changePassword(passwordData.oldPassword, passwordData.newPassword)
-      showToast('Đổi mật khẩu thành công!', 'success')
+      showToast('Password changed successfully!', 'success')
       
       // Clear password fields
       setPasswordData({
@@ -155,7 +164,7 @@ const EditProfile = () => {
       })
     } catch (error) {
       console.error('Error changing password:', error)
-      showToast(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu', 'error')
+      showToast(error.response?.data?.message || 'Failed to change password', 'error')
     } finally {
       setChangingPassword(false)
     }
@@ -165,19 +174,19 @@ const EditProfile = () => {
     const newErrors = {}
     
     if (formData.fullName && formData.fullName.length > 100) {
-      newErrors.fullName = 'Họ tên không được vượt quá 100 ký tự'
+      newErrors.fullName = 'Full name must not exceed 100 characters'
     }
 
     if (formData.gender && formData.gender.length > 20) {
-      newErrors.gender = 'Giới tính không được vượt quá 20 ký tự'
+      newErrors.gender = 'Gender must not exceed 20 characters'
     }
 
     if (formData.address && formData.address.length > 500) {
-      newErrors.address = 'Địa chỉ không được vượt quá 500 ký tự'
+      newErrors.address = 'Address must not exceed 500 characters'
     }
 
     if (formData.phone && formData.phone.length > 20) {
-      newErrors.phone = 'Số điện thoại không được vượt quá 20 ký tự'
+      newErrors.phone = 'Phone must not exceed 20 characters'
     }
 
     if (formData.dateOfBirth) {
@@ -185,7 +194,7 @@ const EditProfile = () => {
       const today = new Date()
       today.setHours(23, 59, 59, 999) // Set to end of today
       if (dateOfBirth > today) {
-        newErrors.dateOfBirth = 'Ngày sinh không thể là ngày trong tương lai'
+        newErrors.dateOfBirth = 'Date of birth cannot be in the future'
       }
     }
 
@@ -216,7 +225,7 @@ const EditProfile = () => {
       const updatedProfile = response.data
       setProfile(updatedProfile)
       
-      showToast('Cập nhật profile thành công!', 'success')
+      showToast('Profile updated successfully!', 'success')
       
       // Navigate back to profile page after 1 second
       setTimeout(() => {
@@ -224,7 +233,7 @@ const EditProfile = () => {
       }, 1000)
     } catch (error) {
       console.error('Error updating profile:', error)
-      showToast(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật profile', 'error')
+      showToast(error.response?.data?.message || 'Failed to update profile', 'error')
     } finally {
       setSaving(false)
     }
@@ -237,13 +246,13 @@ const EditProfile = () => {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
-      showToast('Chỉ chấp nhận file ảnh (jpg, png, gif, webp)', 'error')
+      showToast('Only image files are allowed (jpg, png, gif, webp)', 'error')
       return
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      showToast('Kích thước file không được vượt quá 5MB', 'error')
+      showToast('File size must not exceed 5MB', 'error')
       return
     }
 
@@ -252,10 +261,10 @@ const EditProfile = () => {
       const response = await profileService.uploadAvatar(file)
       const updatedProfile = response.data
       setProfile(updatedProfile)
-      showToast('Upload avatar thành công!', 'success')
+      showToast('Avatar uploaded successfully!', 'success')
     } catch (error) {
       console.error('Error uploading avatar:', error)
-      showToast(error.response?.data?.message || 'Có lỗi xảy ra khi upload avatar', 'error')
+      showToast(error.response?.data?.message || 'Failed to upload avatar', 'error')
     } finally {
       setUploading(false)
       // Reset file input
@@ -282,7 +291,7 @@ const EditProfile = () => {
       <Container className="py-5">
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
-          <p className="mt-3 text-muted">Đang tải thông tin...</p>
+          <p className="mt-3 text-muted">Loading profile...</p>
         </div>
       </Container>
     )
@@ -296,7 +305,7 @@ const EditProfile = () => {
             <Card.Header className="bg-primary text-white">
               <h4 className="mb-0">
                 <i className="bi bi-pencil-square me-2"></i>
-                Chỉnh sửa Profile
+                Edit Profile
               </h4>
             </Card.Header>
             <Card.Body className="p-4">
@@ -331,12 +340,12 @@ const EditProfile = () => {
                       disabled={uploading}
                     >
                       <i className="bi bi-camera me-2"></i>
-                      {uploading ? 'Đang upload...' : 'Thay đổi avatar'}
+                      {uploading ? 'Uploading...' : 'Change avatar'}
                     </Button>
                   </label>
                 </div>
                 <p className="text-muted small mt-2 mb-0">
-                  Chấp nhận: JPG, PNG, GIF, WEBP (tối đa 5MB)
+                  Accepted: JPG, PNG, GIF, WEBP (max 5MB)
                 </p>
               </div>
 
@@ -373,7 +382,7 @@ const EditProfile = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <i className="bi bi-card-text me-2"></i>
-                    Họ và tên
+                    Full Name
                   </Form.Label>
                   <Form.Control
                     type="text"
@@ -381,7 +390,7 @@ const EditProfile = () => {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     isInvalid={!!errors.fullName}
-                    placeholder="Nhập họ và tên"
+                    placeholder="Enter full name"
                     maxLength={100}
                   />
                   {errors.fullName && (
@@ -394,7 +403,7 @@ const EditProfile = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <i className="bi bi-gender-ambiguous me-2"></i>
-                    Giới tính
+                    Gender
                   </Form.Label>
                   <Form.Select
                     name="gender"
@@ -402,10 +411,10 @@ const EditProfile = () => {
                     onChange={handleInputChange}
                     isInvalid={!!errors.gender}
                   >
-                    <option value="">Chọn giới tính</option>
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </Form.Select>
                   {errors.gender && (
                     <Form.Control.Feedback type="invalid">
@@ -417,7 +426,7 @@ const EditProfile = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <i className="bi bi-calendar-event me-2"></i>
-                    Ngày sinh
+                    Date of Birth
                   </Form.Label>
                   <Form.Control
                     type="date"
@@ -437,7 +446,7 @@ const EditProfile = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <i className="bi bi-telephone me-2"></i>
-                    Số điện thoại
+                    Phone
                   </Form.Label>
                   <Form.Control
                     type="tel"
@@ -445,7 +454,7 @@ const EditProfile = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     isInvalid={!!errors.phone}
-                    placeholder="Nhập số điện thoại"
+                    placeholder="Enter phone number"
                     maxLength={20}
                   />
                   {errors.phone && (
@@ -458,7 +467,7 @@ const EditProfile = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <i className="bi bi-geo-alt me-2"></i>
-                    Địa chỉ
+                    Address
                   </Form.Label>
                   <Form.Control
                     as="textarea"
@@ -467,7 +476,7 @@ const EditProfile = () => {
                     value={formData.address}
                     onChange={handleInputChange}
                     isInvalid={!!errors.address}
-                    placeholder="Nhập địa chỉ"
+                    placeholder="Enter address"
                     maxLength={500}
                   />
                   {errors.address && (
@@ -491,12 +500,12 @@ const EditProfile = () => {
                           size="sm"
                           className="me-2"
                         />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
                       <>
                         <i className="bi bi-check-circle me-2"></i>
-                        Lưu thay đổi
+                        Save changes
                       </>
                     )}
                   </Button>
@@ -508,7 +517,7 @@ const EditProfile = () => {
                     disabled={saving}
                   >
                     <i className="bi bi-arrow-left me-2"></i>
-                    Hủy
+                    Cancel
                   </Button>
                 </div>
               </Form>
@@ -520,7 +529,7 @@ const EditProfile = () => {
                 <Card.Header className="bg-warning text-dark">
                   <h5 className="mb-0">
                     <i className="bi bi-shield-lock me-2"></i>
-                    Đổi mật khẩu
+                    Change Password
                   </h5>
                 </Card.Header>
                 <Card.Body>
@@ -528,7 +537,7 @@ const EditProfile = () => {
                     <Form.Group className="mb-3">
                       <Form.Label>
                         <i className="bi bi-lock me-2"></i>
-                        Mật khẩu cũ
+                        Current Password
                       </Form.Label>
                       <Form.Control
                         type="password"
@@ -536,7 +545,7 @@ const EditProfile = () => {
                         value={passwordData.oldPassword}
                         onChange={handlePasswordChange}
                         isInvalid={!!passwordErrors.oldPassword}
-                        placeholder="Nhập mật khẩu cũ"
+                        placeholder="Enter current password"
                         disabled={changingPassword}
                       />
                       {passwordErrors.oldPassword && (
@@ -549,7 +558,7 @@ const EditProfile = () => {
                     <Form.Group className="mb-3">
                       <Form.Label>
                         <i className="bi bi-key me-2"></i>
-                        Mật khẩu mới
+                        New Password
                       </Form.Label>
                       <Form.Control
                         type="password"
@@ -557,7 +566,7 @@ const EditProfile = () => {
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
                         isInvalid={!!passwordErrors.newPassword}
-                        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                        placeholder="Enter new password (min 6 characters)"
                         disabled={changingPassword}
                       />
                       {passwordErrors.newPassword && (
@@ -570,7 +579,7 @@ const EditProfile = () => {
                     <Form.Group className="mb-3">
                       <Form.Label>
                         <i className="bi bi-key-fill me-2"></i>
-                        Xác nhận mật khẩu mới
+                        Confirm New Password
                       </Form.Label>
                       <Form.Control
                         type="password"
@@ -578,7 +587,7 @@ const EditProfile = () => {
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
                         isInvalid={!!passwordErrors.confirmPassword}
-                        placeholder="Nhập lại mật khẩu mới"
+                        placeholder="Re-enter new password"
                         disabled={changingPassword}
                       />
                       {passwordErrors.confirmPassword && (
@@ -602,12 +611,12 @@ const EditProfile = () => {
                               size="sm"
                               className="me-2"
                             />
-                            Đang đổi mật khẩu...
+                            Changing password...
                           </>
                         ) : (
                           <>
                             <i className="bi bi-shield-check me-2"></i>
-                            Đổi mật khẩu
+                            Change Password
                           </>
                         )}
                       </Button>

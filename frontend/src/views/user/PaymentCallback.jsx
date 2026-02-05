@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Container, Card, Button } from 'react-bootstrap'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../common/constants'
-import { cartService } from '../../common/services'
+import { cartService, orderService } from '../../common/services'
+import { clearBuyNowItem, getBuyNowItem } from '../../common/shopActions'
 import './PaymentCallback.css'
 
 const PaymentCallback = () => {
@@ -15,17 +16,29 @@ const PaymentCallback = () => {
     const params = new URLSearchParams(location.search)
     const responseCode = params.get('vnp_ResponseCode')
     const txnRef = params.get('vnp_TxnRef')
+    const orderIdParam = params.get('orderId')
     
-    const statusZalo = params.get('status')
-    
-    if (responseCode === '00' || statusZalo === '1') {
+    if (responseCode === '00') {
       setStatus('success')
-      setOrderId(txnRef || 'ZaloPay')
-      
-      // Clear cart on success
-      cartService.clear().then(() => {
-        window.dispatchEvent(new Event('cart:updated'))
-      }).catch(err => console.error('Failed to clear cart:', err))
+      const orderIdValue = orderIdParam || txnRef
+      setOrderId(orderIdValue || 'VNPay')
+
+      if (orderIdValue && Number.isFinite(Number(orderIdValue))) {
+        orderService.confirmPayment({
+          orderId: Number(orderIdValue),
+          provider: 'VNPay'
+        }).catch(err => console.error('Failed to confirm payment:', err))
+      }
+
+      const buyNowItem = getBuyNowItem()
+      if (buyNowItem) {
+        clearBuyNowItem()
+      } else {
+        // Clear cart on success
+        cartService.clear().then(() => {
+          window.dispatchEvent(new Event('cart:updated'))
+        }).catch(err => console.error('Failed to clear cart:', err))
+      }
 
       window.showToast?.({
         severity: 'success',

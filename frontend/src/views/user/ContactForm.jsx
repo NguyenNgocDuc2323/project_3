@@ -6,7 +6,7 @@ const showToast = (detail, severity = 'info', summary = null) => {
   if (typeof window.showToast !== 'function') return;
   window.showToast({
     severity,
-    summary: summary ?? (severity === 'success' ? 'Thành công' : severity === 'error' ? 'Lỗi' : 'Thông báo'),
+    summary: summary ?? (severity === 'success' ? 'Success' : severity === 'error' ? 'Error' : 'Notice'),
     detail,
     life: severity === 'error' ? 4000 : 3000,
   });
@@ -35,28 +35,28 @@ const ContactForm = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      showToast('Vui lòng nhập tên của bạn.', 'error');
+      showToast('Please enter your name.', 'error');
       return;
     }
 
     if (!formData.email.trim()) {
-      showToast('Vui lòng nhập email.', 'error');
+      showToast('Please enter your email.', 'error');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      showToast('Vui lòng nhập đúng định dạng email.', 'error');
+      showToast('Please enter a valid email address.', 'error');
       return;
     }
 
     if (!formData.subject.trim()) {
-      showToast('Vui lòng nhập chủ đề.', 'error');
+      showToast('Please enter a subject.', 'error');
       return;
     }
 
     if (!formData.message.trim()) {
-      showToast('Vui lòng nhập nội dung tin nhắn.', 'error');
+      showToast('Please enter your message.', 'error');
       return;
     }
 
@@ -66,7 +66,7 @@ const ContactForm = () => {
       const response = await submitContact(formData);
 
       if (response.success) {
-        showToast(response.message || 'Gửi liên hệ thành công. Chúng tôi sẽ phản hồi sớm!', 'success');
+        showToast(response.message || 'Message sent successfully. We will reply soon!', 'success');
         setFormData({
           name: '',
           email: '',
@@ -75,11 +75,11 @@ const ContactForm = () => {
           message: '',
         });
       } else {
-        showToast(response.message || 'Gửi tin nhắn thất bại. Vui lòng thử lại.', 'error');
+        showToast(response.message || 'Failed to send message. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
-      const msg = error.response?.data?.message || 'Đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại.';
+      const msg = error.response?.data?.message || 'An error occurred while sending your message. Please try again.';
       showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);

@@ -4,7 +4,7 @@ import { Badge, Button } from 'react-bootstrap'
 import { ROUTES } from '../../common/constants'
 import { cartService, productService } from '../../common/services'
 import { getCurrentUser, isAuthenticated } from '../../common/utils'
-import { savePostLoginAction, savePostLoginRedirect } from '../../common/shopActions'
+import { saveBuyNowItem, savePostLoginAction, savePostLoginRedirect } from '../../common/shopActions'
 import './ProductDetail.css'
 
 const ProductDetail = () => {
@@ -183,7 +183,7 @@ const ProductDetail = () => {
     }).format(amount)
   }
 
-  const handleAddToCart = async () => {
+  const addToCart = async () => {
     if (!isAuthenticated()) {
       savePostLoginAction({ type: 'cart', productId: product?.id })
       savePostLoginRedirect(`${window.location.pathname}${window.location.search}`)
@@ -208,17 +208,43 @@ const ProductDetail = () => {
           life: 2000
         })
       }
+      return true
     } catch (error) {
       console.error('Failed to add to cart:', error)
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Lỗi',
-          detail: error.response?.data?.message || 'Không thể thêm sản phẩm vào giỏ hàng',
+          summary: 'Error',
+          detail: error.response?.data?.message || 'Unable to add product to cart',
           life: 4000
         })
       }
+      return false
     }
+  }
+
+  const handleAddToCart = async () => {
+    await addToCart()
+  }
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated()) {
+      savePostLoginAction({ type: 'buyNow', productId: product?.id, quantity: 1 })
+      savePostLoginRedirect(ROUTES.CHECKOUT)
+      navigate(ROUTES.LOGIN)
+      return
+    }
+    const user = getCurrentUser()
+    if (!user?.id) {
+      savePostLoginAction({ type: 'buyNow', productId: product?.id, quantity: 1 })
+      savePostLoginRedirect(ROUTES.CHECKOUT)
+      navigate(ROUTES.LOGIN)
+      return
+    }
+
+    const buyNowPayload = { productId: product.id, quantity: 1 }
+    saveBuyNowItem(buyNowPayload)
+    navigate(ROUTES.CHECKOUT, { state: { buyNow: buyNowPayload } })
   }
 
   if (loading) {
@@ -374,6 +400,9 @@ const ProductDetail = () => {
 
           <Button className="product-detail-cta" onClick={handleAddToCart}>
             Add to cart
+          </Button>
+          <Button variant="dark" className="product-detail-cta" onClick={handleBuyNow}>
+            Buy now
           </Button>
 
           <div className="product-detail-note">

@@ -9,7 +9,8 @@ import {
   clearPostLoginAction,
   clearPostLoginRedirect,
   getPostLoginAction,
-  getPostLoginRedirect
+  getPostLoginRedirect,
+  saveBuyNowItem
 } from '../common/shopActions'
 import './Login.css'
 
@@ -91,6 +92,12 @@ const Login = () => {
           if (postLoginAction.type === 'cart') {
             await cartService.add(postLoginAction.productId, 1)
             window.dispatchEvent(new Event('cart:updated'))
+          }
+          if (postLoginAction.type === 'buyNow') {
+            saveBuyNowItem({
+              productId: postLoginAction.productId,
+              quantity: postLoginAction.quantity || 1
+            })
           }
         } finally {
           clearPostLoginAction()

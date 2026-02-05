@@ -106,8 +106,8 @@ const ProductCard = ({ product, showStats = false, onView }) => {
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Lỗi',
-          detail: error.response?.data?.message || 'Không thể thêm sản phẩm vào giỏ hàng',
+          summary: 'Error',
+          detail: error.response?.data?.message || 'Unable to add product to cart',
           life: 4000
         })
       }

@@ -15,11 +15,13 @@ namespace Backend.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IPaymentService _paymentService;
+        private readonly IConfiguration _configuration;
 
-        public OrderController(ApplicationDbContext context, IPaymentService paymentService)
+        public OrderController(ApplicationDbContext context, IPaymentService paymentService, IConfiguration configuration)
         {
             _context = context;
             _paymentService = paymentService;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -144,7 +146,7 @@ namespace Backend.Controllers
                 return BadRequest("Cart is empty");
             }
 
-            var subtotal = cartItems.Sum(ci => ci.Product.MRP * ci.Quantity);
+            var subtotal = cartItems.Sum(ci => (ci.Product?.MRP ?? 0m) * ci.Quantity);
             var shippingFee = string.Equals((orderDto.ShippingMethod ?? "standard").Trim(), "express", StringComparison.OrdinalIgnoreCase)
                 ? 25000m
                 : 0m;
@@ -183,7 +185,6 @@ namespace Backend.Controllers
             var provider = paymentMethodNormalized.ToLowerInvariant() switch
             {
                 var m when m.Contains("vnpay") => "VNPay",
-                var m when m.Contains("zalopay") => "ZaloPay",
                 "bank" => "VietQR",
                 "cod" => "COD",
                 _ => paymentMethodNormalized
@@ -210,8 +211,8 @@ namespace Backend.Controllers
                     OrderId = order.Id,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = item.Product.MRP,
-                    TotalPrice = item.Product.MRP * item.Quantity
+                    UnitPrice = item.Product?.MRP ?? 0m,
+                    TotalPrice = (item.Product?.MRP ?? 0m) * item.Quantity
                 };
                 _context.OrderItems.Add(orderItem);
             }
@@ -221,16 +222,14 @@ namespace Backend.Controllers
             string? paymentUrl = null;
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
 
-            switch (orderDto.PaymentMethod.ToLower())
+            var paymentMethodLower = (orderDto.PaymentMethod ?? "").ToLowerInvariant();
+            switch (paymentMethodLower)
             {
                 case string method when method.Contains("vnpay"):
                     paymentUrl = _paymentService.CreateVnpayPaymentUrl(order.Id, total, ipAddress);
                     break;
-                case string method when method.Contains("zalopay"):
-                    paymentUrl = await _paymentService.CreateZalopayPaymentUrl(order.Id, total);
-                    break;
                 case "bank":
-                    paymentUrl = $"https://img.vietqr.io/image/970422-123456789-compact2.jpg?amount={total}&addInfo=Thanh%20toan%20don%20hang%20{order.Id}";
+                    paymentUrl = _configuration["BankTransfer:QrUrl"] ?? "http://localhost:3000/QR.jpg";
                     break;
                 case "cod":
                     break;
@@ -250,12 +249,195 @@ namespace Backend.Controllers
             });
         }
 
+        [HttpPost("buy-now")]
+        public async Task<ActionResult<Order>> BuyNow([FromBody] BuyNowOrderDto orderDto)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+            if (orderDto.ProductId <= 0 || orderDto.Quantity <= 0)
+            {
+                return BadRequest(new { message = "Invalid product or quantity" });
+            }
+
+            var phone = (orderDto.Phone ?? "").Trim();
+            if (phone.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
+            {
+                return BadRequest(new { message = "Phone number must be exactly 10 digits" });
+            }
+
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == orderDto.ProductId);
+            if (product == null)
+            {
+                return NotFound(new { message = "Product not found" });
+            }
+
+            var subtotal = product.MRP * orderDto.Quantity;
+            var shippingFee = string.Equals((orderDto.ShippingMethod ?? "standard").Trim(), "express", StringComparison.OrdinalIgnoreCase)
+                ? 25000m
+                : 0m;
+            var paymentFee = (orderDto.PaymentMethod ?? "").Trim().Equals("cod", StringComparison.OrdinalIgnoreCase)
+                ? 15000m
+                : 0m;
+            var total = subtotal + shippingFee + paymentFee;
+
+            var order = new Order
+            {
+                UserId = userId,
+                Status = "Pending",
+                Subtotal = subtotal,
+                Total = total,
+                ShippingAddress = orderDto.ShippingAddress,
+                PaymentMethod = orderDto.PaymentMethod,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Orders.Add(order);
+
+            // Persist phone to user profile (so admin list can show it).
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user != null && string.IsNullOrWhiteSpace(user.Phone))
+                {
+                    user.Phone = phone;
+                    user.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            var paymentMethodNormalized = (orderDto.PaymentMethod ?? "").Trim();
+            var provider = paymentMethodNormalized.ToLowerInvariant() switch
+            {
+                var m when m.Contains("vnpay") => "VNPay",
+                "bank" => "VietQR",
+                "cod" => "COD",
+                _ => paymentMethodNormalized
+            };
+
+            var payment = new Payment
+            {
+                OrderId = order.Id,
+                UserId = userId,
+                Amount = total,
+                Currency = "VND",
+                Status = "Pending",
+                Provider = provider,
+                Method = paymentMethodNormalized,
+                Reference = $"ORDER-{order.Id}",
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Payments.Add(payment);
+
+            var orderItem = new OrderItem
+            {
+                OrderId = order.Id,
+                ProductId = product.Id,
+                Quantity = orderDto.Quantity,
+                UnitPrice = product.MRP,
+                TotalPrice = product.MRP * orderDto.Quantity
+            };
+            _context.OrderItems.Add(orderItem);
+
+            await _context.SaveChangesAsync();
+
+            string? paymentUrl = null;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var paymentMethodLower = (orderDto.PaymentMethod ?? "").ToLowerInvariant();
+
+            switch (paymentMethodLower)
+            {
+                case string method when method.Contains("vnpay"):
+                    paymentUrl = _paymentService.CreateVnpayPaymentUrl(order.Id, total, ipAddress);
+                    break;
+                case "bank":
+                    paymentUrl = _configuration["BankTransfer:QrUrl"] ?? "http://localhost:3000/QR.jpg";
+                    break;
+                case "cod":
+                    break;
+            }
+
+            return Ok(new
+            {
+                order,
+                paymentUrl,
+                pricing = new
+                {
+                    subtotal,
+                    shippingFee,
+                    paymentFee,
+                    total
+                }
+            });
+        }
+
+        [HttpPost("confirm-payment")]
+        public async Task<ActionResult<object>> ConfirmPayment([FromBody] ConfirmPaymentDto dto)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+            if (dto.OrderId <= 0)
+            {
+                return BadRequest(new { message = "OrderId is required" });
+            }
+
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == dto.OrderId && o.UserId == userId);
+            if (order == null)
+            {
+                return NotFound(new { message = "Order not found" });
+            }
+
+            order.Status = "Completed";
+            order.UpdatedAt = DateTime.UtcNow;
+
+            var payment = await _context.Payments
+                .Where(p => p.OrderId == order.Id)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (payment != null)
+            {
+                payment.Status = "Paid";
+                payment.PaidAt = DateTime.UtcNow;
+                payment.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                order.Id,
+                order.Status,
+                order.UpdatedAt
+            });
+        }
+
         public class CreateOrderDto
         {
             public string ShippingAddress { get; set; } = string.Empty;
             public string? ShippingMethod { get; set; } = "standard";
             public string PaymentMethod { get; set; } = string.Empty;
             public string? Phone { get; set; }
+        }
+
+        public class BuyNowOrderDto
+        {
+            public int ProductId { get; set; }
+            public int Quantity { get; set; } = 1;
+            public string ShippingAddress { get; set; } = string.Empty;
+            public string? ShippingMethod { get; set; } = "standard";
+            public string PaymentMethod { get; set; } = string.Empty;
+            public string? Phone { get; set; }
+        }
+
+        public class ConfirmPaymentDto
+        {
+            public int OrderId { get; set; }
+            public string? Provider { get; set; }
         }
 
         public class OrderSummaryDto

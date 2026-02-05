@@ -34,6 +34,15 @@ const UsersEdit = () => {
     loadUser()
   }, [id])
 
+  const normalizeGender = (value) => {
+    if (!value) return ''
+    const normalized = String(value).toLowerCase()
+    if (normalized === 'nam' || normalized === 'male') return 'Male'
+    if (normalized === 'nữ' || normalized === 'nu' || normalized === 'female') return 'Female'
+    if (normalized === 'khac' || normalized === 'other') return 'Other'
+    return String(value)
+  }
+
   const loadUser = async () => {
     try {
       setLoadingData(true)
@@ -52,7 +61,7 @@ const UsersEdit = () => {
         username: user.username || '',
         email: user.email || '',
         fullName: user.fullName || '',
-        gender: user.gender || '',
+        gender: normalizeGender(user.gender),
         address: user.address || '',
         phone: user.phone || '',
         dateOfBirth: formatDateForInput(user.dateOfBirth),
@@ -189,7 +198,7 @@ const UsersEdit = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Chỉ chấp nhận file ảnh (jpg, png, gif, webp)',
+          detail: 'Only image files are allowed (jpg, png, gif, webp)',
           life: 4000
         })
       }
@@ -202,7 +211,7 @@ const UsersEdit = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Kích thước file không được vượt quá 5MB',
+          detail: 'File size must not exceed 5MB',
           life: 4000
         })
       }
@@ -228,7 +237,7 @@ const UsersEdit = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: error.response?.data?.message || 'Có lỗi xảy ra khi upload avatar',
+          detail: error.response?.data?.message || 'Failed to upload avatar',
           life: 4000
         })
       }
@@ -257,15 +266,15 @@ const UsersEdit = () => {
     const newErrors = {}
     
     if (!passwordData.newPassword) {
-      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới'
+      newErrors.newPassword = 'Please enter a new password'
     } else if (passwordData.newPassword.length < 6) {
-      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự'
+      newErrors.newPassword = 'New password must be at least 6 characters'
     }
 
     if (!passwordData.confirmPassword) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới'
+      newErrors.confirmPassword = 'Please confirm your new password'
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+      newErrors.confirmPassword = 'Passwords do not match'
     }
 
     setPasswordErrors(newErrors)
@@ -286,7 +295,7 @@ const UsersEdit = () => {
         window.showToast({
           severity: 'success',
           summary: 'Success',
-          detail: 'Mật khẩu đã được đổi thành công',
+          detail: 'Password changed successfully',
           life: 3000
         })
       }
@@ -302,7 +311,7 @@ const UsersEdit = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu',
+          detail: error.response?.data?.message || 'Failed to change password',
           life: 4000
         })
       }
@@ -401,11 +410,11 @@ const UsersEdit = () => {
                       disabled={uploading}
                     >
                       <i className="bi bi-camera me-2"></i>
-                      {uploading ? 'Đang upload...' : 'Thay đổi avatar'}
+                      {uploading ? 'Uploading...' : 'Change avatar'}
                     </button>
                   </div>
                   <p className="text-muted small mt-2 mb-0">
-                    Chấp nhận: JPG, PNG, GIF, WEBP (tối đa 5MB)
+                    Accepted: JPG, PNG, GIF, WEBP (max 5MB)
                   </p>
                 </div>
 
@@ -473,9 +482,9 @@ const UsersEdit = () => {
                       onChange={handleChange}
                     >
                       <option value="">Select gender</option>
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                      <option value="Khác">Khác</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                     </select>
                     {errors.gender && (
                       <div className="invalid-feedback">{errors.gender}</div>
@@ -621,7 +630,7 @@ const UsersEdit = () => {
                 <div className="card-header bg-warning text-dark">
                   <h5 className="mb-0">
                     <i className="bi bi-shield-lock me-2"></i>
-                    Đổi mật khẩu
+                    Change Password
                   </h5>
                 </div>
                 <div className="card-body">
@@ -629,7 +638,7 @@ const UsersEdit = () => {
                     <div className="mb-3">
                       <label htmlFor="newPassword" className="form-label">
                         <i className="bi bi-key me-2"></i>
-                        Mật khẩu mới
+                        New Password
                       </label>
                       <input
                         type="password"
@@ -638,7 +647,7 @@ const UsersEdit = () => {
                         name="newPassword"
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
-                        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                        placeholder="Enter new password (min 6 characters)"
                         disabled={changingPassword}
                       />
                       {passwordErrors.newPassword && (
@@ -649,7 +658,7 @@ const UsersEdit = () => {
                     <div className="mb-3">
                       <label htmlFor="confirmPassword" className="form-label">
                         <i className="bi bi-key-fill me-2"></i>
-                        Xác nhận mật khẩu mới
+                        Confirm New Password
                       </label>
                       <input
                         type="password"
@@ -658,7 +667,7 @@ const UsersEdit = () => {
                         name="confirmPassword"
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
-                        placeholder="Nhập lại mật khẩu mới"
+                        placeholder="Re-enter new password"
                         disabled={changingPassword}
                       />
                       {passwordErrors.confirmPassword && (
@@ -675,12 +684,12 @@ const UsersEdit = () => {
                         {changingPassword ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Đang đổi mật khẩu...
+                            Changing password...
                           </>
                         ) : (
                           <>
                             <i className="bi bi-shield-check me-2"></i>
-                            Đổi mật khẩu
+                            Change Password
                           </>
                         )}
                       </button>

@@ -31,8 +31,6 @@ const ThankYou = () => {
         return 'Cash on Delivery (COD)'
       case 'vnpay':
         return 'VNPay'
-      case 'zalopay':
-        return 'ZaloPay'
       default:
         return method
     }
@@ -47,8 +45,6 @@ const ThankYou = () => {
         return 'bi-truck'
       case 'vnpay':
         return 'bi-wallet2'
-      case 'zalopay':
-        return 'bi-chat-fill'
       default:
         return 'bi-credit-card'
     }

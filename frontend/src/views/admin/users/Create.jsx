@@ -79,7 +79,7 @@ const UsersCreate = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Chỉ chấp nhận file ảnh (jpg, png, gif, webp)',
+          detail: 'Only image files are allowed (jpg, png, gif, webp)',
           life: 4000
         })
       }
@@ -92,7 +92,7 @@ const UsersCreate = () => {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Kích thước file không được vượt quá 5MB',
+          detail: 'File size must not exceed 5MB',
           life: 4000
         })
       }
@@ -274,7 +274,7 @@ const UsersCreate = () => {
                       disabled={uploading}
                     >
                       <i className="bi bi-camera me-2"></i>
-                      {avatarFile ? 'Thay đổi avatar' : 'Chọn avatar'}
+                      {avatarFile ? 'Change avatar' : 'Choose avatar'}
                     </button>
                     {avatarFile && (
                       <button
@@ -288,12 +288,12 @@ const UsersCreate = () => {
                         }}
                       >
                         <i className="bi bi-x-circle me-2"></i>
-                        Xóa
+                        Remove
                       </button>
                     )}
                   </div>
                   <p className="text-muted small mt-2 mb-0">
-                    Chấp nhận: JPG, PNG, GIF, WEBP (tối đa 5MB)
+                    Accepted: JPG, PNG, GIF, WEBP (max 5MB)
                   </p>
                 </div>
 
@@ -389,9 +389,9 @@ const UsersCreate = () => {
                       onChange={handleChange}
                     >
                       <option value="">Select gender</option>
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                      <option value="Khác">Khác</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                     </select>
                     {errors.gender && (
                       <div className="invalid-feedback">{errors.gender}</div>

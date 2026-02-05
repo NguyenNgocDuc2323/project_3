@@ -115,8 +115,8 @@ namespace Backend.Data
                 entity.Property(e => e.ProductType).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Brand).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.GoldCarat).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.MRP).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.OriginalPrice).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.MRP).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.OriginalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.HasIndex(e => e.IsFeatured);
@@ -218,8 +218,8 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Subtotal).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Total).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Subtotal).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Total).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.ShippingAddress).HasMaxLength(255);
                 entity.Property(e => e.PaymentMethod).HasMaxLength(100);
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -236,8 +236,8 @@ namespace Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Quantity).IsRequired().HasDefaultValue(1);
-                entity.Property(e => e.UnitPrice).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.TotalPrice).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)");
                 entity.HasIndex(e => e.OrderId);
                 entity.HasIndex(e => e.ProductId);
                 entity.HasIndex(e => new { e.OrderId, e.ProductId }).IsUnique();
@@ -256,7 +256,7 @@ namespace Backend.Data
             modelBuilder.Entity<Payment>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.Currency).IsRequired().HasMaxLength(10);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Provider).HasMaxLength(100);

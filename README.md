@@ -101,7 +101,7 @@ Email__VerifyEmailBaseUrl=http://localhost:5000/api/auth/verify-email
 
 ## Cấu hình Thanh toán Online
 
-Dự án tích hợp các cổng thanh toán phổ biến tại Việt Nam (VNPAY, ZaloPay) và Chuyển khoản ngân hàng (VietQR).
+Dự án tích hợp VNPAY và Chuyển khoản ngân hàng (VietQR).
 
 ### 1. Cấu hình VNPAY (Sandbox)
 
@@ -120,18 +120,7 @@ Dự án tích hợp các cổng thanh toán phổ biến tại Việt Nam (VNPA
    - Ngày phát hành: `07/15`
    - OTP: `123456`
 
-### 2. Cấu hình ZaloPay (Sandbox)
-
-Sử dụng bộ mã test mặc định của ZaloPay trong `backend/.env`:
-```
-ZaloPay__AppId=2553
-ZaloPay__Key1=9ph319p987679393p622p7rr6f6p9113
-ZaloPay__Key2=Iyz2p763th0p939393p622p7rr6f6p9113
-ZaloPay__BaseUrl=https://sb-openapi.zalopay.vn/v2/create
-ZaloPay__RedirectUrl=http://localhost:3000/checkout/payment-callback
-```
-
-### 3. Chuyển khoản VietQR
+### 2. Chuyển khoản VietQR
 
 Hệ thống tự động tạo mã VietQR dựa trên số tài khoản cấu hình. Hiện tại đang sử dụng demo VietQR.io.
 

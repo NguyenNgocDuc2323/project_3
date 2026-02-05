@@ -55,11 +55,20 @@ const Profile = () => {
     if (!dateString) return null
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return null
-    return date.toLocaleDateString('vi-VN')
+    return date.toLocaleDateString('en-US')
+  }
+
+  const formatGender = (value) => {
+    if (!value) return null
+    const normalized = String(value).toLowerCase()
+    if (normalized === 'nam' || normalized === 'male') return 'Male'
+    if (normalized === 'nữ' || normalized === 'nu' || normalized === 'female') return 'Female'
+    if (normalized === 'khac' || normalized === 'other') return 'Other'
+    return value
   }
 
   const displayValue = (value) => {
-    return value || 'Chưa cập nhật'
+    return value || 'Not provided'
   }
 
   if (loading) {
@@ -67,7 +76,7 @@ const Profile = () => {
       <Container className="py-5">
         <div className="text-center py-5">
           <Spinner animation="border" variant="dark" />
-          <p className="mt-3 text-muted">Đang tải thông tin...</p>
+          <p className="mt-3 text-muted">Loading profile...</p>
         </div>
       </Container>
     )
@@ -99,27 +108,27 @@ const Profile = () => {
               </div>
               
               <div className="info-item">
-                <span className="info-label"><i className="bi bi-gender-ambiguous"></i> Giới tính</span>
-                <span className="info-value">{displayValue(profile.gender)}</span>
+                <span className="info-label"><i className="bi bi-gender-ambiguous"></i> Gender</span>
+                <span className="info-value">{displayValue(formatGender(profile.gender))}</span>
               </div>
 
               <div className="info-item">
-                <span className="info-label"><i className="bi bi-calendar-event"></i> Ngày sinh</span>
+                <span className="info-label"><i className="bi bi-calendar-event"></i> Date of Birth</span>
                 <span className="info-value">{displayValue(formatDate(profile.dateOfBirth))}</span>
               </div>
 
               <div className="info-item">
-                <span className="info-label"><i className="bi bi-telephone"></i> Số điện thoại</span>
+                <span className="info-label"><i className="bi bi-telephone"></i> Phone</span>
                 <span className="info-value">{displayValue(profile.phone)}</span>
               </div>
 
               <div className="info-item">
-                <span className="info-label"><i className="bi bi-geo-alt"></i> Địa chỉ</span>
+                <span className="info-label"><i className="bi bi-geo-alt"></i> Address</span>
                 <span className="info-value">{displayValue(profile.address)}</span>
               </div>
 
               <div className="info-item">
-                <span className="info-label"><i className="bi bi-calendar-check"></i> Ngày tham gia</span>
+                <span className="info-label"><i className="bi bi-calendar-check"></i> Member Since</span>
                 <span className="info-value">{formatDate(profile.createdAt)}</span>
               </div>
             </div>
@@ -129,14 +138,14 @@ const Profile = () => {
                 className="btn-edit-profile"
                 onClick={() => navigate(ROUTES.EDIT_PROFILE)}
               >
-                Chỉnh sửa thông tin
+                Edit Profile
               </Button>
               <Button
                 variant="outline-dark"
                 className="rounded-0 px-4 text-uppercase small fw-bold"
                 onClick={() => navigate(ROUTES.ADDRESSES)}
               >
-                Sổ địa chỉ
+                Address
               </Button>
             </div>
           </div>

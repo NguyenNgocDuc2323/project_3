@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Form, Button, Card, ListGroup, Image, Badge } from 'react-bootstrap'
-import { useNavigate } from 'react-router-dom'
-import { cartService, orderService, addressService } from '../../common/services'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { cartService, orderService, addressService, productService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import { getCurrentUser } from '../../common/utils'
+import { clearBuyNowItem, getBuyNowItem, saveBuyNowItem } from '../../common/shopActions'
 import './Checkout.css'
 
 const Checkout = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = getCurrentUser()
   const [cartItems, setCartItems] = useState([])
   const [addresses, setAddresses] = useState([])
@@ -15,6 +17,8 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState({})
+  const [isBuyNow, setIsBuyNow] = useState(false)
+  const [buyNowItem, setBuyNowItem] = useState(null)
   
   const [formData, setFormData] = useState({
     email: user?.email || '',
@@ -28,9 +32,49 @@ const Checkout = () => {
   })
 
   useEffect(() => {
-    loadCart()
     loadAddresses()
+    const initialBuyNow = location.state?.buyNow || getBuyNowItem()
+    if (initialBuyNow?.productId) {
+      setIsBuyNow(true)
+      setBuyNowItem({
+        productId: Number(initialBuyNow.productId),
+        quantity: Number(initialBuyNow.quantity || 1)
+      })
+      saveBuyNowItem(initialBuyNow)
+      loadBuyNowProduct(initialBuyNow)
+      return
+    }
+    loadCart()
   }, [])
+
+  const loadBuyNowProduct = async (item) => {
+    try {
+      setIsLoading(true)
+      const response = await productService.getById(item.productId)
+      const product = response.data
+      if (!product) {
+        throw new Error('Product not found')
+      }
+      const quantity = Number(item.quantity || 1)
+      setCartItems([{
+        id: `buy-now-${product.id}`,
+        productId: product.id,
+        quantity: quantity > 0 ? quantity : 1,
+        product
+      }])
+    } catch (error) {
+      console.error('Failed to load buy-now product:', error)
+      clearBuyNowItem()
+      window.showToast?.({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to start checkout for this item'
+      })
+      navigate(ROUTES.SHOP)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const loadAddresses = async () => {
     try {
@@ -181,6 +225,15 @@ const Checkout = () => {
         return
       }
 
+      if (isBuyNow && !buyNowItem) {
+        window.showToast?.({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Buy now item not found. Please try again.'
+        })
+        return
+      }
+
       setIsProcessing(true)
       
       const orderData = {
@@ -190,7 +243,13 @@ const Checkout = () => {
         phone: String(formData.phone || '').trim()
       }
 
-      const response = await orderService.create(orderData)
+      const response = isBuyNow && buyNowItem
+        ? await orderService.buyNow({
+            ...orderData,
+            productId: buyNowItem.productId,
+            quantity: buyNowItem.quantity || 1
+          })
+        : await orderService.create(orderData)
       
       if (response.data) {
         const { order, paymentUrl } = response.data
@@ -203,6 +262,7 @@ const Checkout = () => {
         
         // If there's a payment URL, redirect to it
         if (paymentUrl) {
+          clearBuyNowItem()
           window.showToast?.({
             severity: 'info',
             summary: 'Redirecting',
@@ -214,8 +274,12 @@ const Checkout = () => {
           }, 1500)
         } else {
           // For COD or methods without redirect, clear cart and go to dashboard
-          await cartService.clear()
-          window.dispatchEvent(new Event('cart:updated'))
+          if (!isBuyNow) {
+            await cartService.clear()
+            window.dispatchEvent(new Event('cart:updated'))
+          } else {
+            clearBuyNowItem()
+          }
           navigate(ROUTES.DASHBOARD)
         }
       }
@@ -442,15 +506,6 @@ const Checkout = () => {
                     <div className="payment-logo-container">
                       <i className="bi bi-wallet2"></i>
                       <span>VNPAY (ATM / QR Code)</span>
-                    </div>
-                  </div>
-                  <div 
-                    className={`payment-card ${formData.paymentMethod === 'zalopay' ? 'active' : ''}`}
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'zalopay' }))}
-                  >
-                    <div className="payment-logo-container">
-                      <i className="bi bi-chat-fill text-primary"></i>
-                      <span>ZaloPay wallet</span>
                     </div>
                   </div>
                   <div 

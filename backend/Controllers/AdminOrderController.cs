@@ -84,10 +84,6 @@ namespace Backend.Controllers
                         ((o.PaymentMethod ?? "").Trim().ToLower()).Contains("vnpay") ||
                         ((o.PaymentMethod ?? "").Trim().ToLower().Replace(" ", "").Replace("-", "")).Contains("vnpay")
                     ),
-                    "zalopay" => query.Where(o =>
-                        ((o.PaymentMethod ?? "").Trim().ToLower()).Contains("zalopay") ||
-                        ((o.PaymentMethod ?? "").Trim().ToLower().Replace(" ", "").Replace("-", "")).Contains("zalopay")
-                    ),
                     "cod" => query.Where(o =>
                         ((o.PaymentMethod ?? "").Trim().ToLower()).Contains("cod") ||
                         ((o.PaymentMethod ?? "").Trim().ToLower()).Contains("cash") ||
