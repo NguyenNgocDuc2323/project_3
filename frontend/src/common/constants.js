@@ -19,6 +19,7 @@ export const ROUTES = {
     CART: '/cart',
     CHECKOUT: '/checkout',
     ABOUT: '/about',
+  DIAMOND_INFO: '/diamond-info',
   ADMIN: '/admin',
   ADMIN_USERS_LIST: '/admin/users/list',
   ADMIN_USERS_EDIT: '/admin/users/edit',

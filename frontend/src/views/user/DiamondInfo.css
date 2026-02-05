@@ -1,0 +1,69 @@
+.diamond-info-page {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+}
+
+.diamond-info-page .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.diamond-info-page .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -35px;
+  top: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.diamond-info-page .badge {
+  font-size: 0.75rem;
+}
+
+.diamond-info-page .display-4 {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .diamond-info-page .display-4 {
+    font-size: 2.5rem;
+  }
+
+  .timeline {
+    padding-left: 20px;
+  }
+
+  .timeline-item::before {
+    left: -25px;
+  }
+}

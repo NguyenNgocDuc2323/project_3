@@ -17,6 +17,7 @@ import ResetPassword from './views/ResetPassword'
 import About from './views/About'
 import Gemstones from './views/Gemstones'
 import Contact from './views/Contact'
+import DiamondInfo from './views/user/DiamondInfo'
 import Dashboard from './views/user/Dashboard'
 import Shop from './views/user/Shop'
 import ProductDetail from './views/user/ProductDetail'
@@ -119,6 +120,12 @@ function App() {
         <Route path="/gemstones" element={
           <DefaultLayout>
             <Gemstones />
+          </DefaultLayout>
+        } />
+
+        <Route path={ROUTES.DIAMOND_INFO} element={
+          <DefaultLayout>
+            <DiamondInfo />
           </DefaultLayout>
         } />
 
