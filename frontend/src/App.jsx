@@ -30,6 +30,10 @@ import PaymentCallback from './views/user/PaymentCallback'
 import UserOrdersList from './views/user/orders/List'
 import UserOrderDetail from './views/user/orders/Detail'
 import AdminDashboard from './views/admin/Dashboard'
+import AdminReportsDashboard from './views/admin/reports/Dashboard'
+import AdminReportsProducts from './views/admin/reports/Products'
+import AdminReportsUsers from './views/admin/reports/Users'
+import AdminReportsInvoices from './views/admin/reports/Invoices'
 import UsersList from './views/admin/users/List'
 import UsersEdit from './views/admin/users/Edit'
 import CategoriesList from './views/admin/categories/List'
@@ -220,6 +224,34 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <AdminDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_REPORTS_DASHBOARD} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminReportsDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_REPORTS_PRODUCTS} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminReportsProducts />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_REPORTS_USERS} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminReportsUsers />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_REPORTS_INVOICES} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminReportsInvoices />
             </AdminLayout>
           </ProtectedRoute>
         } />

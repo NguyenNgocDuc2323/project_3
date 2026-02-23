@@ -33,7 +33,11 @@ export const ROUTES = {
   ADMIN_BANNERS_CREATE: '/admin/banners/create',
   ADMIN_BANNERS_EDIT: '/admin/banners/edit',
   ADMIN_ORDERS_LIST: '/admin/orders/list',
-  ADMIN_ORDERS_DETAIL: '/admin/orders/detail'
+  ADMIN_ORDERS_DETAIL: '/admin/orders/detail',
+  ADMIN_REPORTS_DASHBOARD: '/admin/reports',
+  ADMIN_REPORTS_PRODUCTS: '/admin/reports/products',
+  ADMIN_REPORTS_USERS: '/admin/reports/users',
+  ADMIN_REPORTS_INVOICES: '/admin/reports/invoices'
 }
 
 export const STORAGE_KEYS = {

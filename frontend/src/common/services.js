@@ -154,6 +154,21 @@ export const analyticsService = {
   },
 };
 
+export const reportService = {
+  getSummary(params = {}) {
+    return apiClient.get("/admin/reports/summary", { params });
+  },
+  getProductSales(params = {}) {
+    return apiClient.get("/admin/reports/products", { params });
+  },
+  getUserSales(params = {}) {
+    return apiClient.get("/admin/reports/users", { params });
+  },
+  getInvoices(params = {}) {
+    return apiClient.get("/admin/reports/invoices", { params });
+  },
+};
+
 export const bannerService = {
   getAll(activeOnly = true) {
     return apiClient.get("/banners", { params: { activeOnly } });

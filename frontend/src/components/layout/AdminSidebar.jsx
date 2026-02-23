@@ -19,6 +19,17 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       exact: true
     },
     {
+      title: 'Reports',
+      icon: 'bi bi-bar-chart-line',
+      path: ROUTES.ADMIN_REPORTS_DASHBOARD,
+      children: [
+        { title: 'Overview', path: ROUTES.ADMIN_REPORTS_DASHBOARD },
+        { title: 'By product', path: ROUTES.ADMIN_REPORTS_PRODUCTS },
+        { title: 'By customer', path: ROUTES.ADMIN_REPORTS_USERS },
+        { title: 'Invoices / payments', path: ROUTES.ADMIN_REPORTS_INVOICES }
+      ]
+    },
+    {
       title: 'Orders',
       icon: 'bi bi-receipt',
       path: ROUTES.ADMIN_ORDERS_LIST,
