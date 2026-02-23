@@ -229,7 +229,7 @@ namespace Backend.Controllers
                     paymentUrl = _paymentService.CreateVnpayPaymentUrl(order.Id, total, ipAddress);
                     break;
                 case "bank":
-                    paymentUrl = _configuration["BankTransfer:QrUrl"] ?? "http://localhost:3000/QR.jpg";
+                    paymentUrl = BuildBankQrUrl(total, order.Id);
                     break;
                 case "cod":
                     break;
@@ -353,7 +353,7 @@ namespace Backend.Controllers
                     paymentUrl = _paymentService.CreateVnpayPaymentUrl(order.Id, total, ipAddress);
                     break;
                 case "bank":
-                    paymentUrl = _configuration["BankTransfer:QrUrl"] ?? "http://localhost:3000/QR.jpg";
+                    paymentUrl = BuildBankQrUrl(total, order.Id);
                     break;
                 case "cod":
                     break;
@@ -438,6 +438,18 @@ namespace Backend.Controllers
         {
             public int OrderId { get; set; }
             public string? Provider { get; set; }
+        }
+
+        private string BuildBankQrUrl(decimal total, int orderId)
+        {
+            var template = _configuration["BankTransfer:QrUrlTemplate"]
+                ?? "https://img.vietqr.io/image/TCB-8886189630-compact2.png?amount={amount}&addInfo={addInfo}";
+            var amountValue = ((long)decimal.Round(total, 0, MidpointRounding.AwayFromZero)).ToString();
+            var addInfoValue = Uri.EscapeDataString($"ORDER-{orderId}");
+
+            return template
+                .Replace("{amount}", amountValue)
+                .Replace("{addInfo}", addInfoValue);
         }
 
         public class OrderSummaryDto
