@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
@@ -14,6 +15,24 @@ namespace Backend.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+
+        /// <summary>Normalize phone to digits only for duplicate check.</summary>
+        private static string NormalizePhone(string? phone)
+        {
+            if (phone == null) return string.Empty;
+            var s = phone.ToString().Trim();
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            return Regex.Replace(s, @"\D", "");
+        }
+
+        /// <summary>Canonical form for comparison: digits only, leading zeros trimmed so 0123 and 123 match.</summary>
+        private static string CanonicalPhone(string? phone)
+        {
+            var digits = NormalizePhone(phone);
+            if (digits.Length == 0) return string.Empty;
+            var trimmed = digits.TrimStart('0');
+            return trimmed.Length > 0 ? trimmed : "0";
+        }
 
         public AdminUserController(ApplicationDbContext context, IWebHostEnvironment environment)
         {
@@ -50,66 +69,73 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserRequest request)
         {
-            if (string.IsNullOrEmpty(request.Email))
-            {
-                return BadRequest(new { message = "Email is required" });
-            }
+            var errors = new Dictionary<string, string>();
 
-            // Validate username if provided
+            // Email required
+            if (string.IsNullOrWhiteSpace(request.Email))
+                errors["email"] = "Email is required";
+
+            // Username validation (when provided)
             if (!string.IsNullOrEmpty(request.Username))
             {
                 if (request.Username.Length < 3)
-                {
-                    return BadRequest(new { message = "Username must be at least 3 characters" });
-                }
-
-                if (request.Username.Length > 50)
-                {
-                    return BadRequest(new { message = "Username must not exceed 50 characters" });
-                }
-
-                // Check if username already exists
-                if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-                {
-                    return BadRequest(new { message = "Username already exists" });
-                }
+                    errors["username"] = "Username must be at least 3 characters";
+                else if (request.Username.Length > 50)
+                    errors["username"] = "Username must not exceed 50 characters";
             }
-            else
+
+            // Password required and length
+            if (string.IsNullOrWhiteSpace(request.Password))
+                errors["password"] = "Password is required";
+            else if (request.Password.Length < 6)
+                errors["password"] = "Password must be at least 6 characters";
+
+            // If we have errors so far, we can still check duplicates below and add to the same response
+            // Email duplicate (only if email was provided)
+            if (!string.IsNullOrWhiteSpace(request.Email) && !errors.ContainsKey("email"))
             {
-                // Generate username from email if not provided
-                var emailParts = request.Email.Split('@');
+                if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+                    errors["email"] = "Email already exists";
+            }
+
+            // Username duplicate (only if username provided and no length error)
+            if (!string.IsNullOrEmpty(request.Username) && !errors.ContainsKey("username"))
+            {
+                if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+                    errors["username"] = "Username already exists";
+            }
+
+            // Phone duplicate (when provided)
+            var requestCanon = CanonicalPhone(request.Phone?.ToString());
+            if (requestCanon.Length > 0)
+            {
+                var existingPhones = await _context.Users
+                    .Where(u => u.Phone != null)
+                    .Select(u => u.Phone!)
+                    .ToListAsync();
+                var duplicate = existingPhones
+                    .Where(p => p != null && NormalizePhone(p).Length > 0)
+                    .Any(p => CanonicalPhone(p) == requestCanon);
+                if (duplicate)
+                    errors["phone"] = "Phone already exists";
+            }
+
+            if (errors.Count > 0)
+                return BadRequest(new { message = "Validation failed", errors });
+
+            // Resolve username if not provided
+            if (string.IsNullOrEmpty(request.Username))
+            {
+                var emailParts = request.Email!.Split('@');
                 var baseUsername = emailParts[0];
                 var username = baseUsername;
                 var counter = 1;
-
-                // Ensure unique username
                 while (await _context.Users.AnyAsync(u => u.Username == username))
                 {
                     username = $"{baseUsername}{counter}";
                     counter++;
                 }
-
                 request.Username = username;
-            }
-
-            // Validate password if provided
-            if (!string.IsNullOrEmpty(request.Password))
-            {
-                if (request.Password.Length < 6)
-                {
-                    return BadRequest(new { message = "Password must be at least 6 characters" });
-                }
-            }
-            else
-            {
-                // Generate default password if not provided
-                request.Password = "123456"; // Default password, user should change it
-            }
-
-            // Check if email already exists
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                return BadRequest(new { message = "Email already exists" });
             }
 
             var user = new User
@@ -225,6 +251,16 @@ namespace Backend.Controllers
                 if (request.Phone.Length > 20)
                 {
                     return BadRequest(new { message = "Phone must not exceed 20 characters" });
+                }
+                var requestCanon = CanonicalPhone(request.Phone);
+                if (requestCanon.Length > 0)
+                {
+                    var existingPhones = await _context.Users
+                        .Where(u => u.Id != id && u.Phone != null)
+                        .Select(u => u.Phone!)
+                        .ToListAsync();
+                    if (existingPhones.Where(p => p != null && NormalizePhone(p).Length > 0).Any(p => CanonicalPhone(p) == requestCanon))
+                        return BadRequest(new { message = "Phone already exists" });
                 }
                 user.Phone = request.Phone;
             }

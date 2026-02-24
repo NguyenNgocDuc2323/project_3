@@ -158,7 +158,15 @@ const UsersEdit = () => {
       navigate('/admin/users/list')
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to update user'
-      setErrors({ general: errorMessage })
+      const fieldErrors = {}
+      if (errorMessage === 'Phone already exists') {
+        fieldErrors.phone = form.phone?.trim()
+          ? `Phone number "${form.phone.trim()}" already exists in the system.`
+          : 'This phone number already exists in the system.'
+      } else {
+        fieldErrors.general = errorMessage
+      }
+      setErrors(fieldErrors)
       if (window.showToast) {
         window.showToast({
           severity: 'error',

@@ -85,6 +85,10 @@ export const userService = {
     return apiClient.get("/admin/users");
   },
 
+  create(data) {
+    return apiClient.post("/admin/users", data);
+  },
+
   getById(id) {
     return apiClient.get(`/admin/users/${id}`);
   },
@@ -95,6 +99,20 @@ export const userService = {
 
   delete(id) {
     return apiClient.delete(`/admin/users/${id}`);
+  },
+
+  uploadAvatar(id, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post(`/admin/users/${id}/avatar`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  changePassword(id, newPassword) {
+    return apiClient.post(`/admin/users/${id}/change-password`, { newPassword });
   },
 };
 

@@ -42,7 +42,6 @@
 }
 
 .profile-name {
-  font-family: serif;
   font-size: 1.75rem;
   font-weight: 600;
   color: #111;
@@ -103,15 +102,24 @@
   justify-content: center;
 }
 
+/* Đồng bộ font chữ cho cả hai nút, ghi đè Bootstrap */
+.profile-actions .btn {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+}
+
 .btn-edit-profile {
   padding: 12px 40px;
   background: #111;
   border: none;
   color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  font-family: inherit;
   font-weight: 600;
   font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
   border-radius: 4px;
   transition: all 0.3s ease;
 }
@@ -120,6 +128,24 @@
   background: #000;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Cùng font chữ và kiểu với Edit Profile, chỉ khác outline */
+.profile-actions .btn-address {
+  padding: 12px 40px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-radius: 4px;
+  border-width: 2px;
+  transition: all 0.3s ease;
+}
+
+.profile-actions .btn-address:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 768px) {

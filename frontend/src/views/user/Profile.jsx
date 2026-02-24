@@ -142,7 +142,7 @@ const Profile = () => {
               </Button>
               <Button
                 variant="outline-dark"
-                className="rounded-0 px-4 text-uppercase small fw-bold"
+                className="btn-address"
                 onClick={() => navigate(ROUTES.ADDRESSES)}
               >
                 Address

@@ -299,7 +299,7 @@ const AppHeader = () => {
                         style={{ width: '50px', height: '60px', objectFit: 'cover' }}
                       />
                       <div className="flex-grow-1 min-width-0">
-                        <h6 className="mb-1 text-truncate small fw-bold" style={{ fontFamily: 'serif' }}>{item.product?.name}</h6>
+                        <h6 className="mb-1 text-truncate small fw-bold">{item.product?.name}</h6>
                         <div className="d-flex justify-content-between align-items-center">
                           <span className="text-muted extra-small">Qty: {item.quantity}</span>
                           <span className="fw-bold small">{(item.product?.mrp * item.quantity).toLocaleString('vi-VN')}₫</span>

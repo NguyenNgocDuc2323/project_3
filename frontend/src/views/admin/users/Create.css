@@ -1,0 +1,14 @@
+/* Hiển thị lỗi chữ đỏ ngay dưới input, luôn hiện khi có nội dung */
+.admin-users-create-form .invalid-feedback,
+.admin-users-create-form .field-error-text {
+  display: block !important;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.admin-users-create-form .form-control.is-invalid,
+.admin-users-create-form .form-select.is-invalid {
+  border-color: #dc3545;
+}

@@ -92,6 +92,9 @@ const ThankYou = () => {
               <h5 className="mb-0">
                 <i className="bi bi-receipt me-2"></i>
                 Order details
+                {orderData.orderId != null && (
+                  <span className="ms-2 opacity-90">#{orderData.orderId}</span>
+                )}
               </h5>
             </Card.Header>
             <Card.Body>
