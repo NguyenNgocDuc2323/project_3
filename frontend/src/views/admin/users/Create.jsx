@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userService } from '../../../common/services'
+import './Create.css'
 
 const UsersCreate = () => {
   const navigate = useNavigate()
@@ -37,7 +38,9 @@ const UsersCreate = () => {
       newErrors.email = 'Email is invalid'
     }
 
-    if (form.password.trim() && form.password.length < 6) {
+    if (!form.password.trim()) {
+      newErrors.password = 'Password is required'
+    } else if (form.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters'
     }
 
@@ -123,7 +126,7 @@ const UsersCreate = () => {
       const createData = {
         username: form.username.trim() || null,
         email: form.email,
-        password: form.password.trim() || null,
+        password: form.password.trim() || undefined,
         fullName: form.fullName || null,
         gender: form.gender || null,
         address: form.address || null,
@@ -167,14 +170,50 @@ const UsersCreate = () => {
       }
       navigate('/admin/users/list')
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to create user'
-      setErrors({ general: errorMessage })
+      const data = error.response?.data
+      const fieldErrors = {}
+
+      // Backend trả về nhiều lỗi: { message, errors: { email: "...", phone: "...", ... } }
+      if (data && typeof data === 'object' && data.errors && typeof data.errors === 'object') {
+        Object.assign(fieldErrors, data.errors)
+        if (Object.keys(fieldErrors).length > 0 && !fieldErrors.general) {
+          fieldErrors.general = data.message || 'Please fix the errors below.'
+        }
+      } else {
+        // Một lỗi (backward compatible)
+        let msg = 'Failed to create user'
+        if (data !== undefined && data !== null) {
+          if (typeof data === 'string') msg = data
+          else if (typeof data === 'object' && (data.message != null || data.Message != null))
+            msg = String(data.message ?? data.Message ?? '')
+        }
+        if (msg === 'Email already exists' || /email.*already|already.*email/i.test(msg)) {
+          fieldErrors.email = form.email?.trim()
+            ? `Email "${form.email.trim()}" already exists in the system.`
+            : 'This email already exists in the system.'
+        } else if (msg === 'Phone already exists' || /phone.*already|already.*phone/i.test(msg)) {
+          fieldErrors.phone = form.phone?.trim()
+            ? `Phone number "${form.phone.trim()}" already exists in the system.`
+            : 'This phone number already exists in the system.'
+        } else if (msg === 'Username already exists' || /username.*already|already.*username/i.test(msg)) {
+          fieldErrors.username = form.username?.trim()
+            ? `Username "${form.username.trim()}" already exists.`
+            : 'This username already exists.'
+        } else if (msg === 'Password is required' || /password.*required/i.test(msg)) {
+          fieldErrors.password = 'Password is required'
+        } else {
+          fieldErrors.general = msg
+        }
+      }
+
+      setErrors(fieldErrors)
       if (window.showToast) {
+        const detail = fieldErrors.general || (typeof data?.message === 'string' ? data.message : 'Please fix the errors below.')
         window.showToast({
           severity: 'error',
-          summary: 'Error',
-          detail: errorMessage,
-          life: 4000
+          summary: 'Validation failed',
+          detail,
+          life: 5000
         })
       }
     } finally {
@@ -224,7 +263,7 @@ const UsersCreate = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit}>
+              <form className="admin-users-create-form" onSubmit={handleSubmit}>
                 {/* Avatar Upload Section */}
                 <div className="text-center mb-4">
                   <div className="mb-3">
@@ -334,14 +373,14 @@ const UsersCreate = () => {
                       placeholder="Enter email"
                     />
                     {errors.email && (
-                      <div className="invalid-feedback">{errors.email}</div>
+                      <div className="invalid-feedback field-error-text" role="alert">{errors.email}</div>
                     )}
                   </div>
                 </div>
 
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">
-                    Password
+                    Password <span className="text-danger">*</span>
                   </label>
                   <input
                     type="password"
@@ -353,7 +392,7 @@ const UsersCreate = () => {
                     autoComplete="new-password"
                   />
                   {errors.password && (
-                    <div className="invalid-feedback">{errors.password}</div>
+                    <div className="invalid-feedback field-error-text" role="alert">{errors.password}</div>
                   )}
                 </div>
 
@@ -430,7 +469,7 @@ const UsersCreate = () => {
                     maxLength={20}
                   />
                   {errors.phone && (
-                    <div className="invalid-feedback">{errors.phone}</div>
+                    <div className="invalid-feedback field-error-text" role="alert">{errors.phone}</div>
                   )}
                 </div>
 

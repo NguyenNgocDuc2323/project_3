@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../../common/constants'
 import { userService } from '../../../common/services'
 import ConfirmModal from '../../../components/common/ConfirmModal'
 import './List.css'
@@ -91,9 +92,9 @@ const UsersList = () => {
     <div className="admin-users-list">
       <ConfirmModal
         open={confirm.open}
-        title="Delete user"
-        message={`Are you sure you want to delete user "${confirm.username}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title="Delete account"
+        message={confirm.username ? `Are you sure you want to delete this account (${confirm.username})? Click OK to delete or close to cancel.` : 'Are you sure you want to delete this account? Click OK to delete or close to cancel.'}
+        confirmText="OK"
         cancelText="Cancel"
         confirmVariant="danger"
         loading={isDeleting}
@@ -111,7 +112,7 @@ const UsersList = () => {
           </div>
           <button
             className="btn btn-primary"
-            onClick={() => navigate('/admin/users/create')}
+            onClick={() => navigate(ROUTES.ADMIN_USERS_CREATE)}
           >
             <i className="bi bi-plus-circle me-2"></i>
             Create User
@@ -221,7 +222,7 @@ const UsersList = () => {
                               </button>
                               <button
                                 className="btn btn-outline-danger"
-                                onClick={() => handleDelete(user.id, user.username)}
+                                onClick={() => setConfirm({ open: true, id: user.id, username: user.username })}
                                 title="Delete"
                                 disabled={user.role === 1}
                               >

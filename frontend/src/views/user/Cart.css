@@ -9,7 +9,6 @@
 }
 
 .cart-title {
-  font-family: serif;
   font-size: 2.5rem;
   font-weight: 500;
   color: #111;
@@ -31,7 +30,6 @@
 }
 
 .cart-header h5 {
-  font-family: serif;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -71,7 +69,6 @@
 }
 
 .cart-item-name {
-  font-family: serif;
   font-size: 1.1rem;
   font-weight: 600;
   color: #111;
@@ -165,7 +162,6 @@
 }
 
 .summary-header h5 {
-  font-family: serif;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   margin: 0;

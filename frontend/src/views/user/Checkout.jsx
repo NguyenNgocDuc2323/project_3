@@ -273,14 +273,43 @@ const Checkout = () => {
             window.location.href = paymentUrl
           }, 1500)
         } else {
-          // For COD or methods without redirect, clear cart and go to dashboard
+          // For COD or methods without redirect: clear cart, save order for thank-you page, then go to thank-you
+          const pricing = response.data.pricing || {}
+          const lastOrder = {
+            orderId: response.data.order?.id,
+            createdAt: response.data.order?.createdAt || new Date().toISOString(),
+            paymentMethod: response.data.order?.paymentMethod || formData.paymentMethod,
+            customer: {
+              fullName: [formData.firstName, formData.lastName].filter(Boolean).join(' ') || user?.name || user?.username || user?.email || 'N/A',
+              username: user?.username,
+              email: formData.email || user?.email || 'N/A',
+              phone: formData.phone || '',
+              address: [formData.address, formData.city].filter(Boolean).join(', ') || response.data.order?.shippingAddress || ''
+            },
+            subtotal: Number(pricing.subtotal ?? response.data.order?.subtotal ?? 0),
+            discount: 0,
+            total: Number(pricing.total ?? response.data.order?.total ?? 0),
+            items: cartItems.map((item, index) => ({
+              id: item.id || `item-${index}`,
+              product: {
+                name: item.product?.name,
+                imageUrl: item.product?.imageUrl,
+                styleCode: item.product?.styleCode,
+                category: item.product?.category,
+                mrp: item.product?.mrp,
+                originalPrice: item.product?.mrp
+              },
+              quantity: item.quantity ?? 1
+            }))
+          }
+          sessionStorage.setItem('lastOrder', JSON.stringify(lastOrder))
           if (!isBuyNow) {
             await cartService.clear()
             window.dispatchEvent(new Event('cart:updated'))
           } else {
             clearBuyNowItem()
           }
-          navigate(ROUTES.DASHBOARD)
+          navigate(ROUTES.CHECKOUT_THANK_YOU)
         }
       }
     } catch (error) {
