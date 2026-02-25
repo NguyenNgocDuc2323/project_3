@@ -108,6 +108,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddSingleton<IInvoicePdfService, InvoicePdfService>();
 
 var app = builder.Build();
 

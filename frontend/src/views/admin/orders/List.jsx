@@ -53,6 +53,25 @@ const AdminOrdersList = () => {
   const [q, setQ] = useState('')
   const [qDebounced, setQDebounced] = useState('')
   const [manualRefresh, setManualRefresh] = useState(0)
+  const [downloadingId, setDownloadingId] = useState(null)
+
+  const handleDownloadInvoice = async (orderId) => {
+    setDownloadingId(orderId)
+    try {
+      await adminOrderService.downloadInvoice(orderId)
+      if (window.showToast) {
+        window.showToast({ severity: 'success', summary: 'Success', detail: 'Invoice downloaded', life: 3000 })
+      }
+    } catch (e) {
+      console.error('Download invoice failed:', e)
+      const msg = e?.response?.data?.message || 'Failed to download invoice'
+      if (window.showToast) {
+        window.showToast({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
+      }
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setQDebounced(q), 400)
@@ -214,6 +233,19 @@ const AdminOrdersList = () => {
                               title="View"
                             >
                               <i className="bi bi-eye"></i>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-primary"
+                              onClick={() => handleDownloadInvoice(o.id)}
+                              disabled={downloadingId === o.id}
+                              title="Download invoice (PDF)"
+                            >
+                              {downloadingId === o.id ? (
+                                <span className="spinner-border spinner-border-sm" role="status"></span>
+                              ) : (
+                                <i className="bi bi-download"></i>
+                              )}
                             </button>
                           </div>
                         </td>

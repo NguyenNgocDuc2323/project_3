@@ -288,6 +288,16 @@ export const adminOrderService = {
   updateStatus(id, status) {
     return apiClient.put(`/admin/orders/${id}/status`, { status });
   },
+  async downloadInvoice(id) {
+    const res = await apiClient.get(`/admin/orders/${id}/invoice`, { responseType: 'blob' });
+    const blob = res.data;
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice-order-${id}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 export const addressService = {

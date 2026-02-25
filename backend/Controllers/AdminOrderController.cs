@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
+using Backend.Services;
 
 namespace Backend.Controllers
 {
@@ -11,10 +12,33 @@ namespace Backend.Controllers
     public class AdminOrderController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IInvoicePdfService _invoicePdfService;
 
-        public AdminOrderController(ApplicationDbContext context)
+        public AdminOrderController(ApplicationDbContext context, IInvoicePdfService invoicePdfService)
         {
             _context = context;
+            _invoicePdfService = invoicePdfService;
+        }
+
+        [HttpGet("{id}/invoice")]
+        [Produces("application/pdf")]
+        public async Task<IActionResult> DownloadInvoice(int id)
+        {
+            var order = await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound(new { message = "Order not found" });
+            }
+
+            var pdfBytes = _invoicePdfService.GenerateOrderInvoice(order);
+            var fileName = $"invoice-order-{id}.pdf";
+            return File(pdfBytes, "application/pdf", fileName);
         }
 
         [HttpGet]

@@ -51,8 +51,28 @@ const AdminOrderDetail = () => {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
+
+  const handleDownloadInvoice = async () => {
+    if (!order?.id) return
+    setDownloading(true)
+    try {
+      await adminOrderService.downloadInvoice(order.id)
+      if (window.showToast) {
+        window.showToast({ severity: 'success', summary: 'Success', detail: 'Invoice downloaded', life: 3000 })
+      }
+    } catch (e) {
+      console.error('Download invoice failed:', e)
+      const msg = e?.response?.data?.message || 'Failed to download invoice'
+      if (window.showToast) {
+        window.showToast({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
+      }
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   const fees = useMemo(() => computeFees(order), [order])
 
@@ -120,10 +140,26 @@ const AdminOrderDetail = () => {
                 <div className="text-muted small mt-1">Order #{order.id}</div>
               )}
             </div>
-            <button className="btn btn-outline-dark admin-cta" onClick={() => navigate(ROUTES.ADMIN_ORDERS_LIST)}>
-              <i className="bi bi-arrow-left me-2"></i>
-              Back
-            </button>
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="btn btn-primary admin-cta"
+                onClick={handleDownloadInvoice}
+                disabled={downloading || !order?.id}
+                title="Download invoice (PDF)"
+              >
+                {downloading ? (
+                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                ) : (
+                  <i className="bi bi-download me-2"></i>
+                )}
+                Download invoice
+              </button>
+              <button className="btn btn-outline-dark admin-cta" onClick={() => navigate(ROUTES.ADMIN_ORDERS_LIST)}>
+                <i className="bi bi-arrow-left me-2"></i>
+                Back
+              </button>
+            </div>
           </div>
 
           {!loading && order && (
