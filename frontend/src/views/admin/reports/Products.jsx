@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { reportService } from '../../../common/services'
+import { downloadCsv } from '../../../common/utils'
 import './Reports.css'
+
+const PRODUCT_CSV_COLUMNS = [
+  { key: 'productId', label: 'Product ID' },
+  { key: 'productName', label: 'Product Name' },
+  { key: 'quantity', label: 'Quantity' },
+  { key: 'revenue', label: 'Revenue (VND)' }
+]
 
 const AdminReportsProducts = () => {
   const [filters, setFilters] = useState({
@@ -46,6 +54,19 @@ const AdminReportsProducts = () => {
     }).format(amount)
   }
 
+  const handleExportCsv = () => {
+    if (items.length === 0) return
+    const rows = items.map((item) => ({
+      productId: item.productId,
+      productName: item.productName || '',
+      quantity: item.quantity ?? 0,
+      revenue: item.revenue ?? 0
+    }))
+    const from = filters.from || 'start'
+    const to = filters.to || 'end'
+    downloadCsv(rows, PRODUCT_CSV_COLUMNS, `product-sales-report_${from}_${to}.csv`)
+  }
+
   return (
     <div className="admin-reports container my-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -58,6 +79,16 @@ const AdminReportsProducts = () => {
             Top products by quantity sold and revenue.
           </p>
         </div>
+        <button
+          type="button"
+          className="btn btn-outline-success"
+          onClick={handleExportCsv}
+          disabled={loading || items.length === 0}
+          title="Export báo cáo thống kê theo sản phẩm ra file CSV"
+        >
+          <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+          Export CSV
+        </button>
       </div>
 
       <div className="card border-0 shadow-sm mb-4">

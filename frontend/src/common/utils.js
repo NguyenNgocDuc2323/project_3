@@ -70,3 +70,26 @@ export const logout = () => {
   cookieUtils.remove("accessToken");
   storageUtils.remove("user");
 };
+
+const escapeCsvValue = (val) => {
+  const str = String(val ?? "");
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
+
+export const downloadCsv = (rows, columns, filename) => {
+  const header = columns.map((c) => escapeCsvValue(c.label)).join(",");
+  const body = rows.map((row) =>
+    columns.map((c) => escapeCsvValue(row[c.key])).join(",")
+  );
+  const csv = [header, ...body].join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};

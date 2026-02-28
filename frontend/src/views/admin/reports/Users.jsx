@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { reportService } from '../../../common/services'
+import { downloadCsv } from '../../../common/utils'
 import './Reports.css'
+
+const USER_CSV_COLUMNS = [
+  { key: 'userId', label: 'User ID' },
+  { key: 'fullName', label: 'Full Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'ordersCount', label: 'Orders Count' },
+  { key: 'totalSpent', label: 'Total Spent (VND)' },
+  { key: 'averageOrderValue', label: 'Avg Order Value (VND)' }
+]
 
 const AdminReportsUsers = () => {
   const [filters, setFilters] = useState({
@@ -46,6 +56,21 @@ const AdminReportsUsers = () => {
     }).format(amount)
   }
 
+  const handleExportCsv = () => {
+    if (items.length === 0) return
+    const rows = items.map((item) => ({
+      userId: item.userId,
+      fullName: item.fullName || item.username || 'Customer',
+      email: item.email || '',
+      ordersCount: item.ordersCount ?? 0,
+      totalSpent: item.totalSpent ?? 0,
+      averageOrderValue: item.averageOrderValue ?? 0
+    }))
+    const from = filters.from || 'start'
+    const to = filters.to || 'end'
+    downloadCsv(rows, USER_CSV_COLUMNS, `user-sales-report_${from}_${to}.csv`)
+  }
+
   return (
     <div className="admin-reports container my-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -58,6 +83,16 @@ const AdminReportsUsers = () => {
             Top customers by order count and total spending.
           </p>
         </div>
+        <button
+          type="button"
+          className="btn btn-outline-success"
+          onClick={handleExportCsv}
+          disabled={loading || items.length === 0}
+          title="Download"
+        >
+          <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+          Export CSV
+        </button>
       </div>
 
       <div className="card border-0 shadow-sm mb-4">
