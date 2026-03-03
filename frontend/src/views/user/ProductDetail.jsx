@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Badge, Button } from 'react-bootstrap'
 import { ROUTES } from '../../common/constants'
-import { cartService, productService } from '../../common/services'
+import { cartService, productService, reviewService } from '../../common/services'
 import { getCurrentUser, isAuthenticated } from '../../common/utils'
 import { saveBuyNowItem, savePostLoginAction, savePostLoginRedirect } from '../../common/shopActions'
 import './ProductDetail.css'
@@ -15,6 +15,10 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
+  const [reviewStats, setReviewStats] = useState({ count: 0, average: 0 })
+  const [reviews, setReviews] = useState([])
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   const materialOptions = useMemo(() => {
     const base = ['10K', '14K', '18K']
@@ -138,6 +142,26 @@ const ProductDetail = () => {
     fetchRelated()
   }, [id])
 
+  const loadReviews = async (productId) => {
+    if (!productId) return
+    try {
+      const [statsRes, listRes] = await Promise.all([
+        reviewService.getProductStats(productId),
+        reviewService.getByProduct(productId)
+      ])
+      setReviewStats(statsRes.data || { count: 0, average: 0 })
+      setReviews(listRes.data || [])
+    } catch (err) {
+      console.error('Failed to load reviews', err)
+      setReviewStats({ count: 0, average: 0 })
+      setReviews([])
+    }
+  }
+
+  useEffect(() => {
+    if (product?.id) loadReviews(product.id)
+  }, [product?.id])
+
   const pickDefault = (options, current) => {
     const enabledValues = options.filter((option) => option.enabled).map((option) => option.value)
     if (current && enabledValues.includes(current)) {
@@ -225,6 +249,44 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => {
     await addToCart()
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!isAuthenticated()) {
+      savePostLoginRedirect(`${window.location.pathname}${window.location.search}`)
+      navigate(ROUTES.LOGIN)
+      return
+    }
+    if (!product?.id) return
+    const { rating, comment } = reviewForm
+    if (rating < 1 || rating > 5) return
+    try {
+      setSubmittingReview(true)
+      await reviewService.add(product.id, rating, comment?.trim() || '')
+      setReviewForm({ rating: 5, comment: '' })
+      await loadReviews(product.id)
+      if (window.showToast) {
+        window.showToast({
+          severity: 'success',
+          summary: 'Review',
+          detail: 'Thank you for your review.',
+          life: 3000
+        })
+      }
+    } catch (err) {
+      console.error('Failed to submit review', err)
+      if (window.showToast) {
+        window.showToast({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.response?.data?.message || 'Unable to submit review.',
+          life: 4000
+        })
+      }
+    } finally {
+      setSubmittingReview(false)
+    }
   }
 
   const handleBuyNow = async () => {
@@ -463,6 +525,92 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      <section className="product-detail-reviews">
+        <h2>Product reviews</h2>
+        <div className="reviews-summary">
+          <div className="reviews-stars" title={`${reviewStats.average} / 5`}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <i
+                key={star}
+                className={`bi ${star <= reviewStats.average ? 'bi-star-fill' : 'bi-star'}`}
+              />
+            ))}
+          </div>
+          <span className="reviews-count">
+            {reviewStats.count} {reviewStats.count === 1 ? 'review' : 'reviews'}
+          </span>
+        </div>
+
+        {isAuthenticated() && (
+          <form className="review-form" onSubmit={handleSubmitReview}>
+            <label>Chọn số sao</label>
+            <div className="review-stars-input">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
+                  onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                >
+                  <i className="bi bi-star-fill" />
+                </button>
+              ))}
+            </div>
+            <label>Comment (optional)</label>
+            <textarea
+              className="review-comment"
+              value={reviewForm.comment}
+              onChange={(e) => setReviewForm((prev) => ({ ...prev, comment: e.target.value }))}
+              placeholder="Chia sẻ trải nghiệm của bạn..."
+              rows={3}
+              maxLength={1000}
+            />
+            <Button type="submit" disabled={submittingReview} className="review-submit-btn">
+              {submittingReview ? 'Submitting...' : 'Submit review'}
+            </Button>
+          </form>
+        )}
+        {!isAuthenticated() && (
+          <p className="review-login-hint">
+            <button type="button" onClick={() => navigate(ROUTES.LOGIN)}>
+              Log in
+            </button>
+            {' '}to leave a review.
+          </p>
+        )}
+
+        <div className="reviews-list">
+          {reviews.length === 0 && (
+            <p className="reviews-empty">No reviews yet.</p>
+          )}
+          {reviews.map((r) => (
+            <div key={r.id} className="review-item">
+              <div className="review-item-header">
+                <span className="review-username">{r.username || 'User'}</span>
+                <div className="review-item-stars">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <i
+                      key={star}
+                      className={`bi ${star <= r.rating ? 'bi-star-fill' : 'bi-star'}`}
+                    />
+                  ))}
+                </div>
+                <span className="review-date">
+                  {(r.createdAt || r.CreatedAt)
+                    ? new Date(r.createdAt || r.CreatedAt).toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })
+                    : ''}
+                </span>
+              </div>
+              {r.comment && <p className="review-comment-text">{r.comment}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="product-detail-related">
         <h2>You may also like</h2>

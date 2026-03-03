@@ -339,6 +339,21 @@ export const favoriteService = {
   },
 };
 
+export const reviewService = {
+  getByProduct(productId) {
+    return apiClient.get(`/reviews/product/${productId}`);
+  },
+  getProductStats(productId) {
+    return apiClient.get(`/reviews/product/${productId}/stats`);
+  },
+  add(productId, rating, comment) {
+    return apiClient.post("/reviews", { productId, rating, comment });
+  },
+  delete(id) {
+    return apiClient.delete(`/reviews/${id}`);
+  },
+};
+
 export const submitContact = async (contactData) => {
   try {
     const response = await apiClient.post("/contact/submit", contactData);

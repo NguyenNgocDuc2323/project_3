@@ -1,0 +1,51 @@
+.admin-reviews-table tbody tr {
+  cursor: default;
+}
+
+.admin-reviews-product-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+}
+
+.admin-reviews-stats {
+  display: flex;
+  align-items: center;
+}
+
+.admin-reviews-stars {
+  color: #e6b84a;
+  font-size: 1.1rem;
+}
+
+.admin-reviews-stars .bi-star {
+  color: #dee2e6;
+}
+
+.admin-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-review-item {
+  padding: 12px 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.admin-review-item-stars {
+  color: #e6b84a;
+  font-size: 0.9rem;
+}
+
+.admin-review-item-stars .bi-star {
+  color: #dee2e6;
+}
+
+.admin-review-comment {
+  font-size: 0.95rem;
+  color: #495057;
+  line-height: 1.5;
+}

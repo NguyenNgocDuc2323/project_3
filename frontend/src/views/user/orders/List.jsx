@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { orderService } from '../../../common/services'
 import { ROUTES } from '../../../common/constants'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './Orders.css'
 
 const formatMoney = (value) => {
@@ -38,6 +39,8 @@ const UserOrdersList = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   const goDetail = (orderId) => navigate(`${ROUTES.USER_ORDERS_DETAIL}/${orderId}`)
 
@@ -65,6 +68,14 @@ const UserOrdersList = () => {
     run()
     return () => { mounted = false }
   }, [])
+
+  const totalOrders = orders.length
+  const totalPages = Math.max(1, Math.ceil(totalOrders / pageSize))
+  const page = Math.max(1, Math.min(currentPage, totalPages))
+  const paginatedOrders = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return orders.slice(start, start + pageSize)
+  }, [orders, page, pageSize])
 
   return (
     <div className="user-orders-page py-4">
@@ -97,7 +108,7 @@ const UserOrdersList = () => {
             <span className="spinner-border spinner-border-sm" role="status"></span>
             <span>Loading...</span>
           </div>
-        ) : orders.length === 0 ? (
+        ) : totalOrders === 0 ? (
           <div className="card shadow-sm lux-empty">
             <div className="card-body text-center py-5">
               <div className="lux-empty-icon mb-3">
@@ -112,8 +123,9 @@ const UserOrdersList = () => {
             </div>
           </div>
         ) : (
-          <div className="row g-3">
-            {orders.map((o) => {
+          <>
+            <div className="row g-3">
+              {paginatedOrders.map((o) => {
               const preview = Array.isArray(o.itemsPreview) ? o.itemsPreview : []
               const first = preview[0]
               const itemCount = Number(o.itemCount || 0)
@@ -206,8 +218,18 @@ const UserOrdersList = () => {
                   </div>
                 </div>
               )
-            })}
-          </div>
+              })}
+            </div>
+            <Pagination
+              totalItems={totalOrders}
+              currentPage={page}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              showPageSizeSelect
+              label="orders"
+            />
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { reportService } from '../../../common/services'
 import { downloadCsv } from '../../../common/utils'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './Reports.css'
 
 const USER_CSV_COLUMNS = [
@@ -20,6 +21,8 @@ const AdminReportsUsers = () => {
   })
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadData()
@@ -35,6 +38,7 @@ const AdminReportsUsers = () => {
 
       const res = await reportService.getUserSales(params)
       setItems(res.data || [])
+      setCurrentPage(1)
     } catch (err) {
       console.error('Failed to load user sales', err)
       setItems([])
@@ -172,9 +176,9 @@ const AdminReportsUsers = () => {
                     </td>
                   </tr>
                 ) : (
-                  items.map((item, index) => (
+                  paginatedItems.map((item, index) => (
                     <tr key={item.userId}>
-                      <td>{index + 1}</td>
+                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
                       <td>
                         <div className="fw-semibold">
                           {item.fullName || item.username || 'Customer'}
@@ -195,6 +199,17 @@ const AdminReportsUsers = () => {
           </div>
         </div>
       </div>
+      {items.length > 0 && (
+        <Pagination
+          totalItems={items.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="items"
+        />
+      )}
     </div>
   )
 }

@@ -68,6 +68,11 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
         { title: 'All Banners', path: '/admin/banners/list' },
         { title: 'Create Banner', path: '/admin/banners/create' }
       ]
+    },
+    {
+      title: 'Reviews',
+      icon: 'bi bi-star',
+      path: ROUTES.ADMIN_REVIEWS
     }
   ]
 

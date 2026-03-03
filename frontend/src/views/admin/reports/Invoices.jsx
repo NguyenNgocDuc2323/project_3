@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { reportService } from '../../../common/services'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './Reports.css'
 
 const AdminReportsInvoices = () => {
@@ -10,6 +11,8 @@ const AdminReportsInvoices = () => {
   })
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadData()
@@ -51,6 +54,11 @@ const AdminReportsInvoices = () => {
     const dt = new Date(value)
     return dt.toLocaleString('vi-VN')
   }
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return items.slice(start, start + pageSize)
+  }, [items, currentPage, pageSize])
 
   return (
     <div className="admin-reports container my-4">
@@ -149,9 +157,9 @@ const AdminReportsInvoices = () => {
                     </td>
                   </tr>
                 ) : (
-                  items.map((item, index) => (
+                  paginatedItems.map((item, index) => (
                     <tr key={item.paymentId}>
-                      <td>{index + 1}</td>
+                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
                       <td>
                         <div className="fw-semibold">
                           {item.fullName || item.username || 'Customer'}
@@ -190,6 +198,17 @@ const AdminReportsInvoices = () => {
           </div>
         </div>
       </div>
+      {items.length > 0 && (
+        <Pagination
+          totalItems={items.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="invoices"
+        />
+      )}
     </div>
   )
 }

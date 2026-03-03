@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { productService } from '../../../common/services'
 import { ROUTES } from '../../../common/constants'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './List.css'
 
 const ProductsList = () => {
@@ -12,6 +13,8 @@ const ProductsList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [confirm, setConfirm] = useState({ open: false, id: null, name: '' })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadProducts()
@@ -172,8 +175,8 @@ const ProductsList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.length > 0 ? (
-                    filteredProducts.map((p) => (
+                  {totalFiltered > 0 ? (
+                    paginatedProducts.map((p) => (
                       <tr key={p.id}>
                         <td>
                           <img
@@ -236,9 +239,15 @@ const ProductsList = () => {
           </div>
         </div>
 
-        <div className="mt-3 text-muted small">
-          Showing {filteredProducts.length} of {products.length} products
-        </div>
+        <Pagination
+          totalItems={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="products"
+        />
       </div>
     </div>
   )

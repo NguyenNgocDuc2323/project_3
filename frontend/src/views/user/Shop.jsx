@@ -3,7 +3,10 @@ import { Col, Container, Row } from 'react-bootstrap'
 import { useSearchParams } from 'react-router-dom'
 import { productService } from '../../common/services'
 import ProductCard from '../../components/common/ProductCard'
+import Pagination from '../../components/common/Pagination'
 import './Shop.css'
+
+const SHOP_PAGE_SIZE = 12
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -22,6 +25,8 @@ const Shop = () => {
     type: false,
     category: false
   })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(SHOP_PAGE_SIZE)
 
   useEffect(() => {
     const loadData = async () => {
@@ -142,6 +147,18 @@ const Shop = () => {
     return sorted
   }, [products, searchTerm, priceMin, priceMax, selectedType, selectedCategory, sortBy])
 
+  const totalFiltered = filteredProducts.length
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize))
+  const page = Math.max(1, Math.min(currentPage, totalPages))
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredProducts.slice(start, start + pageSize)
+  }, [filteredProducts, page, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, priceMin, priceMax, selectedType, selectedCategory, sortBy])
+
   const handleResetFilters = () => {
     setSearchTerm('')
     setPriceMin(priceBounds.min)
@@ -213,7 +230,7 @@ const Shop = () => {
             </div>
             <div className="toolbar-right">
               <span className="results-count">
-                {filteredProducts.length} products
+                {totalFiltered} products
               </span>
             </div>
           </div>
@@ -442,16 +459,28 @@ const Shop = () => {
           )}
 
           <section className="shop-results">
-            {filteredProducts.length === 0 ? (
+            {totalFiltered === 0 ? (
               <div className="shop-empty">No matching products found.</div>
             ) : (
-              <Row className="g-4">
-                {filteredProducts.map((product) => (
-                  <Col key={product.id} xs={6} md={4} lg={3}>
-                    <ProductCard product={product} />
-                  </Col>
-                ))}
-              </Row>
+              <>
+                <Row className="g-4">
+                  {paginatedProducts.map((product) => (
+                    <Col key={product.id} xs={6} md={4} lg={3}>
+                      <ProductCard product={product} />
+                    </Col>
+                  ))}
+                </Row>
+                <Pagination
+                  totalItems={totalFiltered}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={setPageSize}
+                  showPageSizeSelect
+                  pageSizeOptions={[12, 24, 48]}
+                  label="products"
+                />
+              </>
             )}
           </section>
         </>

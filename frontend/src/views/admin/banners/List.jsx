@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { bannerService } from '../../../common/services'
 import { ROUTES } from '../../../common/constants'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './List.css'
 
 const BannersList = () => {
@@ -12,6 +13,8 @@ const BannersList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [confirm, setConfirm] = useState({ open: false, id: null, title: '' })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadBanners()
@@ -69,14 +72,24 @@ const BannersList = () => {
   const getPlaceholderImage = (w = 80, h = 45) =>
     `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'%3E%3Crect width='100%25' height='100%25' fill='%23eee'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%23999'%3EImage%3C/text%3E%3C/svg%3E`
 
-  const filteredBanners = banners.filter(b => {
+  const filteredBanners = useMemo(() => banners.filter(b => {
     if (!searchTerm) return true
     const s = searchTerm.toLowerCase()
     return (
       (b.title && b.title.toLowerCase().includes(s)) ||
       (b.link && b.link.toLowerCase().includes(s))
     )
-  })
+  }), [banners, searchTerm])
+
+  const totalFiltered = filteredBanners.length
+  const paginatedBanners = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredBanners.slice(start, start + pageSize)
+  }, [filteredBanners, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   if (loading) {
     return (
@@ -148,8 +161,8 @@ const BannersList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBanners.length > 0 ? (
-                    filteredBanners.map(banner => (
+                  {totalFiltered > 0 ? (
+                    paginatedBanners.map(banner => (
                       <tr key={banner.id}>
                         <td>
                           <img
@@ -214,9 +227,15 @@ const BannersList = () => {
           </div>
         </div>
 
-        <div className="mt-3 text-muted small">
-          Showing {filteredBanners.length} of {banners.length} banners
-        </div>
+        <Pagination
+          totalItems={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="banners"
+        />
       </div>
     </div>
   )

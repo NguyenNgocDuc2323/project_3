@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { categoryService } from '../../../common/services'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './List.css'
 
 const CategoriesList = () => {
@@ -11,6 +12,8 @@ const CategoriesList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [confirm, setConfirm] = useState({ open: false, id: null, name: '' })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadCategories()
@@ -65,14 +68,24 @@ const CategoriesList = () => {
     }
   }
 
-  const filteredCategories = categories.filter(category => {
+  const filteredCategories = useMemo(() => categories.filter(category => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
       category.name?.toLowerCase().includes(search) ||
       category.description?.toLowerCase().includes(search)
     )
-  })
+  }), [categories, searchTerm])
+
+  const totalFiltered = filteredCategories.length
+  const paginatedCategories = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredCategories.slice(start, start + pageSize)
+  }, [filteredCategories, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   if (loading) {
     return (
@@ -204,9 +217,15 @@ const CategoriesList = () => {
           </div>
         </div>
 
-        <div className="mt-3 text-muted small">
-          Showing {filteredCategories.length} of {categories.length} categories
-        </div>
+        <Pagination
+          totalItems={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="categories"
+        />
       </div>
     </div>
   )

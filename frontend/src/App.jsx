@@ -49,6 +49,7 @@ import BannersCreate from './views/admin/banners/Create'
 import BannersEdit from './views/admin/banners/Edit'
 import OrdersList from './views/admin/orders/List'
 import OrderDetail from './views/admin/orders/Detail'
+import AdminReviewsList from './views/admin/reviews/List'
 
 // Redirect component for HOME
 const HomeRedirect = () => {
@@ -361,6 +362,13 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <OrderDetail />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_REVIEWS} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminReviewsList />
             </AdminLayout>
           </ProtectedRoute>
         } />

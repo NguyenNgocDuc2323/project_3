@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../../common/constants'
 import { userService } from '../../../common/services'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './List.css'
 
 const UsersList = () => {
@@ -12,6 +13,8 @@ const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [confirm, setConfirm] = useState({ open: false, id: null, username: '' })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadUsers()
@@ -66,7 +69,7 @@ const UsersList = () => {
     }
   }
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = useMemo(() => users.filter(user => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
@@ -74,7 +77,17 @@ const UsersList = () => {
       user.email?.toLowerCase().includes(search) ||
       user.fullName?.toLowerCase().includes(search)
     )
-  })
+  }), [users, searchTerm])
+
+  const totalFiltered = filteredUsers.length
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredUsers.slice(start, start + pageSize)
+  }, [filteredUsers, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   if (loading) {
     return (
@@ -247,9 +260,15 @@ const UsersList = () => {
           </div>
         </div>
 
-        <div className="mt-3 text-muted small">
-          Showing {filteredUsers.length} of {users.length} users
-        </div>
+        <Pagination
+          totalItems={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="users"
+        />
       </div>
     </div>
   )

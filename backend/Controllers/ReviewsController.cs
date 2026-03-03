@@ -119,6 +119,21 @@ namespace Backend.Controllers
             });
         }
 
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "1")]
+        public async Task<ActionResult> DeleteReview(int id)
+        {
+            var review = await _context.Reviews.FindAsync(id);
+            if (review == null)
+            {
+                return NotFound("Review not found.");
+            }
+
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         private int? GetUserId()
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);

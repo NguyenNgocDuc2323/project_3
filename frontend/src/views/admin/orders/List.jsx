@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminOrderService } from '../../../common/services'
 import { ROUTES } from '../../../common/constants'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './List.css'
 
 const STATUSES = ['', 'Pending', 'Paid', 'Processing', 'Shipped', 'Completed', 'Cancelled']
@@ -54,6 +55,8 @@ const AdminOrdersList = () => {
   const [qDebounced, setQDebounced] = useState('')
   const [manualRefresh, setManualRefresh] = useState(0)
   const [downloadingId, setDownloadingId] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   const handleDownloadInvoice = async (orderId) => {
     setDownloadingId(orderId)
@@ -209,10 +212,10 @@ const AdminOrdersList = () => {
                       </td>
                     </tr>
                   )}
-                  {!loading && orders.length > 0 ? (
-                    orders.map((o, idx) => (
+                  {!loading && totalOrders > 0 ? (
+                    paginatedOrders.map((o, idx) => (
                       <tr key={o.id ?? idx}>
-                        <td className="fw-bold">{idx + 1}</td>
+                        <td className="fw-bold">{(currentPage - 1) * pageSize + idx + 1}</td>
                         <td>
                           <div className="fw-bold">{getCustomerName(o)}</div>
                         </td>

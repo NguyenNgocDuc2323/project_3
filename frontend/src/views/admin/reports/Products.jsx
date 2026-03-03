@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { reportService } from '../../../common/services'
 import { downloadCsv } from '../../../common/utils'
+import Pagination, { DEFAULT_PAGE_SIZE } from '../../../components/common/Pagination'
 import './Reports.css'
 
 const PRODUCT_CSV_COLUMNS = [
@@ -33,6 +34,7 @@ const AdminReportsProducts = () => {
 
       const res = await reportService.getProductSales(params)
       setItems(res.data || [])
+      setCurrentPage(1)
     } catch (err) {
       console.error('Failed to load product sales', err)
       setItems([])
@@ -53,6 +55,11 @@ const AdminReportsProducts = () => {
       currency: 'VND'
     }).format(amount)
   }
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return items.slice(start, start + pageSize)
+  }, [items, currentPage, pageSize])
 
   const handleExportCsv = () => {
     if (items.length === 0) return
@@ -196,6 +203,17 @@ const AdminReportsProducts = () => {
           </div>
         </div>
       </div>
+      {items.length > 0 && (
+        <Pagination
+          totalItems={items.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelect
+          label="items"
+        />
+      )}
     </div>
   )
 }
