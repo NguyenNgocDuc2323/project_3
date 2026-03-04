@@ -44,6 +44,20 @@ npm run dev
 
 Frontend chạy tại: `http://localhost:3000`
 
+## Cấu hình (backend/appsettings.json)
+
+Mọi cấu hình backend nằm trong **`backend/appsettings.json`**:
+
+| Section | Mục đích |
+|--------|----------|
+| `Environment` | `Development` hoặc `Production` (cookie Secure/SameSite) |
+| `ConnectionStrings` | Chuỗi kết nối MySQL |
+| `Jwt` | Key, Issuer, Audience, thời hạn token |
+| `Email` | SMTP Gmail (xác thực, reset mật khẩu) |
+| `GoogleGemini` | ApiKey, Model (chat AI) |
+| `Vnpay` | TmnCode, HashSecret, BaseUrl, ReturnUrl |
+| `BankTransfer` | QrUrlTemplate (VietQR) |
+
 ## Cấu hình AI Chat (Google Gemini)
 
 Dự án sử dụng **Google Gemini API** (miễn phí) thay vì OpenAI để tránh phải thanh toán.
@@ -55,49 +69,33 @@ Dự án sử dụng **Google Gemini API** (miễn phí) thay vì OpenAI để t
 3. Click "Create API Key" → Chọn project hoặc tạo project mới
 4. Copy API key được tạo
 
-### Cấu hình API Key (Sử dụng file .env - Khuyến nghị):
+### Cấu hình API Key trong `backend/appsettings.json`
 
-1. Copy file `backend/.env.example` thành `backend/.env`:
-   ```powershell
-   cd backend
-   copy .env.example .env
-   ```
+Mở `backend/appsettings.json`, tìm section `GoogleGemini` và điền:
 
-2. Mở file `backend/.env` và thêm API key của bạn:
-   ```
-   GOOGLE_GEMINI_API_KEY=your_api_key_here
-   GOOGLE_GEMINI_MODEL=gemini-1.5-flash
-   ```
+- `ApiKey`: API key lấy từ https://aistudio.google.com/apikey
+- `Model`: giữ `gemini-1.5-flash` (miễn phí)
 
-**Lưu ý quan trọng:**
-- File `.env` đã được thêm vào `.gitignore` nên **KHÔNG** bị push lên GitHub
-- File `.env.example` là template, mọi người sẽ copy và thêm API key của riêng họ
-- Google Gemini có free tier rộng rãi (60 requests/phút, 1,500 requests/ngày)
-- Model `gemini-1.5-flash` là model miễn phí, nhanh và hiệu quả
-- Nếu không có API key, hệ thống sẽ tự động dùng mock responses
+**Lưu ý:** Google Gemini có free tier rộng rãi. Nếu không điền ApiKey, chat sẽ dùng mock responses.
 
 ## Cấu hình Email (Gmail SMTP)
 
 Backend gửi email xác thực và reset mật khẩu qua Gmail SMTP.
 
-### Cấu hình Email trong `.env`
+### Cấu hình Email trong `backend/appsettings.json`
 
-Trong `backend/.env` thêm các biến sau (tham khảo `backend/.env.example`):
-```
-Email__SmtpHost=smtp.gmail.com
-Email__SmtpPort=587
-Email__SmtpUsername=your_email@gmail.com
-Email__SmtpPassword=your_app_password
-Email__FromEmail=care@yashgems.com
-Email__FromName=Yash Gems
-Email__ResetPasswordBaseUrl=http://localhost:3000
-Email__VerifyEmailBaseUrl=http://localhost:5000/api/auth/verify-email
-```
+Mở `backend/appsettings.json`, tìm section `Email` và điền:
 
-**Lưu ý quan trọng:**
-- `Email__SmtpPassword` là App Password của Gmail (không dùng mật khẩu đăng nhập thường)
-- `Email__ResetPasswordBaseUrl` trỏ về frontend để mở trang đặt lại mật khẩu
-- `Email__VerifyEmailBaseUrl` trỏ về API endpoint xác thực email
+| Key | Ví dụ / Ghi chú |
+|-----|------------------|
+| `SmtpHost` | `smtp.gmail.com` |
+| `SmtpPort` | `587` |
+| `SmtpUsername` | email Gmail của bạn |
+| `SmtpPassword` | App Password của Gmail (không dùng mật khẩu đăng nhập thường) |
+| `FromEmail` | email hiển thị người gửi |
+| `FromName` | tên hiển thị (vd. Yash Gems) |
+| `ResetPasswordBaseUrl` | URL frontend (vd. `http://localhost:3000`) |
+| `VerifyEmailBaseUrl` | `http://localhost:5000/api/auth/verify-email` |
 
 ## Cấu hình Thanh toán Online
 
@@ -105,20 +103,22 @@ Dự án tích hợp VNPAY và Chuyển khoản ngân hàng (VietQR).
 
 ### 1. Cấu hình VNPAY (Sandbox)
 
-1. Đăng ký tài khoản test tại: [VNPAY Sandbox Register](https://sandbox.vnpayment.vn/devreg/)
-2. Lấy `vnp_TmnCode` và `vnp_HashSecret` từ email VNPAY gửi.
-3. Cấu hình trong `backend/.env`:
-   ```
-   Vnpay__TmnCode=YOUR_TMN_CODE
-   Vnpay__HashSecret=YOUR_HASH_SECRET
-   Vnpay__BaseUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-   Vnpay__ReturnUrl=http://localhost:3000/checkout/payment-callback
-   ```
-4. **Thẻ test NCB:**
-   - Số thẻ: `9704198526191432198`
-   - Tên chủ thẻ: `NGUYEN VAN A`
-   - Ngày phát hành: `07/15`
-   - OTP: `123456`
+**Chỉ cần sửa trong `backend/appsettings.json`**, section `Vnpay`:
+
+| Key | Ý nghĩa |
+|-----|--------|
+| `TmnCode` | Mã website (lấy từ [VNPAY sandbox](https://sandbox.vnpayment.vn/devreg/) / email sau khi đăng ký) |
+| `HashSecret` | Chuỗi bí mật (cùng nguồn) |
+| `BaseUrl` | Giữ `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` cho sandbox |
+| `ReturnUrl` | URL frontend nhận callback (vd. `http://localhost:3000/checkout/payment-callback`) |
+
+Dự án đã có sẵn giá trị mẫu trong `appsettings.json`; chỉ cần thay `TmnCode` và `HashSecret` nếu dùng tài khoản VNPay của bạn.
+
+**Thẻ test NCB:**
+- Số thẻ: `9704198526191432198`
+- Tên chủ thẻ: `NGUYEN VAN A`
+- Ngày phát hành: `07/15`
+- OTP: `123456`
 
 ### 2. Chuyển khoản VietQR
 

@@ -25,15 +25,15 @@ namespace Backend.Services
             {
                 { "vnp_Version", "2.1.0" },
                 { "vnp_Command", "pay" },
-                { "vnp_TmnCode", tmnCode },
+                { "vnp_TmnCode", tmnCode ?? "" },
                 { "vnp_Amount", ((long)(amount * 100)).ToString() },
                 { "vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss") },
                 { "vnp_CurrCode", "VND" },
-                { "vnp_IpAddr", ipAddress },
+                { "vnp_IpAddr", ipAddress ?? "" },
                 { "vnp_Locale", "vn" },
                 { "vnp_OrderInfo", "Thanh toan don hang " + orderId },
                 { "vnp_OrderType", "other" },
-                { "vnp_ReturnUrl", returnUrl },
+                { "vnp_ReturnUrl", returnUrl ?? "" },
                 { "vnp_TxnRef", orderId.ToString() }
             };
 
@@ -48,9 +48,9 @@ namespace Backend.Services
 
             string queryString = data.ToString();
             string rawData = queryString.Remove(queryString.Length - 1);
-            string secureHash = HmacSha512(hashSecret, rawData);
+            string secureHash = HmacSha512(hashSecret ?? "", rawData);
 
-            return baseUrl + "?" + queryString + "vnp_SecureHash=" + secureHash;
+            return (baseUrl ?? "") + "?" + queryString + "vnp_SecureHash=" + secureHash;
         }
 
         public string CreateMomoPaymentUrl(int orderId, decimal amount)

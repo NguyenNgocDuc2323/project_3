@@ -61,8 +61,7 @@ namespace Backend.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
             }
 
-            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-            
+            var isDevelopment = (_configuration["Environment"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")) == "Development";
             var refreshTokenExpirationDays = request.RememberMe ? GetRefreshTokenExpirationDays() * 2 : GetRefreshTokenExpirationDays();
             var accessTokenExpirationMinutes = request.RememberMe ? GetAccessTokenExpirationMinutes() * 2 : GetAccessTokenExpirationMinutes();
             
@@ -102,7 +101,7 @@ namespace Backend.Controllers
                 _logger.LogInformation("Attempting to register user: {Username}, {Email}", 
                     request.Username, request.Email);
 
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var environment = _configuration["Environment"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 var smtpHost = _configuration["Email:SmtpHost"];
                 var smtpPort = _configuration["Email:SmtpPort"];
                 var smtpUsername = _configuration["Email:SmtpUsername"];
@@ -206,8 +205,7 @@ namespace Backend.Controllers
                 return Unauthorized(new { message = "Invalid or expired refresh token" });
             }
 
-            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-            
+            var isDevelopment = (_configuration["Environment"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")) == "Development";
             Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -316,7 +314,7 @@ namespace Backend.Controllers
         {
             try
             {
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var environment = _configuration["Environment"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 var smtpHost = _configuration["Email:SmtpHost"];
                 var smtpPort = _configuration["Email:SmtpPort"];
                 var smtpUsername = _configuration["Email:SmtpUsername"];

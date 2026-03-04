@@ -5,13 +5,6 @@ using System.Text;
 using Backend.Data;
 using Backend.Services;
 using Microsoft.OpenApi.Models;
-using DotNetEnv;
-
-var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-if (File.Exists(envPath))
-{
-    Env.Load(envPath);
-}
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -31,11 +31,8 @@ namespace Backend.Controllers
 
             try
             {
-                var geminiApiKey = Environment.GetEnvironmentVariable("GOOGLE_GEMINI_API_KEY") 
-                    ?? _configuration["GoogleGemini:ApiKey"];
-                var model = Environment.GetEnvironmentVariable("GOOGLE_GEMINI_MODEL") 
-                    ?? _configuration["GoogleGemini:Model"] 
-                    ?? "gemini-2.5-flash";
+                var geminiApiKey = _configuration["GoogleGemini:ApiKey"];
+                var model = _configuration["GoogleGemini:Model"] ?? "gemini-1.5-flash";
                 
                 if (string.IsNullOrWhiteSpace(geminiApiKey))
                 {
