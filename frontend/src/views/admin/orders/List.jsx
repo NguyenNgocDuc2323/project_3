@@ -112,6 +112,16 @@ const AdminOrdersList = () => {
     return () => { mounted = false }
   }, [filters, manualRefresh])
 
+  const totalOrders = orders.length
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return orders.slice(start, start + pageSize)
+  }, [orders, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filters])
+
   return (
     <div className="admin-orders-list">
       <div className="container my-4">

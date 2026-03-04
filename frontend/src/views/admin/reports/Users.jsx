@@ -60,6 +60,11 @@ const AdminReportsUsers = () => {
     }).format(amount)
   }
 
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return items.slice(start, start + pageSize)
+  }, [items, currentPage, pageSize])
+
   const handleExportCsv = () => {
     if (items.length === 0) return
     const rows = items.map((item) => ({

@@ -19,6 +19,8 @@ const AdminReportsProducts = () => {
   })
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     loadData()

@@ -114,6 +114,11 @@ Dự án tích hợp VNPAY và Chuyển khoản ngân hàng (VietQR).
 
 Dự án đã có sẵn giá trị mẫu trong `appsettings.json`; chỉ cần thay `TmnCode` và `HashSecret` nếu dùng tài khoản VNPay của bạn.
 
+**Chạy trên máy khác / URL khác:** Nếu bạn mở app bằng địa chỉ khác (vd. `http://192.168.1.100:3000` hoặc máy khác trong mạng), **bắt buộc** sửa `ReturnUrl` trong `appsettings.json` trên máy đó cho đúng URL frontend, ví dụ:
+- `http://192.168.1.100:3000/checkout/payment-callback`
+- Hoặc `http://<tên-máy>:3000/checkout/payment-callback`  
+Nếu `ReturnUrl` vẫn là `localhost` trong khi bạn truy cập bằng IP/domain khác, VNPay redirect về sai và sẽ báo lỗi (Error page).
+
 **Thẻ test NCB:**
 - Số thẻ: `9704198526191432198`
 - Tên chủ thẻ: `NGUYEN VAN A`

@@ -28,6 +28,7 @@ const AdminReportsInvoices = () => {
 
       const res = await reportService.getInvoices(params)
       setItems(res.data || [])
+      setCurrentPage(1)
     } catch (err) {
       console.error('Failed to load invoices', err)
       setItems([])

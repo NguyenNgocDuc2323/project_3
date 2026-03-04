@@ -100,6 +100,16 @@ const ProductsList = () => {
     })
   }, [products, searchTerm])
 
+  const totalFiltered = filteredProducts.length
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredProducts.slice(start, start + pageSize)
+  }, [filteredProducts, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
+
   if (loading) {
     return (
       <div className="container my-5">
