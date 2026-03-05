@@ -24,141 +24,89 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Chat([FromBody] ChatRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Message))
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
             {
                 return BadRequest(new { error = "Message is required" });
             }
 
             try
             {
-                var geminiApiKey = _configuration["GoogleGemini:ApiKey"];
-                var model = _configuration["GoogleGemini:Model"] ?? "gemini-1.5-flash";
-                
-                if (string.IsNullOrWhiteSpace(geminiApiKey))
+                var groqKey = _configuration["Groq:ApiKey"]?.Trim();
+                if (string.IsNullOrEmpty(groqKey))
                 {
-                    _logger.LogWarning("Google Gemini API key not configured");
-                    return StatusCode(500, new { error = "AI service is not configured. Please contact administrator." });
+                    return StatusCode(500, new { error = "Chat not configured. Add Groq:ApiKey in appsettings.json (get free key at https://console.groq.com/keys)." });
                 }
 
+                var model = _configuration["Groq:Model"]?.Trim() ?? "llama-3.1-8b-instant";
                 try
                 {
-                    var response = await GenerateGeminiResponse(request.Message, geminiApiKey, model);
-                    return Ok(new { response, mode = "gemini" });
+                    var response = await GenerateGroqResponse(request.Message, groqKey, model);
+                    return Ok(new { response, mode = "groq" });
                 }
-                catch (HttpRequestException httpEx)
+                catch (HttpRequestException ex)
                 {
-                    _logger.LogError(httpEx, "Google Gemini HTTP error: {Message}", httpEx.Message);
-
-                    var message = httpEx.Message ?? "AI service error";
-                    var isQuota =
-                        message.Contains("quota", StringComparison.OrdinalIgnoreCase) ||
-                        message.Contains("429", StringComparison.OrdinalIgnoreCase) ||
-                        message.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
-
-                    var is404 = message.Contains("404", StringComparison.OrdinalIgnoreCase) ||
-                                 message.Contains("Not Found", StringComparison.OrdinalIgnoreCase);
-
-                    var is503 = message.Contains("503", StringComparison.OrdinalIgnoreCase) ||
-                                message.Contains("ServiceUnavailable", StringComparison.OrdinalIgnoreCase) ||
-                                message.Contains("overloaded", StringComparison.OrdinalIgnoreCase) ||
-                                message.Contains("UNAVAILABLE", StringComparison.OrdinalIgnoreCase);
-
-                    if (is404)
-                    {
-                        _logger.LogWarning("Google Gemini model not found (404).");
-                        return StatusCode(404, new { error = "Google Gemini API model not found. Please check configuration." });
-                    }
-
-                    if (is503)
-                    {
-                        _logger.LogWarning("Google Gemini service overloaded (503).");
-                        return StatusCode(503, new { error = "Google Gemini API is overloaded. Please try again later." });
-                    }
-
-                    if (isQuota)
-                    {
-                        _logger.LogWarning("Google Gemini quota/rate limit detected.");
-                        return StatusCode(429, new { error = "Google Gemini API quota/rate limit exceeded. Please try again later." });
-                    }
-
-                    _logger.LogWarning("Google Gemini API error.");
-                    return StatusCode(500, new { error = $"Google Gemini API error: {message}. Please try again later." });
+                    _logger.LogError(ex, "Groq error: {Message}", ex.Message);
+                    return MapAIError(ex.Message);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing chat message");
-                return StatusCode(500, new { error = "An error occurred while processing your request. Please try again later." });
+                return StatusCode(500, new { error = ex.Message ?? "An error occurred. Please try again later." });
             }
         }
 
-        private async Task<string> GenerateGeminiResponse(string userMessage, string apiKey, string model)
+        private IActionResult MapAIError(string message)
         {
-            var systemPrompt = "You are a helpful AI assistant for a jewelry website. " +
-                "You help customers find books, answer questions about the website, and provide recommendations. " +
-                "Be friendly, concise, and helpful. Keep responses under 200 words.";
+            var msg = message ?? "AI service error";
+            if (msg.Contains("429", StringComparison.OrdinalIgnoreCase) || msg.Contains("rate limit", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(429, new { error = "Groq rate limit exceeded. Please wait a moment and try again." });
+            if (msg.Contains("401", StringComparison.OrdinalIgnoreCase) || msg.Contains("403", StringComparison.OrdinalIgnoreCase) || msg.Contains("API key", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(403, new { error = "Invalid Groq API key. Check Groq:ApiKey in appsettings.json (get key at https://console.groq.com/keys)." });
+            if (msg.Contains("404", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(404, new { error = "Model not found. Check Groq:Model (e.g. llama-3.1-8b-instant)." });
+            return StatusCode(500, new { error = $"Groq error: {msg}" });
+        }
 
-            var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
+        private async Task<string> GenerateGroqResponse(string userMessage, string apiKey, string model)
+        {
+            const string systemPrompt = "You are a helpful AI assistant for a jewelry website. Help customers find products, answer questions, and give recommendations. Be friendly and concise. Keep responses under 200 words.";
             var requestBody = new
             {
-                contents = new[]
+                model,
+                messages = new[]
                 {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = $"{systemPrompt}\n\nUser: {userMessage}" }
-                        }
-                    }
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userMessage }
                 },
-                generationConfig = new
-                {
-                    temperature = 0.7,
-                    maxOutputTokens = 500,
-                    topP = 0.8,
-                    topK = 40
-                }
+                max_tokens = 500
             };
-
-            var jsonContent = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
+            var json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
             {
-                Content = content
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            request.Headers.Add("x-goog-api-key", apiKey);
-
-            _logger.LogInformation("Calling Gemini API: Model={Model}, URL={Url}", model, apiUrl);
+            request.Headers.Add("Authorization", "Bearer " + apiKey);
 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Gemini API error: Status={Status}, Response={Response}", 
-                    response.StatusCode, responseContent);
-                throw new HttpRequestException($"Gemini API returned {response.StatusCode}: {responseContent}");
+                _logger.LogError("Groq error: Status={Status}, Response={Response}", response.StatusCode, responseContent);
+                throw new HttpRequestException($"Groq returned {response.StatusCode}: {responseContent}");
             }
 
-            var jsonDoc = JsonDocument.Parse(responseContent);
-
-            if (jsonDoc.RootElement.TryGetProperty("candidates", out var candidates) &&
-                candidates.GetArrayLength() > 0 &&
-                candidates[0].TryGetProperty("content", out var contentElement) &&
-                contentElement.TryGetProperty("parts", out var parts) &&
-                parts.GetArrayLength() > 0 &&
-                parts[0].TryGetProperty("text", out var textElement))
+            using var doc = JsonDocument.Parse(responseContent);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0
+                && choices[0].TryGetProperty("message", out var message)
+                && message.TryGetProperty("content", out var content))
             {
-                var responseText = textElement.GetString();
-                return string.IsNullOrWhiteSpace(responseText)
-                    ? "I apologize, but I couldn't generate a response. Please try again."
-                    : responseText;
+                var text = content.GetString();
+                return string.IsNullOrWhiteSpace(text) ? "I couldn't generate a response. Please try again." : text.Trim();
             }
-
-            _logger.LogError("Invalid Gemini API response format: {Response}", responseContent);
-            throw new Exception("Invalid response format from Gemini API");
+            throw new Exception("Invalid Groq response format");
         }
     }
 

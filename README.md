@@ -54,29 +54,29 @@ Mọi cấu hình backend nằm trong **`backend/appsettings.json`**:
 | `ConnectionStrings` | Chuỗi kết nối MySQL |
 | `Jwt` | Key, Issuer, Audience, thời hạn token |
 | `Email` | SMTP Gmail (xác thực, reset mật khẩu) |
-| `GoogleGemini` | ApiKey, Model (chat AI) |
+| `Groq` | ApiKey, Model (chat AI – Groq, free tier) |
 | `Vnpay` | TmnCode, HashSecret, BaseUrl, ReturnUrl |
 | `BankTransfer` | QrUrlTemplate (VietQR) |
 
-## Cấu hình AI Chat (Google Gemini)
+## Cấu hình AI Chat (Groq)
 
-Dự án sử dụng **Google Gemini API** (miễn phí) thay vì OpenAI để tránh phải thanh toán.
+Dự án sử dụng **Groq API** (free tier) cho tính năng chat trên website, chạy model Llama/Mixtral.
 
-### Cách lấy Google Gemini API Key miễn phí:
+### Cách lấy Groq API Key (miễn phí)
 
-1. Truy cập: https://aistudio.google.com/apikey
-2. Đăng nhập bằng tài khoản Google của bạn
-3. Click "Create API Key" → Chọn project hoặc tạo project mới
-4. Copy API key được tạo
+1. Truy cập: https://console.groq.com
+2. Đăng nhập hoặc đăng ký (Google / email)
+3. Vào **API Keys** → **Create API Key**
+4. Đặt tên (vd. "Yash Gems") → **Submit** → copy key (dạng `gsk_...`)
 
-### Cấu hình API Key trong `backend/appsettings.json`
+### Cấu hình trong `backend/appsettings.json`
 
-Mở `backend/appsettings.json`, tìm section `GoogleGemini` và điền:
+Mở `backend/appsettings.json`, tìm section `Groq` và điền:
 
-- `ApiKey`: API key lấy từ https://aistudio.google.com/apikey
-- `Model`: giữ `gemini-1.5-flash` (miễn phí)
+- `ApiKey`: API key lấy từ https://console.groq.com/keys
+- `Model`: `llama-3.1-8b-instant` (mặc định, nhanh) hoặc `llama-3.1-70b-versatile`, `mixtral-8x7b-32768`
 
-**Lưu ý:** Google Gemini có free tier rộng rãi. Nếu không điền ApiKey, chat sẽ dùng mock responses.
+**Lưu ý:** Không commit API key lên Git. Có thể đặt key trong `appsettings.Development.json` và đảm bảo file đó nằm trong `.gitignore`.
 
 ## Cấu hình Email (Gmail SMTP)
 
