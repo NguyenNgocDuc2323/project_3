@@ -28,11 +28,14 @@ const Shop = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(SHOP_PAGE_SIZE)
 
+  const categoryFromUrl = searchParams.get('category') || null
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true)
-        const response = await productService.getAll()
+        const categoryId = categoryFromUrl ? Number(categoryFromUrl) : null
+        const response = await productService.getAll(null, categoryId)
         setProducts(response.data || [])
       } catch (error) {
         console.error('Failed to load shop data:', error)
@@ -42,7 +45,7 @@ const Shop = () => {
     }
 
     loadData()
-  }, [])
+  }, [categoryFromUrl])
 
   const priceBounds = useMemo(() => {
     const prices = products.map((product) => Number(product.mrp || 0)).filter((value) => value > 0)

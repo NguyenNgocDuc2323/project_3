@@ -40,7 +40,8 @@ export const ROUTES = {
   ADMIN_REPORTS_PRODUCTS: '/admin/reports/products',
   ADMIN_REPORTS_USERS: '/admin/reports/users',
   ADMIN_REPORTS_INVOICES: '/admin/reports/invoices',
-  ADMIN_REVIEWS: '/admin/reviews'
+  ADMIN_REVIEWS: '/admin/reviews',
+  ADMIN_CONTACTS: '/admin/contacts'
 }
 
 export const STORAGE_KEYS = {

@@ -265,6 +265,7 @@ const AdminOrderDetail = () => {
                     </button>
                   </div>
                   <div className="text-muted small mt-2">Current: <span className="fw-semibold">{order.status}</span></div>
+                  <div className="text-muted small mt-1">Shipped = Out for delivery; Completed = Delivered (user/admin confirmed).</div>
                 </div>
               </div>
 

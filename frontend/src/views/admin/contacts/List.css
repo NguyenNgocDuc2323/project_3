@@ -1,0 +1,7 @@
+.admin-contacts-table tbody tr {
+  cursor: default;
+}
+
+.admin-contacts .badge {
+  font-weight: 500;
+}

@@ -571,17 +571,63 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`Id`, `Username`, `Email`, `PasswordHash`, `FullName`, `AvatarUrl`, `Gender`, `Address`, `Phone`, `DateOfBirth`, `CreatedAt`, `UpdatedAt`, `IsActive`, `Role`) VALUES
-(1, 'sonphan', 'sonphan@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Phan Son', '/uploads/avatars/avatar_1.png', 'Male', 'Hai Ba Trung District - Hanoi', '0912345678', '1991-01-25', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 2),
-(2, 'son', 'sontuan@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Phan Tuan Son', '/uploads/avatars/avatar_2.png', 'Male', 'Dong Da District - Hanoi', '0987654321', '1991-01-29', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 1),
-(3, 'minhduc', 'minhduc.nguyen@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Nguyen Minh Duc', '/uploads/avatars/avatar_3.png', 'Male', 'Cau Giay District - Hanoi', '0911223344', '1991-01-25', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 2),
-(4, 'nguyenvana', 'nguyenvana92@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Nguyen Van An', '/uploads/avatars/avatar_4.png', 'Male', 'Hai Phong City', '0901111222', '1992-02-14', '2026-03-03 20:11:53.000000', NULL, 1, 1),
-(5, 'bichngoc', 'bichngoc.tran95@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Tran Thi Bich Ngoc', '/uploads/avatars/avatar_5.png', 'Female', 'District 1 - Ho Chi Minh City', '0902222333', '1995-09-12', '2026-03-03 20:11:53.000000', NULL, 1, 2),
-(6, 'quangchau', 'quangchau.pham90@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Pham Quang Chau', '/uploads/avatars/avatar_6.png', 'Male', 'Da Nang City', '0903333444', '1990-06-02', '2026-03-03 20:11:53.000000', NULL, 1, 2),
-(7, 'diemmy', 'diemmy.le98@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Le Thi Diem My', '/uploads/avatars/avatar_7.png', 'Female', 'Thu Duc City - Ho Chi Minh City', '0904444555', '1998-11-22', '2026-03-03 20:11:53.000000', NULL, 1, 1),
-(8, 'dung', 'dung.hoang88@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Hoang Van Dung', '/uploads/avatars/avatar_8.png', 'Male', 'Can Tho City', '0905555666', '1988-03-30', '2026-03-03 20:11:53.000000', NULL, 1, 2),
-(9, 'phuonganh', 'phuonganh.dang96@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Dang Thi Phuong Anh', '/uploads/avatars/avatar_9.png', 'Female', 'Nghe An Province', '0906666777', '1996-12-10', '2026-03-03 20:11:53.000000', NULL, 1, 2),
-(10, 'truonggiang', 'truonggiang.vu87@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Vu Truong Giang', '/uploads/avatars/avatar_10.png', 'Male', 'Ha Nam Province', '0907777888', '1987-07-19', '2026-03-03 20:11:53.000000', NULL, 1, 1),
-(11, 'nguyenngocduc', 'duc.nn.2378@aptechlearning.edu.vn', '$2a$11$7Ebqlk.Nb/rS9vFYdv/lK.S6jbMCNiNLn0H4B4fNUfGIFB60y/gzS', 'Nguyễn Ngọc Đức', NULL, NULL, NULL, NULL, NULL, '2026-03-05 12:22:39.968468', '2026-03-05 12:23:14.500657', 1, 2);
+(1, 'sonphan', 'sonphan@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Phan Son', 'https://i.pravatar.cc/128?img=11', 'Male', 'Hai Ba Trung District - Hanoi', '0912345678', '1991-01-25', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 2),
+(2, 'son', 'sontuan@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Phan Tuan Son', 'https://i.pravatar.cc/128?img=12', 'Male', 'Dong Da District - Hanoi', '0987654321', '1991-01-29', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 1),
+(3, 'minhduc', 'minhduc.nguyen@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Nguyen Minh Duc', 'https://i.pravatar.cc/128?img=13', 'Male', 'Cau Giay District - Hanoi', '0911223344', '1991-01-25', '2026-03-03 20:11:53.000000', '2026-03-03 20:11:53.000000', 1, 2),
+(4, 'nguyenvana', 'nguyenvana92@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Nguyen Van An', 'https://i.pravatar.cc/128?img=14', 'Male', 'Hai Phong City', '0901111222', '1992-02-14', '2026-03-03 20:11:53.000000', NULL, 1, 1),
+(5, 'bichngoc', 'bichngoc.tran95@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Tran Thi Bich Ngoc', 'https://i.pravatar.cc/128?img=20', 'Female', 'District 1 - Ho Chi Minh City', '0902222333', '1995-09-12', '2026-03-03 20:11:53.000000', NULL, 1, 2),
+(6, 'quangchau', 'quangchau.pham90@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Pham Quang Chau', 'https://i.pravatar.cc/128?img=15', 'Male', 'Da Nang City', '0903333444', '1990-06-02', '2026-03-03 20:11:53.000000', NULL, 1, 2),
+(7, 'diemmy', 'diemmy.le98@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Le Thi Diem My', 'https://i.pravatar.cc/128?img=23', 'Female', 'Thu Duc City - Ho Chi Minh City', '0904444555', '1998-11-22', '2026-03-03 20:11:53.000000', NULL, 1, 1),
+(8, 'dung', 'dung.hoang88@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Hoang Van Dung', 'https://i.pravatar.cc/128?img=16', 'Male', 'Can Tho City', '0905555666', '1988-03-30', '2026-03-03 20:11:53.000000', NULL, 1, 2),
+(9, 'phuonganh', 'phuonganh.dang96@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Dang Thi Phuong Anh', 'https://i.pravatar.cc/128?img=24', 'Female', 'Nghe An Province', '0906666777', '1996-12-10', '2026-03-03 20:11:53.000000', NULL, 1, 2),
+(10, 'truonggiang', 'truonggiang.vu87@gmail.com', '$2a$11$HJo72rwFWPkJvQ2gBuXTyOGPzqXHYdU2n.xjXO5mRhV2WhYpOoAse', 'Vu Truong Giang', 'https://i.pravatar.cc/128?img=17', 'Male', 'Ha Nam Province', '0907777888', '1987-07-19', '2026-03-03 20:11:53.000000', NULL, 1, 1),
+(11, 'nguyenngocduc', 'duc.nn.2378@aptechlearning.edu.vn', '$2a$11$7Ebqlk.Nb/rS9vFYdv/lK.S6jbMCNiNLn0H4B4fNUfGIFB60y/gzS', 'Nguyễn Ngọc Đức', 'https://i.pravatar.cc/128?img=18', NULL, NULL, NULL, NULL, '2026-03-05 12:22:39.968468', '2026-03-05 12:23:14.500657', 1, 2),
+(12, 'admin', 'admin@yashgems.com', '$2a$11$7Ebqlk.Nb/rS9vFYdv/lK.S6jbMCNiNLn0H4B4fNUfGIFB60y/gzS', 'Admin', 'https://i.pravatar.cc/128?img=33', NULL, NULL, NULL, NULL, '2026-03-07 00:00:00.000000', NULL, 1, 1);
+
+--
+-- Dumping data for table `orders`
+--
+INSERT INTO `orders` (`Id`, `UserId`, `Status`, `Subtotal`, `Total`, `ShippingAddress`, `PaymentMethod`, `CreatedAt`, `UpdatedAt`) VALUES
+(1, 1, 'Completed', 42400000.00, 43900000.00, '123 Hai Ba Trung, Hanoi', 'COD', '2026-01-05 10:20:00.000000', '2026-01-08 14:00:00.000000'),
+(2, 3, 'Paid', 13600000.00, 15100000.00, '45 Cau Giay, Hanoi', 'BankTransfer', '2026-01-12 09:15:00.000000', '2026-01-12 09:15:00.000000'),
+(3, 5, 'Completed', 16500000.00, 18000000.00, 'District 1, Ho Chi Minh City', 'COD', '2026-01-18 14:30:00.000000', '2026-01-22 11:00:00.000000'),
+(4, 6, 'Shipped', 56900000.00, 58400000.00, 'Da Nang City', 'BankTransfer', '2026-02-02 11:00:00.000000', '2026-02-05 08:00:00.000000'),
+(5, 8, 'Completed', 10900000.00, 12400000.00, 'Can Tho City', 'COD', '2026-02-10 16:45:00.000000', '2026-02-14 10:00:00.000000'),
+(6, 1, 'Paid', 72500000.00, 74000000.00, '123 Hai Ba Trung, Hanoi', 'BankTransfer', '2026-02-15 08:20:00.000000', '2026-02-15 08:20:00.000000'),
+(7, 9, 'Completed', 25900000.00, 27400000.00, 'Nghe An Province', 'COD', '2026-02-22 13:10:00.000000', '2026-02-26 09:00:00.000000'),
+(8, 11, 'Paid', 31500000.00, 33000000.00, 'Hanoi', 'BankTransfer', '2026-03-01 10:00:00.000000', '2026-03-01 10:00:00.000000'),
+(9, 3, 'Shipped', 18900000.00, 20400000.00, '45 Cau Giay, Hanoi', 'COD', '2026-03-04 15:30:00.000000', '2026-03-05 12:00:00.000000'),
+(10, 5, 'Pending', 49800000.00, 51300000.00, 'District 1, Ho Chi Minh City', 'COD', '2026-03-06 09:00:00.000000', NULL);
+
+--
+-- Dumping data for table `orderitems`
+--
+INSERT INTO `orderitems` (`Id`, `OrderId`, `ProductId`, `Quantity`, `UnitPrice`, `TotalPrice`) VALUES
+(1, 1, 2, 1, 48900000.00, 48900000.00),
+(2, 1, 3, 1, 13600000.00, 13600000.00),
+(3, 2, 3, 1, 13600000.00, 13600000.00),
+(4, 3, 6, 1, 16500000.00, 16500000.00),
+(5, 4, 15, 1, 56900000.00, 56900000.00),
+(6, 5, 16, 1, 10900000.00, 10900000.00),
+(7, 6, 17, 1, 72500000.00, 72500000.00),
+(8, 7, 9, 1, 25900000.00, 25900000.00),
+(9, 8, 14, 1, 31500000.00, 31500000.00),
+(10, 9, 4, 1, 18900000.00, 18900000.00),
+(11, 10, 13, 1, 49800000.00, 49800000.00);
+
+--
+-- Dumping data for table `payments`
+--
+INSERT INTO `payments` (`Id`, `OrderId`, `UserId`, `Amount`, `Currency`, `Status`, `Provider`, `Method`, `Reference`, `PaidAt`, `CreatedAt`, `UpdatedAt`) VALUES
+(1, 1, 1, 43900000.00, 'VND', 'Paid', NULL, 'COD', NULL, '2026-01-08 14:00:00.000000', '2026-01-05 10:20:00.000000', '2026-01-08 14:00:00.000000'),
+(2, 2, 3, 15100000.00, 'VND', 'Paid', 'Bank', 'BankTransfer', 'TXN-20260112-001', '2026-01-12 09:15:00.000000', '2026-01-12 09:15:00.000000', '2026-01-12 09:15:00.000000'),
+(3, 3, 5, 18000000.00, 'VND', 'Paid', NULL, 'COD', NULL, '2026-01-22 11:00:00.000000', '2026-01-18 14:30:00.000000', '2026-01-22 11:00:00.000000'),
+(4, 4, 6, 58400000.00, 'VND', 'Paid', 'Bank', 'BankTransfer', 'TXN-20260202-002', '2026-02-02 11:00:00.000000', '2026-02-02 11:00:00.000000', '2026-02-02 11:00:00.000000'),
+(5, 5, 8, 12400000.00, 'VND', 'Paid', NULL, 'COD', NULL, '2026-02-14 10:00:00.000000', '2026-02-10 16:45:00.000000', '2026-02-14 10:00:00.000000'),
+(6, 6, 1, 74000000.00, 'VND', 'Paid', 'Bank', 'BankTransfer', 'TXN-20260215-003', '2026-02-15 08:20:00.000000', '2026-02-15 08:20:00.000000', '2026-02-15 08:20:00.000000'),
+(7, 7, 9, 27400000.00, 'VND', 'Paid', NULL, 'COD', NULL, '2026-02-26 09:00:00.000000', '2026-02-22 13:10:00.000000', '2026-02-26 09:00:00.000000'),
+(8, 8, 11, 33000000.00, 'VND', 'Paid', 'Bank', 'BankTransfer', 'TXN-20260301-004', '2026-03-01 10:00:00.000000', '2026-03-01 10:00:00.000000', '2026-03-01 10:00:00.000000'),
+(9, 9, 3, 20400000.00, 'VND', 'Pending', NULL, 'COD', NULL, NULL, '2026-03-04 15:30:00.000000', NULL);
 
 --
 -- Indexes for dumped tables
@@ -813,13 +859,13 @@ ALTER TABLE `metalcolors`
 -- AUTO_INCREMENT for table `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `passwordresettokens`
@@ -831,7 +877,7 @@ ALTER TABLE `passwordresettokens`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `productimages`

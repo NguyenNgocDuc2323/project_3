@@ -11,8 +11,8 @@ const UsersList = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [confirm, setConfirm] = useState({ open: false, id: null, username: '' })
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [confirmDisable, setConfirmDisable] = useState({ open: false, id: null, username: '' })
+  const [togglingActive, setTogglingActive] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
@@ -40,32 +40,32 @@ const UsersList = () => {
     }
   }
 
-  const handleDelete = async (id, username) => {
+  const handleSetActive = async (id, isActive) => {
     try {
-      setIsDeleting(true)
-      await userService.delete(id)
+      setTogglingActive(true)
+      await userService.update(id, { isActive })
       if (window.showToast) {
         window.showToast({
           severity: 'success',
           summary: 'Success',
-          detail: 'User deleted successfully',
+          detail: isActive ? 'Account has been activated.' : 'Account has been disabled.',
           life: 3000
         })
       }
-      loadUsers()
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, isActive } : u))
     } catch (error) {
-      console.error('Error deleting user:', error)
+      console.error('Error updating user active:', error)
       if (window.showToast) {
         window.showToast({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to delete user',
+          detail: error?.response?.data?.message || 'Failed to update status.',
           life: 4000
         })
       }
     } finally {
-      setIsDeleting(false)
-      setConfirm({ open: false, id: null, username: '' })
+      setTogglingActive(false)
+      setConfirmDisable({ open: false, id: null, username: '' })
     }
   }
 
@@ -104,15 +104,15 @@ const UsersList = () => {
   return (
     <div className="admin-users-list">
       <ConfirmModal
-        open={confirm.open}
-        title="Delete account"
-        message={confirm.username ? `Are you sure you want to delete this account (${confirm.username})? Click OK to delete or close to cancel.` : 'Are you sure you want to delete this account? Click OK to delete or close to cancel.'}
-        confirmText="OK"
+        open={confirmDisable.open}
+        title="Disable account"
+        message={confirmDisable.username ? `Are you sure you want to disable the account "${confirmDisable.username}"? The user will not be able to log in until an admin reactivates it.` : 'Are you sure you want to disable this account?'}
+        confirmText="Disable"
         cancelText="Cancel"
-        confirmVariant="danger"
-        loading={isDeleting}
-        onCancel={() => setConfirm({ open: false, id: null, username: '' })}
-        onConfirm={() => handleDelete(confirm.id, confirm.username)}
+        confirmVariant="warning"
+        loading={togglingActive}
+        onCancel={() => setConfirmDisable({ open: false, id: null, username: '' })}
+        onConfirm={() => handleSetActive(confirmDisable.id, false)}
       />
       <div className="container my-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -169,7 +169,7 @@ const UsersList = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.length > 0 ? (
-                    filteredUsers.map(user => {
+                    paginatedUsers.map(user => {
                       const getAvatarUrl = () => {
                         if (user.avatarUrl) {
                           if (user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')) {
@@ -233,14 +233,29 @@ const UsersList = () => {
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              <button
-                                className="btn btn-outline-danger"
-                                onClick={() => setConfirm({ open: true, id: user.id, username: user.username })}
-                                title="Delete"
-                                disabled={user.role === 1}
-                              >
-                                <i className="bi bi-trash"></i>
-                              </button>
+                              {user.role !== 1 && (
+                                user.isActive !== false ? (
+                                  <button
+                                    className="btn btn-outline-warning"
+                                    onClick={() => setConfirmDisable({ open: true, id: user.id, username: user.username })}
+                                    title="Disable account"
+                                    disabled={togglingActive}
+                                  >
+                                    <i className="bi bi-person-x me-1"></i>
+                                    Disable
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="btn btn-outline-success"
+                                    onClick={() => handleSetActive(user.id, true)}
+                                    title="Activate account"
+                                    disabled={togglingActive}
+                                  >
+                                    <i className="bi bi-person-check me-1"></i>
+                                    Activate
+                                  </button>
+                                )
+                              )}
                             </div>
                           </td>
                         </tr>

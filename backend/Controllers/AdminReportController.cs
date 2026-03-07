@@ -33,6 +33,23 @@ namespace Backend.Controllers
             return Ok(result);
         }
 
+        [HttpGet("chart")]
+        public async Task<ActionResult<ChartDataDto>> GetChartData(
+            [FromQuery] DateTimeOffset? from = null,
+            [FromQuery] DateTimeOffset? to = null)
+        {
+            if (from.HasValue && to.HasValue && from.Value > to.Value)
+            {
+                return BadRequest(new { message = "From date must be earlier than (or equal to) To date" });
+            }
+
+            var fromUtc = from?.UtcDateTime;
+            var toUtc = to?.UtcDateTime;
+
+            var result = await _reportService.GetChartDataAsync(fromUtc, toUtc);
+            return Ok(result);
+        }
+
         [HttpGet("products")]
         public async Task<ActionResult<IEnumerable<ProductSalesDto>>> GetProductSales(
             [FromQuery] DateTimeOffset? from = null,

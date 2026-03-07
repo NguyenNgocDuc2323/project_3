@@ -49,6 +49,43 @@ namespace Backend.Services
             };
         }
 
+        public async Task<ChartDataDto> GetChartDataAsync(DateTime? fromUtc, DateTime? toUtc)
+        {
+            var query = _context.Orders.AsNoTracking()
+                .Where(o => o.Status != "Cancelled");
+
+            if (fromUtc.HasValue)
+                query = query.Where(o => o.CreatedAt >= fromUtc.Value);
+            if (toUtc.HasValue)
+                query = query.Where(o => o.CreatedAt <= toUtc.Value);
+
+            var orders = await query.ToListAsync();
+
+            var revenueByMonth = orders
+                .GroupBy(o => new { Year = o.CreatedAt.Year, Month = o.CreatedAt.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new RevenueByMonthDto
+                {
+                    Year = g.Key.Year,
+                    Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM"),
+                    Revenue = g.Sum(o => o.Total),
+                    OrderCount = g.Count()
+                })
+                .ToList();
+
+            var ordersByStatus = orders
+                .GroupBy(o => o.Status ?? "Unknown")
+                .Select(g => new OrdersByStatusDto { Status = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            return new ChartDataDto
+            {
+                RevenueByMonth = revenueByMonth,
+                OrdersByStatus = ordersByStatus
+            };
+        }
+
         public async Task<IReadOnlyList<ProductSalesDto>> GetProductSalesAsync(DateTime? fromUtc, DateTime? toUtc, int top)
         {
             if (top <= 0)

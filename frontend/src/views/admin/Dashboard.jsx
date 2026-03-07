@@ -1,9 +1,38 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  BarController,
+  LineController,
+  LineElement,
+  PointElement,
+  Filler,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+import { Bar, Line } from 'react-chartjs-2'
 import { getCurrentUser } from '../../common/utils'
 import { userService, categoryService, analyticsService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
 import './Dashboard.css'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  BarController,
+  LineController,
+  LineElement,
+  PointElement,
+  Filler,
+  Title,
+  Tooltip,
+  Legend
+)
 
 const AdminDashboard = () => {
   const user = getCurrentUser()
@@ -87,18 +116,92 @@ const AdminDashboard = () => {
   ]
 
   const chartItems = [
-    {
-      label: 'Users',
-      value: stats.totalUsers,
-      color: 'success'
-    },
-    {
-      label: 'Categories',
-      value: stats.totalCategories,
-      color: 'info'
-    }
+    { label: 'Users', value: stats.totalUsers, color: 'success' },
+    { label: 'Categories', value: stats.totalCategories, color: 'info' }
   ]
   const chartMax = Math.max(1, ...chartItems.map((item) => item.value))
+
+  const revenueChartData = useMemo(() => {
+    const points = revenueData.points || []
+    if (points.length === 0) return null
+    return {
+      labels: points.map((p) => p.label),
+      datasets: [
+        {
+          label: 'Revenue (VND)',
+          data: points.map((p) => p.total),
+          backgroundColor: 'rgba(13, 110, 253, 0.7)',
+          borderColor: 'rgb(13, 110, 253)',
+          borderWidth: 1,
+          borderRadius: 6
+        }
+      ]
+    }
+  }, [revenueData.points])
+
+  const revenueLineData = useMemo(() => {
+    const points = revenueData.points || []
+    if (points.length === 0) return null
+    return {
+      labels: points.map((p) => p.label),
+      datasets: [
+        {
+          label: 'Revenue (VND)',
+          data: points.map((p) => p.total),
+          borderColor: 'rgb(25, 135, 84)',
+          backgroundColor: 'rgba(25, 135, 84, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointBackgroundColor: 'rgb(25, 135, 84)'
+        }
+      ]
+    }
+  }, [revenueData.points])
+
+  const barChartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Revenue by period' },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => formatCurrency(ctx.raw)
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => (value / 1e6) + 'M'
+        }
+      }
+    }
+  }), [])
+
+  const lineChartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Revenue trend' },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => formatCurrency(ctx.raw)
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => (value / 1e6) + 'M'
+        }
+      }
+    }
+  }), [])
 
   if (loading) {
     return (
@@ -198,45 +301,21 @@ const AdminDashboard = () => {
                 </div>
 
                 {revenueLoading ? (
-                  <div className="text-center py-4 text-muted">Loading chart...</div>
+                  <div className="text-center py-5 text-muted">Loading charts...</div>
                 ) : revenueData.points.length === 0 ? (
-                  <div className="text-center py-4 text-muted">No revenue data yet.</div>
+                  <div className="text-center py-5 text-muted">No revenue data yet.</div>
                 ) : (
-                  <div className="admin-revenue-chart">
-                    {revenueData.points.map((point, index) => {
-                      const max = Math.max(...revenueData.points.map((p) => p.total), 1)
-                      const height = (point.total / max) * 100
-                      const colors = [
-                        'linear-gradient(180deg, #ff9a9e 0%, #fad0c4 100%)',
-                        'linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%)',
-                        'linear-gradient(180deg, #fbc2eb 0%, #a6c1ee 100%)',
-                        'linear-gradient(180deg, #fddb92 0%, #d1fdff 100%)',
-                        'linear-gradient(180deg, #84fab0 0%, #8fd3f4 100%)',
-                        'linear-gradient(180deg, #fccb90 0%, #d57eeb 100%)',
-                        'linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%)',
-                        'linear-gradient(180deg, #f093fb 0%, #f5576c 100%)',
-                        'linear-gradient(180deg, #4facfe 0%, #00f2fe 100%)',
-                        'linear-gradient(180deg, #fa709a 0%, #fee140 100%)',
-                        'linear-gradient(180deg, #30cfd0 0%, #330867 100%)',
-                        'linear-gradient(180deg, #5ee7df 0%, #b490ca 100%)'
-                      ]
-                      return (
-                        <div key={point.label} className="admin-revenue-item">
-                          <div className="admin-revenue-bar">
-                            <div
-                              className="admin-revenue-fill"
-                              style={{
-                                height: `${height}%`,
-                                background: colors[index % colors.length]
-                              }}
-                              title={`${point.label}: ${formatCurrency(point.total)}`}
-                            ></div>
-                          </div>
-                          <div className="admin-revenue-label">{point.label}</div>
-                          <div className="admin-revenue-value">{formatCurrency(point.total)}</div>
-                        </div>
-                      )
-                    })}
+                  <div className="row g-4">
+                    <div className="col-lg-6">
+                      <div style={{ height: 280 }}>
+                        {revenueChartData && <Bar data={revenueChartData} options={barChartOptions} />}
+                      </div>
+                    </div>
+                    <div className="col-lg-6">
+                      <div style={{ height: 280 }}>
+                        {revenueLineData && <Line data={revenueLineData} options={lineChartOptions} />}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -50,6 +50,7 @@ import BannersEdit from './views/admin/banners/Edit'
 import OrdersList from './views/admin/orders/List'
 import OrderDetail from './views/admin/orders/Detail'
 import AdminReviewsList from './views/admin/reviews/List'
+import AdminContactsList from './views/admin/contacts/List'
 
 // Redirect component for HOME
 const HomeRedirect = () => {
@@ -369,6 +370,13 @@ function App() {
           <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <AdminReviewsList />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path={ROUTES.ADMIN_CONTACTS} element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout>
+              <AdminContactsList />
             </AdminLayout>
           </ProtectedRoute>
         } />

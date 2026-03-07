@@ -8,12 +8,12 @@ import './DefaultLayout.css'
 
 const DefaultLayout = ({ children }) => {
   const location = useLocation()
-  const isAdmin = location.pathname.startsWith('/admin')
+  const isDashboard = location.pathname === ROUTES.DASHBOARD
 
   return (
     <div className="layout">
       <AppHeader />
-      {!isAdmin && <HeroBanner />}
+      {isDashboard && <HeroBanner />}
       <main className="main">
         {children || <Outlet />}
       </main>

@@ -97,10 +97,6 @@ export const userService = {
     return apiClient.put(`/admin/users/${id}`, data);
   },
 
-  delete(id) {
-    return apiClient.delete(`/admin/users/${id}`);
-  },
-
   uploadAvatar(id, file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -176,6 +172,9 @@ export const reportService = {
   getSummary(params = {}) {
     return apiClient.get("/admin/reports/summary", { params });
   },
+  getChartData(params = {}) {
+    return apiClient.get("/admin/reports/chart", { params });
+  },
   getProductSales(params = {}) {
     return apiClient.get("/admin/reports/products", { params });
   },
@@ -230,6 +229,9 @@ export const profileService = {
   changePassword(oldPassword, newPassword) {
     return apiClient.post("/profile/change-password", { oldPassword, newPassword });
   },
+  deleteAccount(password) {
+    return apiClient.post("/profile/delete-account", { password });
+  },
 };
 
 export const cartService = {
@@ -271,6 +273,9 @@ export const orderService = {
   },
   getById(id) {
     return apiClient.get(`/orders/${id}`);
+  },
+  confirmDelivery(orderId) {
+    return apiClient.post(`/orders/${orderId}/confirm-delivery`);
   },
 };
 
@@ -361,4 +366,11 @@ export const submitContact = async (contactData) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const contactService = {
+  getAll: () => apiClient.get("/contact"),
+  getById: (id) => apiClient.get(`/contact/${id}`),
+  resolve: (id, data) => apiClient.put(`/contact/${id}/resolve`, data),
+  delete: (id) => apiClient.delete(`/contact/${id}`)
 };

@@ -391,7 +391,7 @@ namespace Backend.Controllers
                 return NotFound(new { message = "Order not found" });
             }
 
-            order.Status = "Completed";
+            order.Status = "Paid";
             order.UpdatedAt = DateTime.UtcNow;
 
             var payment = await _context.Payments
@@ -406,6 +406,39 @@ namespace Backend.Controllers
                 payment.UpdatedAt = DateTime.UtcNow;
             }
 
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                order.Id,
+                order.Status,
+                order.UpdatedAt
+            });
+        }
+
+        [HttpPost("{id}/confirm-delivery")]
+        public async Task<ActionResult<object>> ConfirmDelivery(int id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+            if (order == null)
+                return NotFound(new { message = "Order not found" });
+
+            var current = (order.Status ?? "").Trim();
+            if (current != "Paid" && current != "Shipped")
+            {
+                return BadRequest(new
+                {
+                    message = "Chỉ có thể xác nhận đã nhận hàng khi đơn ở trạng thái Đã thanh toán (Paid) hoặc Đang giao (Shipped).",
+                    currentStatus = order.Status
+                });
+            }
+
+            order.Status = "Completed";
+            order.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok(new

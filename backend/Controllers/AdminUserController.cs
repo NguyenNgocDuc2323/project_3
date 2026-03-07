@@ -399,26 +399,6 @@ namespace Backend.Controllers
             return Ok(new { message = "Avatar uploaded successfully", avatarUrl });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound(new { message = "User not found" });
-            }
-
-            if (user.Role == 1)
-            {
-                return BadRequest(new { message = "Cannot delete admin user" });
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
         [HttpGet("stats")]
         public async Task<ActionResult<object>> GetStats()
         {

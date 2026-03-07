@@ -75,7 +75,7 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "1")] // Admin
         public async Task<ActionResult<List<Contact>>> GetAllContacts()
         {
             try
@@ -98,7 +98,7 @@ namespace Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "1")] // Admin
         public async Task<ActionResult<Contact>> GetContactById(int id)
         {
             try
@@ -123,7 +123,7 @@ namespace Backend.Controllers
         }
 
         [HttpPut("{id}/resolve")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "1")] // Admin
         public async Task<ActionResult<object>> ResolveContact(int id, [FromBody] ResolveContactRequest request)
         {
             try
@@ -165,7 +165,7 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "1")] // Admin
         public async Task<ActionResult<object>> DeleteContact(int id)
         {
             try

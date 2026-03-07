@@ -129,7 +129,7 @@ const AppHeader = () => {
 
     return {
       label: category.name,
-      to: ROUTES.SHOP,
+      to: `${ROUTES.SHOP}?category=${category.id}`,
       sections: [
         {
           title: 'Categories',

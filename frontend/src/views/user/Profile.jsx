@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Card, Button, Row, Col, Spinner } from 'react-bootstrap'
+import { Container, Card, Button, Row, Col, Spinner, Modal, Form } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { profileService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
+import { logout } from '../../common/utils'
 import './Profile.css'
 
 const Profile = () => {
@@ -21,6 +22,10 @@ const Profile = () => {
     createdAt: null,
     updatedAt: null
   })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     loadProfile()
@@ -69,6 +74,39 @@ const Profile = () => {
 
   const displayValue = (value) => {
     return value || 'Not provided'
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Please enter your password.')
+      return
+    }
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await profileService.deleteAccount(deletePassword)
+      setShowDeleteModal(false)
+      setDeletePassword('')
+      if (window.showToast) {
+        window.showToast({ severity: 'success', summary: 'Account deleted', detail: 'Your account has been deleted.', life: 3000 })
+      }
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Could not delete account. Check your password.'
+      setDeleteError(msg)
+      if (window.showToast) {
+        window.showToast({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
+      }
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false)
+    setDeletePassword('')
+    setDeleteError('')
   }
 
   if (loading) {
@@ -148,9 +186,51 @@ const Profile = () => {
                 Address
               </Button>
             </div>
+
+            <hr className="my-4" />
+            <div className="profile-danger-zone">
+              <h6 className="text-danger mb-2"><i className="bi bi-exclamation-triangle me-1"></i> Danger zone</h6>
+              <p className="text-muted small mb-2">Deleting your account will permanently remove your data. This action cannot be undone.</p>
+              <Button variant="outline-danger" size="sm" onClick={() => setShowDeleteModal(true)}>
+                <i className="bi bi-trash me-1"></i> Delete account
+              </Button>
+            </div>
           </div>
         </Card>
       </Container>
+
+      <Modal show={showDeleteModal} onHide={closeDeleteModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-danger">Delete account</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-muted small">To delete your account, please enter your password to confirm.</p>
+          <Form.Group className="mb-2">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              placeholder="Enter password"
+              isInvalid={!!deleteError}
+            />
+            {deleteError && <Form.Control.Feedback type="invalid">{deleteError}</Form.Control.Feedback>}
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeDeleteModal} disabled={deleting}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeleteAccount} disabled={deleting}>
+            {deleting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete account'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

@@ -73,6 +73,11 @@ const AdminSidebar = ({ isMobileOpen, onMobileToggle }) => {
       title: 'Reviews',
       icon: 'bi bi-star',
       path: ROUTES.ADMIN_REVIEWS
+    },
+    {
+      title: 'Contacts',
+      icon: 'bi bi-envelope',
+      path: ROUTES.ADMIN_CONTACTS
     }
   ]
 

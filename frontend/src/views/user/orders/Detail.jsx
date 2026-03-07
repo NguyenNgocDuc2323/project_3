@@ -42,6 +42,11 @@ const getStatusBadgeClass = (status) => {
   return 'text-bg-secondary'
 }
 
+const canConfirmDelivery = (status) => {
+  const s = String(status || '').trim()
+  return s === 'Paid' || s === 'Shipped'
+}
+
 const UserOrderDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -49,8 +54,30 @@ const UserOrderDetail = () => {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [confirming, setConfirming] = useState(false)
 
   const fees = useMemo(() => computeFees(order), [order])
+
+  const handleConfirmDelivery = async () => {
+    if (!order?.id || !canConfirmDelivery(order.status)) return
+    setConfirming(true)
+    setError('')
+    try {
+      const res = await orderService.confirmDelivery(order.id)
+      setOrder(prev => prev ? { ...prev, status: res.data?.status ?? 'Completed', updatedAt: res.data?.updatedAt } : prev)
+      if (window.showToast) {
+        window.showToast({ severity: 'success', summary: 'Success', detail: 'Delivery confirmed.', life: 3000 })
+      }
+    } catch (e) {
+      const msg = e?.response?.data?.message || 'Could not confirm. Please try again.'
+      setError(msg)
+      if (window.showToast) {
+        window.showToast({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
+      }
+    } finally {
+      setConfirming(false)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -161,6 +188,29 @@ const UserOrderDetail = () => {
                       <div className="fw-semibold">{order.paymentMethod || '-'}</div>
                     </div>
                   </div>
+                  {canConfirmDelivery(order.status) && (
+                    <div className="mt-3 pt-3 border-top">
+                      <button
+                        type="button"
+                        className="btn btn-success w-100"
+                        onClick={handleConfirmDelivery}
+                        disabled={confirming}
+                      >
+                        {confirming ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                            Đang xác nhận...
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-check-circle me-2"></i>
+                            Đã nhận hàng
+                          </>
+                        )}
+                      </button>
+                      <div className="text-muted small mt-2">Click when you have received the order.</div>
+                    </div>
+                  )}
                 </div>
               </div>
 

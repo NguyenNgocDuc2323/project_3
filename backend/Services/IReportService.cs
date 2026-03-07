@@ -5,9 +5,30 @@ namespace Backend.Services
     public interface IReportService
     {
         Task<SalesSummaryDto> GetSalesSummaryAsync(DateTime? fromUtc, DateTime? toUtc);
+        Task<ChartDataDto> GetChartDataAsync(DateTime? fromUtc, DateTime? toUtc);
         Task<IReadOnlyList<ProductSalesDto>> GetProductSalesAsync(DateTime? fromUtc, DateTime? toUtc, int top);
         Task<IReadOnlyList<UserSalesDto>> GetUserSalesAsync(DateTime? fromUtc, DateTime? toUtc, int top);
         Task<IReadOnlyList<InvoiceDto>> GetInvoicesAsync(DateTime? fromUtc, DateTime? toUtc, string? status);
+    }
+
+    public class ChartDataDto
+    {
+        public List<RevenueByMonthDto> RevenueByMonth { get; set; } = new();
+        public List<OrdersByStatusDto> OrdersByStatus { get; set; } = new();
+    }
+
+    public class RevenueByMonthDto
+    {
+        public string Month { get; set; } = string.Empty;
+        public int Year { get; set; }
+        public decimal Revenue { get; set; }
+        public int OrderCount { get; set; }
+    }
+
+    public class OrdersByStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
+        public int Count { get; set; }
     }
 
     public class SalesSummaryDto

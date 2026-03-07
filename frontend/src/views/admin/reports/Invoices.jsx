@@ -106,7 +106,7 @@ const AdminReportsInvoices = () => {
                 onChange={handleChange}
                 className="form-select"
               >
-                <option value="">Tất cả</option>
+                <option value="">All</option>
                 <option value="Pending">Pending</option>
                 <option value="Paid">Paid</option>
                 <option value="Failed">Failed</option>

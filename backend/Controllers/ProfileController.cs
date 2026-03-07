@@ -307,6 +307,48 @@ namespace Backend.Controllers
                 return StatusCode(500, new { message = "An error occurred while changing password", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// User deletes their own account. Requires password confirmation.
+        /// Admin cannot delete users from here; they can only disable (IsActive = false).
+        /// </summary>
+        [HttpPost("delete-account")]
+        public async Task<IActionResult> DeleteOwnAccount([FromBody] DeleteAccountRequest request)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                if (user.Role == 1)
+                    return BadRequest(new { message = "Admin account cannot be deleted from here." });
+
+                if (string.IsNullOrEmpty(request.Password))
+                    return BadRequest(new { message = "Password is required to confirm account deletion." });
+
+                if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                    return BadRequest(new { message = "Incorrect password." });
+
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Account deleted successfully." });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "Invalid authentication" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while deleting account", error = ex.Message });
+            }
+        }
+    }
+
+    public class DeleteAccountRequest
+    {
+        public string Password { get; set; } = string.Empty;
     }
 
     public class ProfileDto
