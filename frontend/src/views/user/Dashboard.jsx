@@ -18,17 +18,17 @@ const Dashboard = () => {
     {
       title: 'Engagement ring',
       subtitle: 'Shimmering promise of love',
-      imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200&h=800&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1766910700357-a5f517a512b4?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     },
     {
       title: 'Wedding rings',
       subtitle: 'Elegant pairs for forever',
-      imageUrl: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1200&h=800&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1554047310-ab6170fc7b10?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     },
     {
       title: 'Diamond jewelry',
       subtitle: 'Brilliance for every day',
-      imageUrl: 'https://images.unsplash.com/photo-1514820720301-4c4790309f46?w=1200&h=800&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1668619322826-c98b77b9c125?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     }
   ]
 
@@ -36,37 +36,37 @@ const Dashboard = () => {
     {
       title: 'Engagement ring',
       description: 'A shimmering ring opening the path to a journey of perfect love.',
-      imageUrl: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=1200&h=900&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1518370265276-f22b706aeac8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     },
     {
       title: 'Wedding ring',
       description: 'A symbol of love and commitment, when two hearts unite as one.',
-      imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&h=900&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1632406475389-7ac505467d45?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     }
   ]
 
   const spotlightBanner = {
     title: 'GIA Diamond',
     description: 'Natural diamonds tailored specifically for your signature brilliance.',
-    imageUrl: 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=1200&h=700&fit=crop&q=80'
+    imageUrl: 'https://www.valmand.com/image/cache/wp/gj/Inele%20de%20logodna%20cu%20diamante/side%20stones/i4644/26.06.202502016-1600x1600-copy-750x750.webp'
   }
 
   const collectionTiles = [
     {
       title: 'Cutting-edge wedding ring',
-      imageUrl: 'https://images.unsplash.com/photo-1503342452485-86b7f54527ef?w=900&h=700&fit=crop&q=80'
+      imageUrl: 'https://princessjewelry.com/cdn/shop/files/MRDTI-003-8Y.jpg?height=720&v=1753304007'
     },
     {
       title: 'Eternity',
-      imageUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900&h=700&fit=crop&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1763120471664-46e3b1e19aa5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZXRlcm5pdHklMjByaW5nfGVufDB8fDB8fHww'
     },
     {
       title: 'Best selling',
-      imageUrl: 'https://images.unsplash.com/photo-1514820720301-4c4790309f46?w=900&h=700&fit=crop&q=80'
+      imageUrl: 'https://www.newworlddiamonds.com/cdn/shop/files/abigail-solitaire-engagement-ring-1-0-ct-igi-certified-for-ring-gemstone-jewelry-1_700x700.jpg?v=1757003094'
     },
     {
       title: 'New collection',
-      imageUrl: 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=900&h=700&fit=crop&q=80'
+      imageUrl: 'https://www.mohanajewels.com/cdn/shop/files/N.14.2.png?v=1753243379&width=713'
     }
   ]
 
@@ -165,7 +165,7 @@ const Dashboard = () => {
           <aside className="showcase-sidebar">
             <div className="sidebar-card promo-card">
               <img
-                src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&h=700&fit=crop&q=80"
+                src="https://media.tiffany.com/is/image/tco/2024_MDAY_MWTS_988x988_NecklacesPendants-1"
                 alt="Luxury gold and diamond"
               />
               <div className="promo-content">
@@ -189,7 +189,7 @@ const Dashboard = () => {
               <h5>New season highlights</h5>
               <p>Minimal designs with premium finish, ready for gifting.</p>
               <img
-                src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&h=520&fit=crop&q=80"
+                src="https://image.brilliantearth.com/cdn-cgi/image/width=443,height=513,quality=100,format=auto/https://cdn.builder.io/api/v1/image/assets%2F9f2a69003c86470ea05deb9ecb9887be%2Fdbcb471c39254ed2b364bc2753159fe9"
                 alt="Diamond rings"
               />
               <button className="btn btn-outline-dark btn-sm w-100" type="button">
