@@ -141,6 +141,12 @@ namespace Backend.Controllers
                 .Where(ci => ci.UserId == userId)
                 .ToListAsync();
 
+            if (orderDto.CartItemIds != null && orderDto.CartItemIds.Count > 0)
+            {
+                var idSet = orderDto.CartItemIds.ToHashSet();
+                cartItems = cartItems.Where(ci => idSet.Contains(ci.Id)).ToList();
+            }
+
             if (cartItems.Count == 0)
             {
                 return BadRequest("Cart is empty");
@@ -217,6 +223,12 @@ namespace Backend.Controllers
                 _context.OrderItems.Add(orderItem);
             }
 
+            await _context.SaveChangesAsync();
+
+            foreach (var item in cartItems)
+            {
+                _context.CartItems.Remove(item);
+            }
             await _context.SaveChangesAsync();
 
             string? paymentUrl = null;
@@ -455,6 +467,8 @@ namespace Backend.Controllers
             public string? ShippingMethod { get; set; } = "standard";
             public string PaymentMethod { get; set; } = string.Empty;
             public string? Phone { get; set; }
+            /// <summary>If provided, only these cart item IDs are included in the order. Otherwise all cart items are used.</summary>
+            public List<int>? CartItemIds { get; set; }
         }
 
         public class BuyNowOrderDto

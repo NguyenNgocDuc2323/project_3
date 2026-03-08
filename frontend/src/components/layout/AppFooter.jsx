@@ -1,5 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import logo from '../../assets/images/logo.png'
+import { ROUTES } from '../../common/constants'
 import './AppFooter.css'
 
 const AppFooter = () => {
@@ -13,10 +15,9 @@ const AppFooter = () => {
         <div className="footer-content">
           <div className="footer-section left">
             <div className="brand-section">
-              <div className="brand-icon">
-                <span className="book-emoji">💎</span>
-                <div className="icon-glow"></div>
-              </div>
+              <Link to={ROUTES.DASHBOARD} className="brand-icon brand-icon-logo">
+                <img src={logo} alt="Yash Gems & Jewelleries" />
+              </Link>
               <div className="brand-info">
                 <div className="title">Yash Gems & Jewelleries</div>
                 <div className="subtitle">Gold and Diamond Elegance</div>

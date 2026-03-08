@@ -12,6 +12,7 @@ const Checkout = () => {
   const location = useLocation()
   const user = getCurrentUser()
   const [cartItems, setCartItems] = useState([])
+  const [cartItemIdsForCheckout, setCartItemIdsForCheckout] = useState(() => location.state?.cartItemIds ?? null)
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -19,6 +20,10 @@ const Checkout = () => {
   const [errors, setErrors] = useState({})
   const [isBuyNow, setIsBuyNow] = useState(false)
   const [buyNowItem, setBuyNowItem] = useState(null)
+
+  const effectiveCartItems = cartItemIdsForCheckout?.length
+    ? cartItems.filter((i) => cartItemIdsForCheckout.includes(i.id))
+    : cartItems
   
   const [formData, setFormData] = useState({
     email: user?.email || '',
@@ -117,14 +122,17 @@ const Checkout = () => {
       const response = await cartService.getAll()
       const items = response.data || []
       setCartItems(items)
-      
-      if (items.length === 0) {
+      const idsFromState = location.state?.cartItemIds
+      if (idsFromState?.length) setCartItemIdsForCheckout(idsFromState)
+
+      const effective = idsFromState?.length ? items.filter((i) => idsFromState.includes(i.id)) : items
+      if (effective.length === 0) {
         window.showToast?.({
           severity: 'error',
-          summary: 'Empty Cart',
-          detail: 'Your cart is empty'
+          summary: idsFromState?.length ? 'Selected items unavailable' : 'Empty Cart',
+          detail: idsFromState?.length ? 'Some selected items may have been removed. Please try again from cart.' : 'Your cart is empty'
         })
-        navigate(ROUTES.SHOP)
+        navigate(ROUTES.CART)
       }
     } catch (error) {
       console.error('Failed to load cart:', error)
@@ -151,7 +159,7 @@ const Checkout = () => {
   }
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((acc, item) => acc + (item.product.mrp * item.quantity), 0)
+    return effectiveCartItems.reduce((acc, item) => acc + ((item.product?.mrp ?? 0) * (item.quantity ?? 0)), 0)
   }
 
   const calculateShipping = () => {
@@ -242,6 +250,9 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod,
         phone: String(formData.phone || '').trim()
       }
+      if (cartItemIdsForCheckout?.length && !isBuyNow) {
+        orderData.cartItemIds = cartItemIdsForCheckout
+      }
 
       const response = isBuyNow && buyNowItem
         ? await orderService.buyNow({
@@ -289,7 +300,7 @@ const Checkout = () => {
             subtotal: Number(pricing.subtotal ?? response.data.order?.subtotal ?? 0),
             discount: 0,
             total: Number(pricing.total ?? response.data.order?.total ?? 0),
-            items: cartItems.map((item, index) => ({
+            items: effectiveCartItems.map((item, index) => ({
               id: item.id || `item-${index}`,
               product: {
                 name: item.product?.name,
@@ -304,7 +315,6 @@ const Checkout = () => {
           }
           sessionStorage.setItem('lastOrder', JSON.stringify(lastOrder))
           if (!isBuyNow) {
-            await cartService.clear()
             window.dispatchEvent(new Event('cart:updated'))
           } else {
             clearBuyNowItem()
@@ -569,7 +579,7 @@ const Checkout = () => {
                     <h3 className="summary-title mb-4">Order Summary</h3>
                     
                     <div className="summary-items mb-4">
-                      {cartItems.map((item) => (
+                      {effectiveCartItems.map((item) => (
                         <div key={item.id} className="summary-item mb-3">
                           <div className="item-image">
                             <Image src={item.product.imageUrl} rounded />

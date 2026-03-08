@@ -89,8 +89,8 @@ const AdminReviewsList = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Lỗi',
-          detail: err.response?.data?.message || 'Không thể xóa đánh giá',
+          summary: 'Error',
+          detail: err.response?.data?.message || 'Unable to delete review',
           life: 4000
         })
       }
@@ -128,8 +128,8 @@ const AdminReviewsList = () => {
               <thead>
                 <tr>
                   <th style={{ width: 60 }}>#</th>
-                  <th>Sản phẩm</th>
-                  <th className="text-end" style={{ width: 140 }}>Thao tác</th>
+                  <th>Product</th>
+                  <th className="text-end" style={{ width: 140 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,7 +174,7 @@ const AdminReviewsList = () => {
                           onClick={() => loadReviewsForProduct(product)}
                         >
                           <i className="bi bi-star me-1"></i>
-                          Xem đánh giá
+                          View reviews
                         </button>
                       </td>
                     </tr>
@@ -234,7 +234,7 @@ const AdminReviewsList = () => {
                     ))}
                   </span>
                   <span className="text-muted ms-2">
-                    {stats.count} đánh giá · Trung bình {stats.average}/5
+                    {stats.count} reviews · Average {stats.average}/5
                   </span>
                 </div>
                 {reviews.length === 0 ? (
@@ -256,7 +256,7 @@ const AdminReviewsList = () => {
                             </span>
                             <span className="text-muted small ms-2">
                               {r.createdAt
-                                ? new Date(r.createdAt).toLocaleString('vi-VN', {
+                                ? new Date(r.createdAt).toLocaleString('en-US', {
                                     day: '2-digit',
                                     month: '2-digit',
                                     year: 'numeric',
@@ -271,7 +271,7 @@ const AdminReviewsList = () => {
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => setConfirmDelete({ open: true, id: r.id, username: r.username || 'User' })}
                           >
-                            <i className="bi bi-trash"></i> Xóa
+                            <i className="bi bi-trash"></i> Delete
                           </button>
                         </div>
                         {r.comment && (

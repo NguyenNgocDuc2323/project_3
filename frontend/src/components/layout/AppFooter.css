@@ -74,6 +74,19 @@
   border-radius: 16px;
   border: 1px solid #e5e5e5;
   overflow: hidden;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.brand-icon.brand-icon-logo {
+  padding: 4px;
+}
+
+.brand-icon.brand-icon-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .book-emoji {

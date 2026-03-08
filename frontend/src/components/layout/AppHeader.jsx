@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap'
+import { Navbar, Nav, NavDropdown, Container, Button, Form } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticated, isAdmin, getCurrentUser, logout } from '../../common/utils'
 import { cartService, categoryService } from '../../common/services'
@@ -14,6 +14,7 @@ const AppHeader = () => {
   const [userInfo, setUserInfo] = useState(null)
   const [cartCount, setCartCount] = useState(0)
   const [cartItems, setCartItems] = useState([])
+  const [selectedCartIds, setSelectedCartIds] = useState([])
 
   const [categoryTree, setCategoryTree] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
@@ -91,6 +92,19 @@ const AppHeader = () => {
       window.removeEventListener('storage', updateCartData)
     }
   }, [])
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setSelectedCartIds((prev) => {
+        const idSet = new Set(cartItems.map((i) => i.id))
+        const kept = prev.filter((id) => idSet.has(id))
+        const added = cartItems.filter((i) => !prev.includes(i.id)).map((i) => i.id)
+        return added.length > 0 ? [...kept, ...added] : kept.length > 0 ? kept : cartItems.map((i) => i.id)
+      })
+    } else {
+      setSelectedCartIds([])
+    }
+  }, [cartItems])
 
   const handleLogout = () => {
     logout()
@@ -219,9 +233,6 @@ const AppHeader = () => {
           </Nav>
 
           <div className="yash-actions">
-            <button type="button" className="yash-icon-btn" aria-label="Location">
-              <i className="bi bi-geo-alt"></i>
-            </button>
             {!isAuthenticated() ? (
               <button
                 type="button"
@@ -292,11 +303,24 @@ const AppHeader = () => {
                   </div>
                 ) : (
                   cartItems.map((item) => (
-                    <div key={item.id} className="cart-dropdown-item p-3 d-flex gap-3 align-items-center border-bottom">
+                    <div key={item.id} className="cart-dropdown-item p-3 d-flex gap-2 align-items-center border-bottom">
+                      <Form.Check
+                        type="checkbox"
+                        id={`header-cart-${item.id}`}
+                        checked={selectedCartIds.includes(item.id)}
+                        onChange={() => {
+                          setSelectedCartIds((prev) =>
+                            prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                          )
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="cart-dropdown-checkbox flex-shrink-0"
+                        aria-label={`Select ${item.product?.name}`}
+                      />
                       <img 
                         src={item.product?.imageUrl || 'https://via.placeholder.com/50'} 
                         alt={item.product?.name} 
-                        style={{ width: '50px', height: '60px', objectFit: 'cover' }}
+                        style={{ width: '50px', height: '60px', objectFit: 'cover', flexShrink: 0 }}
                       />
                       <div className="flex-grow-1 min-width-0">
                         <h6 className="mb-1 text-truncate small fw-bold">{item.product?.name}</h6>
@@ -312,17 +336,29 @@ const AppHeader = () => {
               {cartItems.length > 0 && (
                 <div className="cart-dropdown-footer p-3">
                   <div className="d-flex justify-content-between mb-3">
-                    <span className="text-muted small">Subtotal:</span>
+                    <span className="text-muted small">
+                      {selectedCartIds.length > 0 ? `Subtotal (${selectedCartIds.length}):` : 'Subtotal:'}
+                    </span>
                     <span className="fw-bold text-dark">
-                      {cartItems.reduce((total, item) => total + (item.product?.mrp * item.quantity), 0).toLocaleString('vi-VN')}₫
+                      {(() => {
+                        const selected = cartItems.filter((i) => selectedCartIds.includes(i.id))
+                        return selected.reduce((total, item) => total + (item.product?.mrp ?? 0) * (item.quantity ?? 0), 0).toLocaleString('vi-VN') + '₫'
+                      })()}
                     </span>
                   </div>
                   <div className="d-grid gap-2">
                     <Button variant="dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CART)}>
                       View cart
                     </Button>
-                    <Button variant="outline-dark" size="sm" className="rounded-0 text-uppercase" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} onClick={() => navigate(ROUTES.CHECKOUT)}>
-                      Checkout
+                    <Button 
+                      variant="outline-dark" 
+                      size="sm" 
+                      className="rounded-0 text-uppercase" 
+                      style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }} 
+                      disabled={selectedCartIds.length === 0}
+                      onClick={() => navigate(ROUTES.CHECKOUT, { state: { cartItemIds: selectedCartIds } })}
+                    >
+                      Checkout {selectedCartIds.length > 0 ? `(${selectedCartIds.length})` : ''}
                     </Button>
                   </div>
                 </div>

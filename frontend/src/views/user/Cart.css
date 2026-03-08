@@ -49,6 +49,23 @@
   background-color: #fafafa;
 }
 
+.cart-item-checkbox {
+  flex-shrink: 0;
+  padding-right: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.cart-item-checkbox .form-check-input {
+  cursor: pointer;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.cart-select-all .form-check-input {
+  cursor: pointer;
+}
+
 .cart-item-image {
   width: 120px;
   height: 150px;

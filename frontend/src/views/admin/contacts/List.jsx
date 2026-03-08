@@ -37,8 +37,8 @@ const AdminContactsList = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Lỗi',
-          detail: err.response?.data?.message || 'Không tải được danh sách liên hệ',
+          summary: 'Error',
+          detail: err.response?.data?.message || 'Failed to load contacts',
           life: 4000
         })
       }
@@ -94,8 +94,8 @@ const AdminContactsList = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'success',
-          summary: 'Thành công',
-          detail: 'Đã đánh dấu đã xử lý và gửi email phản hồi.',
+          summary: 'Success',
+          detail: 'Marked as resolved and reply email sent.',
           life: 3000
         })
       }
@@ -124,8 +124,8 @@ const AdminContactsList = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'success',
-          summary: 'Đã xóa',
-          detail: 'Liên hệ đã được xóa.',
+          summary: 'Deleted',
+          detail: 'Contact has been deleted.',
           life: 3000
         })
       }
@@ -136,8 +136,8 @@ const AdminContactsList = () => {
       if (window.showToast) {
         window.showToast({
           severity: 'error',
-          summary: 'Lỗi',
-          detail: err.response?.data?.message || 'Không thể xóa.',
+          summary: 'Error',
+          detail: err.response?.data?.message || 'Unable to delete.',
           life: 4000
         })
       }
@@ -148,7 +148,7 @@ const AdminContactsList = () => {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
-    return new Date(dateStr).toLocaleString('vi-VN', {
+    return new Date(dateStr).toLocaleString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -162,10 +162,10 @@ const AdminContactsList = () => {
       <div className="mb-4">
         <h1 className="display-6 fw-bold mb-1">
           <i className="bi bi-envelope me-2"></i>
-          Quản lý liên hệ
+          Manage contacts
         </h1>
         <p className="text-muted mb-0">
-          Xem và phản hồi tin nhắn từ form liên hệ.
+          View and reply to messages from the contact form.
         </p>
       </div>
 
@@ -178,35 +178,35 @@ const AdminContactsList = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Tìm theo tên, email, chủ đề..."
+                  placeholder="Search by name, email, subject..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
             <div className="col-md-6 d-flex align-items-center gap-2 flex-wrap">
-              <span className="text-muted small">Lọc:</span>
+              <span className="text-muted small">Filter:</span>
               <div className="btn-group btn-group-sm">
                 <button
                   type="button"
                   className={`btn ${filter === FILTER_ALL ? 'btn-primary' : 'btn-outline-secondary'}`}
                   onClick={() => setFilter(FILTER_ALL)}
                 >
-                  Tất cả
+                  All
                 </button>
                 <button
                   type="button"
                   className={`btn ${filter === FILTER_PENDING ? 'btn-warning' : 'btn-outline-secondary'}`}
                   onClick={() => setFilter(FILTER_PENDING)}
                 >
-                  Chưa xử lý
+                  Pending
                 </button>
                 <button
                   type="button"
                   className={`btn ${filter === FILTER_RESOLVED ? 'btn-success' : 'btn-outline-secondary'}`}
                   onClick={() => setFilter(FILTER_RESOLVED)}
                 >
-                  Đã xử lý
+                  Resolved
                 </button>
               </div>
             </div>
@@ -217,12 +217,12 @@ const AdminContactsList = () => {
               <thead>
                 <tr>
                   <th style={{ width: 50 }}>#</th>
-                  <th>Tên</th>
-                  <th>Email / SĐT</th>
-                  <th>Chủ đề</th>
-                  <th>Ngày gửi</th>
-                  <th style={{ width: 100 }}>Trạng thái</th>
-                  <th style={{ width: 180 }} className="text-end">Thao tác</th>
+                  <th>Name</th>
+                  <th>Email / Phone</th>
+                  <th>Subject</th>
+                  <th>Sent</th>
+                  <th style={{ width: 100 }}>Status</th>
+                  <th style={{ width: 180 }} className="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,7 +237,7 @@ const AdminContactsList = () => {
                 ) : totalFiltered === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-4 text-muted">
-                      Không có liên hệ nào.
+                      No contacts found.
                     </td>
                   </tr>
                 ) : (
@@ -263,9 +263,9 @@ const AdminContactsList = () => {
                       <td className="small text-muted">{formatDate(contact.createdAt)}</td>
                       <td>
                         {contact.isResolved ? (
-                          <span className="badge bg-success">Đã xử lý</span>
+                          <span className="badge bg-success">Resolved</span>
                         ) : (
-                          <span className="badge bg-warning text-dark">Chưa xử lý</span>
+                          <span className="badge bg-warning text-dark">Pending</span>
                         )}
                       </td>
                       <td className="text-end">
@@ -274,7 +274,7 @@ const AdminContactsList = () => {
                             type="button"
                             className="btn btn-outline-primary"
                             onClick={() => setDetailModal({ open: true, contact })}
-                            title="Xem chi tiết"
+                            title="View details"
                           >
                             <i className="bi bi-eye"></i>
                           </button>
@@ -292,7 +292,7 @@ const AdminContactsList = () => {
                             type="button"
                             className="btn btn-outline-danger"
                             onClick={() => setConfirmDelete({ open: true, id: contact.id, name: contact.name || contact.email })}
-                            title="Xóa"
+                            title="Delete"
                           >
                             <i className="bi bi-trash"></i>
                           </button>
@@ -314,7 +314,7 @@ const AdminContactsList = () => {
         onPageChange={setCurrentPage}
         onPageSizeChange={setPageSize}
         showPageSizeSelect
-        label="liên hệ"
+        label="contacts"
       />
 
       {/* Detail modal */}
@@ -325,30 +325,30 @@ const AdminContactsList = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-envelope me-2"></i>
-                  Chi tiết liên hệ
+                  Contact details
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setDetailModal({ open: false, contact: null })} aria-label="Close" />
               </div>
               <div className="modal-body">
-                <p><strong>Tên:</strong> {detailModal.contact.name}</p>
+                <p><strong>Name:</strong> {detailModal.contact.name}</p>
                 <p><strong>Email:</strong> <a href={`mailto:${detailModal.contact.email}`}>{detailModal.contact.email}</a></p>
-                {detailModal.contact.phone && <p><strong>Số điện thoại:</strong> {detailModal.contact.phone}</p>}
-                <p><strong>Chủ đề:</strong> {detailModal.contact.subject}</p>
-                <p><strong>Ngày gửi:</strong> {formatDate(detailModal.contact.createdAt)}</p>
+                {detailModal.contact.phone && <p><strong>Phone:</strong> {detailModal.contact.phone}</p>}
+                <p><strong>Subject:</strong> {detailModal.contact.subject}</p>
+                <p><strong>Sent:</strong> {formatDate(detailModal.contact.createdAt)}</p>
                 <hr />
-                <p><strong>Nội dung:</strong></p>
+                <p><strong>Message:</strong></p>
                 <div className="bg-light p-3 rounded small">{detailModal.contact.message || '-'}</div>
                 {detailModal.contact.isResolved && detailModal.contact.adminResponse && (
                   <>
                     <hr />
-                    <p><strong>Phản hồi admin:</strong></p>
+                    <p><strong>Admin response:</strong></p>
                     <div className="bg-light p-3 rounded small">{detailModal.contact.adminResponse}</div>
                   </>
                 )}
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setDetailModal({ open: false, contact: null })}>
-                  Đóng
+                  Close
                 </button>
                 {!detailModal.contact.isResolved && (
                   <button
@@ -359,7 +359,7 @@ const AdminContactsList = () => {
                       setResolveModal({ open: true, contact: detailModal.contact, response: '' })
                     }}
                   >
-                    <i className="bi bi-reply me-1"></i> Phản hồi
+                    <i className="bi bi-reply me-1"></i> Reply
                   </button>
                 )}
               </div>
@@ -374,7 +374,7 @@ const AdminContactsList = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Phản hồi & đánh dấu đã xử lý</h5>
+                <h5 className="modal-title">Reply & mark as resolved</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -384,13 +384,13 @@ const AdminContactsList = () => {
               </div>
               <div className="modal-body">
                 <p className="text-muted small mb-2">
-                  Gửi tới: <strong>{resolveModal.contact.email}</strong> — Chủ đề: {resolveModal.contact.subject}
+                  Send to: <strong>{resolveModal.contact.email}</strong> — Subject: {resolveModal.contact.subject}
                 </p>
-                <label className="form-label">Nội dung phản hồi (sẽ gửi email cho khách)</label>
+                <label className="form-label">Response (will be sent by email to the customer)</label>
                 <textarea
                   className="form-control"
                   rows={5}
-                  placeholder="Nhập nội dung phản hồi..."
+                  placeholder="Enter your response..."
                   value={resolveModal.response}
                   onChange={(e) => setResolveModal(prev => ({ ...prev, response: e.target.value }))}
                   disabled={resolveSubmitting}
@@ -403,7 +403,7 @@ const AdminContactsList = () => {
                   onClick={() => !resolveSubmitting && setResolveModal({ open: false, contact: null, response: '' })}
                   disabled={resolveSubmitting}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -414,12 +414,12 @@ const AdminContactsList = () => {
                   {resolveSubmitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" />
-                      Đang gửi...
+                      Sending...
                     </>
                   ) : (
                     <>
                       <i className="bi bi-send me-1"></i>
-                      Gửi phản hồi & đánh dấu đã xử lý
+                      Send response & mark resolved
                     </>
                   )}
                 </button>
@@ -431,10 +431,10 @@ const AdminContactsList = () => {
 
       <ConfirmModal
         open={confirmDelete.open}
-        title="Xóa liên hệ"
-        message={`Bạn có chắc muốn xóa liên hệ từ "${confirmDelete.name}"? Hành động không thể hoàn tác.`}
-        confirmText="Xóa"
-        cancelText="Hủy"
+        title="Delete contact"
+        message={`Are you sure you want to delete the contact from "${confirmDelete.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
         variant="danger"
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete({ open: false, id: null, name: '' })}

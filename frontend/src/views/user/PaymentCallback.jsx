@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Container, Card, Button } from 'react-bootstrap'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../common/constants'
-import { cartService, orderService } from '../../common/services'
+import { orderService } from '../../common/services'
 import { clearBuyNowItem, getBuyNowItem } from '../../common/shopActions'
 import './PaymentCallback.css'
 
@@ -33,12 +33,10 @@ const PaymentCallback = () => {
       const buyNowItem = getBuyNowItem()
       if (buyNowItem) {
         clearBuyNowItem()
-      } else {
-        // Clear cart on success
-        cartService.clear().then(() => {
-          window.dispatchEvent(new Event('cart:updated'))
-        }).catch(err => console.error('Failed to clear cart:', err))
       }
+      // Cart items that were in this order were already removed by the backend when the order was created.
+      // Just refresh cart UI so remaining items (if user checked out only some) are shown.
+      window.dispatchEvent(new Event('cart:updated'))
 
       window.showToast?.({
         severity: 'success',

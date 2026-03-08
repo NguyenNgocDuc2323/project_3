@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Card, Button, Row, Col, Spinner, Alert, Image, Modal } from 'react-bootstrap'
+import { Container, Card, Button, Row, Col, Spinner, Alert, Image, Modal, Form } from 'react-bootstrap'
 import { useNavigate, Link } from 'react-router-dom'
 import { cartService } from '../../common/services'
 import { ROUTES } from '../../common/constants'
@@ -8,6 +8,7 @@ import './Cart.css'
 const Cart = () => {
   const navigate = useNavigate()
   const [cartItems, setCartItems] = useState([])
+  const [selectedIds, setSelectedIds] = useState([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState(null)
@@ -23,7 +24,9 @@ const Cart = () => {
       setLoading(true)
       setError(null)
       const response = await cartService.getAll()
-      setCartItems(response.data || [])
+      const items = response.data || []
+      setCartItems(items)
+      setSelectedIds(items.map((i) => i.id))
     } catch (error) {
       console.error('Error loading cart:', error)
       setError('Unable to load your cart. Please try again.')
@@ -31,6 +34,24 @@ const Cart = () => {
       setLoading(false)
     }
   }
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const selectAll = () => {
+    setSelectedIds(cartItems.map((i) => i.id))
+  }
+
+  const deselectAll = () => {
+    setSelectedIds([])
+  }
+
+  const isAllSelected = cartItems.length > 0 && selectedIds.length === cartItems.length
+  const isNoneSelected = selectedIds.length === 0
+  const selectedItems = cartItems.filter((item) => selectedIds.includes(item.id))
 
   const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 1) return
@@ -65,7 +86,9 @@ const Cart = () => {
       setUpdating(true)
       setShowDeleteModal(false)
       await cartService.remove(productIdToDelete)
+      const removingCartId = cartItems.find(i => (i.productId || i.ProductId) === productIdToDelete)?.id
       setCartItems(prevItems => prevItems.filter(item => (item.productId || item.ProductId) !== productIdToDelete))
+      if (removingCartId != null) setSelectedIds(prev => prev.filter(id => id !== removingCartId))
       window.dispatchEvent(new Event('cart:updated'))
       
       window.showToast?.({
@@ -82,7 +105,7 @@ const Cart = () => {
   }
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.product?.mrp * item.quantity), 0)
+    return selectedItems.reduce((total, item) => total + (item.product?.mrp ?? 0) * (item.quantity ?? 0), 0)
   }
 
   if (loading) {
@@ -113,12 +136,29 @@ const Cart = () => {
           <Row className="g-4">
             <Col lg={8}>
               <Card className="cart-card">
-                <Card.Header className="cart-header">
-                  <h5>Items ({cartItems.length})</h5>
+                <Card.Header className="cart-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <h5 className="mb-0">Items ({cartItems.length})</h5>
+                  <Form.Check
+                    type="checkbox"
+                    id="cart-select-all"
+                    label="Select all"
+                    checked={isAllSelected}
+                    onChange={() => (isAllSelected ? deselectAll() : selectAll())}
+                    className="cart-select-all small"
+                  />
                 </Card.Header>
                 <Card.Body className="p-0">
                   {cartItems.map((item) => (
                     <div key={item.id} className="cart-item">
+                      <div className="cart-item-checkbox">
+                        <Form.Check
+                          type="checkbox"
+                          id={`cart-item-${item.id}`}
+                          checked={selectedIds.includes(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          aria-label={`Select ${item.product?.name}`}
+                        />
+                      </div>
                       <div className="cart-item-image">
                         <Image src={item.product?.imageUrl} fluid />
                       </div>
@@ -181,12 +221,18 @@ const Cart = () => {
                     <span>Estimated Total</span>
                     <span>{calculateSubtotal().toLocaleString('en-US')}₫</span>
                   </div>
+                  {selectedItems.length > 0 && (
+                    <p className="small text-muted mb-0 mt-2">
+                      {selectedItems.length} item(s) selected
+                    </p>
+                  )}
                   <Button 
                     variant="dark" 
                     className="w-100 btn-checkout mt-4"
-                    onClick={() => navigate(ROUTES.CHECKOUT)}
+                    disabled={isNoneSelected}
+                    onClick={() => navigate(ROUTES.CHECKOUT, { state: { cartItemIds: selectedIds } })}
                   >
-                    Proceed to Checkout
+                    Proceed to Checkout {selectedItems.length > 0 && `(${selectedItems.length})`}
                   </Button>
                   <div className="text-center mt-3">
                     <Link to={ROUTES.SHOP} className="text-dark small text-decoration-none">
